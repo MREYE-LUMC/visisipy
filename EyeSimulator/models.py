@@ -1,17 +1,12 @@
 from __future__ import annotations
 
-import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, InitVar
 from typing import Any
-from scipy.interpolate import interp1d
 
 import zospy as zp
 import zospy.api._ZOSAPI as _ZOSAPI
 from zospy.zpcore import OpticStudioSystem
-
-import pandas as pd
-import numpy as np
 
 
 class Surface:
