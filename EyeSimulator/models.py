@@ -33,6 +33,7 @@ class Surface:
 
     @property
     def comment(self) -> str:
+        """Surface description."""
         return self._get_surface_property("Comment")
 
     @comment.setter
@@ -41,6 +42,7 @@ class Surface:
 
     @property
     def radius(self) -> float:
+        """Radius of curvature, in mm."""
         return self._get_surface_property("Radius")
 
     @radius.setter
@@ -49,6 +51,7 @@ class Surface:
 
     @property
     def thickness(self) -> float:
+        """Distance to the next surface, in mm."""
         return self._get_surface_property("Thickness")
 
     @thickness.setter
@@ -57,6 +60,7 @@ class Surface:
 
     @property
     def semi_diameter(self) -> float:
+        """Semi diameter (radius) of the pupil at this surface, in mm."""
         return self._get_surface_property("SemiDiameter")
 
     @semi_diameter.setter
@@ -65,6 +69,11 @@ class Surface:
 
     @property
     def conic(self) -> float:
+        """Asphericity of the surface, as conic constant.
+
+        For more information about the definition of the conic constant, see
+        https://en.wikipedia.org/wiki/Conic_constant.
+        """
         return self._get_surface_property("Conic")
 
     @conic.setter
@@ -73,6 +82,7 @@ class Surface:
 
     @property
     def refractive_index(self):
+        """Refractive index of the medium."""
         if self._is_built:
             if (m := self.surface.MaterialCell.GetSolveData()._S_MaterialModel) is not None:
                 return float(m.IndexNd)
@@ -90,6 +100,7 @@ class Surface:
 
     @property
     def is_stop(self) -> bool:
+        """`True` if this is a STOP surface."""
         return self._get_surface_property("IsStop")
 
     @is_stop.setter
@@ -98,6 +109,10 @@ class Surface:
 
     @property
     def surface(self) -> _ZOSAPI.Editors.LDE.ILDERow | None:
+        """OpticStudio surface object.
+
+        This property only has a value if the surface has been built with `Surface.build`.
+        """
         return self._surface
 
     def build(self, oss: OpticStudioSystem, position: int, replace_existing: bool = False):
@@ -112,7 +127,7 @@ class Surface:
         oss : zospy.zpcore.OpticStudioSystem
             OpticStudioSystem in which the surface is created.
         position : int
-            Index at which the surface of the is located.
+            Index at which the surface is located.
         replace_existing : bool
             If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
         """
@@ -277,19 +292,72 @@ class BaseEye(ABC):
 
     @abstractmethod
     def build(self, oss: OpticStudioSystem, start_from_index: int, replace_existing: bool):
+        """Create the eye in OpticStudio.
+
+        Create the eye model in the provided `OpticStudioSystem` `oss`, starting from `start_from_index`.
+        The iris (pupil) is located at the STOP surface, and the retina at the IMAGE surface. For the other
+        parts, new surfaces will be inserted by default. If `replace_existing` is set to `True`, existing
+        surfaces will be overwritten.
+
+        Parameters
+        ----------
+        oss : zospy.zpcore.OpticStudioSystem
+            OpticStudioSystem in which the eye model is created.
+        start_from_index : int
+            Index at which the first  surface of the eye is located.
+        replace_existing : bool
+            If `True`, replaces existing surfaces instead of inserting new ones. Defaults to `False`.
+
+        Raises
+        ------
+        AssertionError
+            If the retina is not located at the IMAGE surface.
+        """
         ...
 
     @property
     def surfaces(self) -> dict[str, Surface]:
+        """Dictionary with surface names as keys and surfaces as values."""
         return {k: v for k, v in self.__dict__.items() if isinstance(v, Surface)}
 
-    def update_surfaces(self, attribute: str, value: Any, surfaces: list[str] = None):
-        surfaces = surfaces or self.surfaces.keys()
+    def update_surfaces(self, attribute: str, value: Any, surfaces: list[str] = None) -> None:
+        """Batch update all surfaces.
+
+        Set `attribute` to `value` for multiple surfaces. If `surfaces` is not specified, all surfaces of the eye
+        model are updated.
+
+        Parameters
+        ----------
+        attribute : str
+            Name of the attribute to update
+        value : Any
+            New value of the surface attribute
+        surfaces : list[str]
+            List of surfaces to be updated. If not specified, all surfaces are updated.
+
+        Returns
+        -------
+
+        """
+        surfaces = [self.surfaces[s] for s in surfaces] if surfaces is not None else self.surfaces.keys()
 
         for s in surfaces:
             setattr(s, attribute, value)
 
     def relink_surfaces(self, oss: OpticStudioSystem) -> bool:
+        """Link surfaces to OpticStudio surfaces based on their comments.
+
+        Attempt to re-link the surfaces of the eye to surfaces defined in OpticStudio, using the surface's comments.
+
+        Parameters
+        ----------
+        oss : zospy.zpcore.OpticStudioSystem
+
+        Returns
+        -------
+        bool
+            `True` if all surfaces could be relinked, `False` otherwise.
+        """
         result = [s.relink_surface(oss) for s in self.surfaces.values()]
 
         return all(result)
@@ -340,6 +408,7 @@ class Eye(BaseEye):
 
     @property
     def cornea_front(self) -> Surface:
+        """Cornea front surface."""
         return self._cornea_front
 
     @cornea_front.setter
@@ -348,6 +417,7 @@ class Eye(BaseEye):
 
     @property
     def cornea_back(self) -> Surface:
+        """Cornea back surface."""
         return self._cornea_back
 
     @cornea_back.setter
@@ -356,6 +426,7 @@ class Eye(BaseEye):
 
     @property
     def iris(self) -> Surface:
+        """Iris / pupil surface."""
         return self._iris
 
     @iris.setter
@@ -364,6 +435,7 @@ class Eye(BaseEye):
 
     @property
     def lens_front(self) -> Surface:
+        """Lens front surface."""
         return self._lens_front
 
     @lens_front.setter
@@ -372,6 +444,7 @@ class Eye(BaseEye):
 
     @property
     def lens_back(self) -> Surface:
+        """Lens back surface."""
         return self._lens_back
 
     @lens_back.setter
@@ -380,6 +453,7 @@ class Eye(BaseEye):
 
     @property
     def retina(self) -> Surface:
+        """Retina surface."""
         return self._retina
 
     @retina.setter
@@ -402,11 +476,11 @@ class Eye(BaseEye):
         Parameters
         ----------
         oss : zospy.zpcore.OpticStudioSystem
-            OpticStudioSystem in which the surface is created.
-        position : int
-            Index at which the surface of the is located.
+            OpticStudioSystem in which the eye model is created.
+        start_from_index : int
+            Index at which the first  surface of the eye is located.
         replace_existing : bool
-            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+            If `True`, replaces existing surfaces instead of inserting new ones. Defaults to `False`.
 
         Raises
         ------
