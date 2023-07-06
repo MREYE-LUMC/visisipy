@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, InitVar
+from dataclasses import InitVar, dataclass, field
 from typing import Any
 
 import zospy as zp
@@ -185,7 +185,7 @@ class Surface:
         "Thickness": "_thickness",
         "SemiDiameter": "_semi_diameter",
         "Conic": "_conic",
-        "IsStop": "_is_stop"
+        "IsStop": "_is_stop",
     }
 
     def _get_surface_property(self, name: str):
