@@ -318,7 +318,7 @@ class BaseEye(ABC):
     @property
     def surfaces(self) -> dict[str, Surface]:
         """Dictionary with surface names as keys and surfaces as values."""
-        return {k: v for k, v in self.__dict__.items() if isinstance(v, Surface)}
+        return {k.lstrip("_"): v for k, v in self.__dict__.items() if isinstance(v, Surface)}
 
     def update_surfaces(self, attribute: str, value: Any, surfaces: list[str] = None) -> None:
         """Batch update all surfaces.
