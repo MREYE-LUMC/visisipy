@@ -496,3 +496,123 @@ class Eye(BaseEye):
 
         # Sanity checks
         assert self.retina.surface.IsImage, "The retina is not located at the image position"
+
+
+class ReverseEye(BaseEye):
+    def __init__(self, geometry: EyeGeometry = EyeGeometry(), materials: EyeMaterials = EyeMaterials()):
+        self._retina = Surface(
+            comment="retina / vitreous",
+            radius=-1 * geometry.retina_curvature,
+            conic=geometry.retina_asphericity,
+            thickness=geometry.vitreous_thickness,
+            refractive_index=materials.vitreous_refractive_index,
+        )
+        self._lens_back = Surface(
+            comment="lens back",
+            radius=-1 * geometry.lens_back_curvature,
+            conic=geometry.lens_back_asphericity,
+            thickness=geometry.lens_thickness,
+            refractive_index=materials.lens_refractive_index,
+        )
+        self._lens_front = Surface(
+            comment="lens front",
+            radius=-1 * geometry.lens_front_curvature,
+            conic=-geometry.lens_front_asphericity,
+            refractive_index=materials.aqueous_refractive_index,
+        )
+        self._iris = Surface(
+            comment="iris",
+            is_stop=True,
+            refractive_index=materials.aqueous_refractive_index,
+            semi_diameter=geometry.iris_radius,
+        )
+        self._aqueous = Surface(
+            comment="aqueous",
+            thickness=geometry.anterior_chamber_depth,
+            refractive_index=materials.aqueous_refractive_index,
+        )
+        self._cornea_back = Surface(
+            comment="cornea back",
+            radius=-1 * geometry.cornea_back_curvature,
+            conic=geometry.cornea_back_asphericity,
+            thickness=geometry.cornea_thickness,
+            refractive_index=materials.cornea_refractive_index,
+        )
+        self._cornea_front = Surface(
+            comment="cornea front",
+            radius=-1 * geometry.cornea_front_curvature,
+            conic=geometry.cornea_front_asphericity,
+        )
+
+    @property
+    def cornea_front(self) -> Surface:
+        return self._cornea_front
+
+    @cornea_front.setter
+    def cornea_front(self, value: Surface) -> None:
+        self._cornea_front = value
+
+    @property
+    def cornea_back(self) -> Surface:
+        return self._cornea_back
+
+    @cornea_back.setter
+    def cornea_back(self, value: Surface) -> None:
+        self._cornea_back = value
+
+    @property
+    def aqueous(self) -> Surface:
+        return self._aqueous
+
+    @aqueous.setter
+    def aqueous(self, value: Surface) -> None:
+        self._aqueous = value
+
+    @property
+    def iris(self) -> Surface:
+        return self._iris
+
+    @iris.setter
+    def iris(self, value: Surface) -> None:
+        self._iris = value
+
+    @property
+    def lens_front(self) -> Surface:
+        return self._lens_front
+
+    @lens_front.setter
+    def lens_front(self, value: Surface) -> None:
+        self._lens_front = value
+
+    @property
+    def lens_back(self) -> Surface:
+        return self._lens_back
+
+    @lens_back.setter
+    def lens_back(self, value: Surface) -> None:
+        self._lens_back = value
+
+    @property
+    def retina(self) -> Surface:
+        return self._retina
+
+    @retina.setter
+    def retina(self, value: Surface) -> None:
+        self._retina = value
+
+    def build(
+        self,
+        oss: OpticStudioSystem,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+    ):
+        self.retina.build(oss, start_from_index, replace_existing=True)
+        self.lens_back.build(oss, start_from_index + 1, replace_existing)
+        self.lens_front.build(oss, start_from_index + 2, replace_existing)
+        self.iris.build(oss, start_from_index + 3, replace_existing=True)
+        self.aqueous.build(oss, start_from_index + 4, replace_existing)
+        self.cornea_back.build(oss, start_from_index + 5, replace_existing)
+        self.cornea_front.build(oss, start_from_index + 6, replace_existing)
+
+        # Sanity checks
+        assert self.retina.surface.IsObject, "The retina is not located at the object position"
