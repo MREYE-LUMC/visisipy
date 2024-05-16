@@ -20,18 +20,36 @@ In its current state, `EyeSimulator` provides
 ## Example
 
 ```python
+import visisipy
+import matplotlib.pyplot as plt
+
+# Initialize the default Navarro model
+model = visisipy.EyeModel()
+
+# Build the model in OpticStudio
+model.build()
+
+# Visualize the model
+fig, ax = plt.subplots()
+visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
+ax.set_xlim((-7, 23))
+ax.set_ylim((-15, 15))
+ax.set_aspect('equal')
+plt.show()
+```
+
+```python
 import zospy as zp
-from EyeSimulator import Eye, EyeGeometry
+from visisipy import EyeModel, NavarroGeometry
+from visisipy.opticstudio import OpticStudioEye
 
 # Initialize ZOSPy
 zos = zp.ZOS()
-zos.wakeup()
-zos.connect_as_extension()
-oss = zos.get_primary_system()
+oss = zos.connect()
 
 # Initialize an eye, using a slightly modified Navarro model
-geometry = EyeGeometry(iris_radius=0.5)
-eye = Eye(geometry)
+eye_model = EyeModel(NavarroGeometry(iris_radius=0.5))
+eye = OpticStudioEye(eye_model)
 
 # Update a parameter of one of the eye's surfaces
 eye.lens_front.refractive_index += 1.0
@@ -49,7 +67,7 @@ oss.LDE.InsertNewSurfaceAt(1).Comment = "input beam"
 eye.relink_surfaces(oss)
 
 # Check if the relinking succeeded
-assert eye.lens_back.radius == geometry.lens_back_curvature
+assert eye.lens_back.radius == eye_model.geometry.lens_back_curvature
 ```
 
 ## Future ideas

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import InitVar, dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import zospy as zp
-import zospy.api._ZOSAPI as _ZOSAPI
-from zospy.zpcore import OpticStudioSystem
+
+if TYPE_CHECKING:
+    from zospy.api import _ZOSAPI
+    from zospy.zpcore import OpticStudioSystem
 
 
 class Surface:
@@ -15,10 +16,11 @@ class Surface:
         comment: str,
         radius: float = float("inf"),
         thickness: float = 0.0,
-        semi_diameter: float = None,
+        semi_diameter: float | None = None,
         conic: float = 0.0,
-        refractive_index: float = None,
-        is_stop: bool = None,
+        refractive_index: float | None = None,
+        *,
+        is_stop: bool | None = None,
     ):
         self._comment = comment
         self._radius = radius
@@ -115,7 +117,7 @@ class Surface:
         """
         return self._surface
 
-    def build(self, oss: OpticStudioSystem, position: int, replace_existing: bool = False):
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
         """Create the surface in OpticStudio.
 
         Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
@@ -201,93 +203,9 @@ class Surface:
             setattr(self, self._SURFACE_PROPERTY_NAMES[name], value)
 
 
-@dataclass
-class EyeGeometry:
-    """Geometric parameters of an eye.
-
-    Geometric parameters of an eye, defaulting to the Navarro model.
-    Sizes are specified in mm.
-
-    Attributes
-    ----------
-    axial_length : float
-        Axial length of the eye, measured from cornea front to retina.
-    lens_thickness : float
-        Thickness of the crystalline lens
-    lens_front_curvature : float
-        Radius of curvature of the frontal lens surface
-    lens_back_curvature : float
-        Radius of curvature of the back lens surface
-    iris_radius : float
-        Radius of the iris
-    anterior_chamber_depth : float
-        Depth of the anterior chamber
-    cornea_thickness : float
-        Thickness of the cornea
-    cornea_front_curvature : float
-        Radius of curvature of the frontal cornea surface
-    cornea_back_curvature : float
-        Radius of curvature of the back cornea surface
-    vitreous_thickness : float
-        Thickness of the vitreous. This parameter is calculated from the other parameters.
-    """
-
-    axial_length: float = 23.9203
-    lens_thickness: float = 4.0
-    lens_back_curvature: float = -6.0
-    lens_back_asphericity: float = -1
-    lens_front_curvature: float = 10.2
-    lens_front_asphericity: float = -3.1316
-    iris_radius: float = 1.348
-    anterior_chamber_depth: float = 3.05
-    cornea_thickness: float = 0.55
-    cornea_back_curvature: float = 6.50
-    cornea_back_asphericity: float = 0
-    cornea_front_curvature: float = 7.72
-    cornea_front_asphericity: float = -0.26
-    retina_curvature: float = -12
-    retina_asphericity: float = 0
-
-    estimate_cornea_back: InitVar[bool] = False
-
-    vitreous_thickness: float = field(init=False)
-
-    def __post_init__(self, estimate_cornea_back: bool):
-        self.vitreous_thickness = self.axial_length - (
-            self.cornea_thickness + self.anterior_chamber_depth + self.lens_thickness
-        )
-
-        if estimate_cornea_back:
-            self.cornea_back_curvature = 0.81 * self.cornea_front_curvature
-
-
-@dataclass
-class EyeMaterials:
-    """Material parameters of an eye.
-
-    Material parameters of an eye, defaulting to the Navarro model.
-
-    Attributes
-    ----------
-    cornea_refractive_index : float
-        Refractive index of the cornea.
-    aqueous_refractive_index : float
-        Refractive index of the aqueous_refractive_index humour.
-    lens_refractive_index : float
-        Refractive index of the crystalline lens.
-    vitreous_refractive_index : float
-        Refractive index of the vitreous humour.
-    """
-
-    cornea_refractive_index: float = 1.3777
-    aqueous_refractive_index: float = 1.3391
-    lens_refractive_index: float = 1.4222
-    vitreous_refractive_index: float = 1.3377
-
-
 class BaseEye(ABC):
     @abstractmethod
-    def __init__(self, parameters: EyeGeometry, materials: EyeMaterials):
+    def __init__(self, model: EyeModel):
         ...
 
     @abstractmethod
@@ -364,7 +282,11 @@ class BaseEye(ABC):
 
 
 class Eye(BaseEye):
-    def __init__(self, geometry: EyeGeometry = EyeGeometry(), materials: EyeMaterials = EyeMaterials()):
+    def __init__(
+        self,
+        geometry: EyeGeometry = EyeGeometry(),
+        materials: EyeMaterials = EyeMaterials(),
+    ):
         self._cornea_front = Surface(
             comment="cornea front",
             radius=geometry.cornea_front_curvature,
@@ -499,7 +421,11 @@ class Eye(BaseEye):
 
 
 class ReverseEye(BaseEye):
-    def __init__(self, geometry: EyeGeometry = EyeGeometry(), materials: EyeMaterials = EyeMaterials()):
+    def __init__(
+        self,
+        geometry: EyeGeometry = EyeGeometry(),
+        materials: EyeMaterials = EyeMaterials(),
+    ):
         self._retina = Surface(
             comment="retina / vitreous",
             radius=-1 * geometry.retina_curvature,
