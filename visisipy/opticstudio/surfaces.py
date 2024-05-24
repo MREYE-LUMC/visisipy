@@ -76,7 +76,10 @@ class OpticStudioSurface(BaseSurface):
         if not self._is_built:
             return None
 
-        if self.surface.MaterialCell.GetSolveData().Type == zp.constants.Editors.SolveType.MaterialModel:
+        if (
+            self.surface.MaterialCell.GetSolveData().Type
+            == zp.constants.Editors.SolveType.MaterialModel
+        ):
             material_model = self.surface.MaterialCell.GetSolveData()._S_MaterialModel  # noqa: SLF001
 
             return MaterialModel(
@@ -113,12 +116,16 @@ class OpticStudioSurface(BaseSurface):
         return self._surface
 
     def _set_surface_type(self):
-        surface_type = zp.constants.process_constant(zp.constants.Editors.LDE.SurfaceType, self._TYPE)
+        surface_type = zp.constants.process_constant(
+            zp.constants.Editors.LDE.SurfaceType, self._TYPE
+        )
 
         if self.surface is not None and self.surface.Type != surface_type:
             zp.functions.lde.surface_change_type(self.surface, self._TYPE)
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
+    def build(
+        self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False
+    ):
         """Create the surface in OpticStudio.
 
         Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
@@ -134,7 +141,11 @@ class OpticStudioSurface(BaseSurface):
         replace_existing : bool
             If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
         """
-        self._surface = oss.LDE.GetSurfaceAt(position) if replace_existing else oss.LDE.InsertNewSurfaceAt(position)
+        self._surface = (
+            oss.LDE.GetSurfaceAt(position)
+            if replace_existing
+            else oss.LDE.InsertNewSurfaceAt(position)
+        )
 
         self._set_surface_type()
 
@@ -144,6 +155,10 @@ class OpticStudioSurface(BaseSurface):
         self.conic = self._conic
 
         self._set_material(self._material)
+
+        # Only set semi_diameter when explicitly specified
+        if self._semi_diameter is not None:
+            self.semi_diameter = self._semi_diameter
 
         # Only set IsStop when explicitly specified
         if self._is_stop is not None:
@@ -181,7 +196,9 @@ class OpticStudioSurface(BaseSurface):
 
 
 @singledispatch
-def make_surface(surface: Surface, material: str | MaterialModel, comment: str = "") -> OpticStudioSurface:
+def make_surface(
+    surface: Surface, material: str | MaterialModel, comment: str = ""
+) -> OpticStudioSurface:
     """Create an `OpticStudioSurface` instance from a given `Surface` instance.
 
     Parameters
@@ -199,11 +216,15 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
     OpticStudioSurface
         The created OpticStudioSurface instance.
     """
-    return OpticStudioSurface(comment=comment, thickness=surface.thickness, material=material)
+    return OpticStudioSurface(
+        comment=comment, thickness=surface.thickness, material=material
+    )
 
 
 @make_surface.register
-def _make_surface(surface: StandardSurface, material: str | MaterialModel, comment: str = "") -> OpticStudioSurface:
+def _make_surface(
+    surface: StandardSurface, material: str | MaterialModel, comment: str = ""
+) -> OpticStudioSurface:
     return OpticStudioSurface(
         comment=comment,
         radius=surface.radius,
@@ -215,5 +236,13 @@ def _make_surface(surface: StandardSurface, material: str | MaterialModel, comme
 
 
 @make_surface.register
-def _make_surface(surface: Stop, material: str | MaterialModel = "", comment: str = "") -> OpticStudioSurface:
-    return OpticStudioSurface(comment=comment, thickness=surface.thickness, material=material, is_stop=True)
+def _make_surface(
+    surface: Stop, material: str | MaterialModel = "", comment: str = ""
+) -> OpticStudioSurface:
+    return OpticStudioSurface(
+        comment=comment,
+        thickness=surface.thickness,
+        material=material,
+        semi_diameter=surface.semi_diameter,
+        is_stop=True,
+    )

@@ -98,7 +98,8 @@ class StandardSurface(Surface):
             )
 
         raise NotImplementedError(
-            f"Half axes are only defined for ellipses (asphericity > -1), " f"got {self.asphericity=}"
+            f"Half axes are only defined for ellipses (asphericity > -1), "
+            f"got {self.asphericity=}"
         )
 
 
@@ -248,7 +249,9 @@ class EyeGeometry:
     @retina.setter
     def retina(self, value: StandardSurface) -> None:
         if value.asphericity <= -1:
-            raise ValueError(f"Only an elliptical retina is allowed (asphericity > -1), got {value.asphericity=}")
+            raise ValueError(
+                f"Only an elliptical retina is allowed (asphericity > -1), got {value.asphericity=}"
+            )
 
         self._retina = value
 
@@ -329,11 +332,17 @@ class NavarroGeometry(EyeGeometry):
 
     def __init__(self, **kwargs):
         surfaces = {
-            "cornea_front": StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
+            "cornea_front": StandardSurface(
+                radius=7.72, asphericity=-0.26, thickness=0.55
+            ),
             "cornea_back": StandardSurface(radius=6.50, asphericity=0, thickness=3.05),
             "pupil": Stop(semi_diameter=1.348),
-            "lens_front": StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
-            "lens_back": StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
+            "lens_front": StandardSurface(
+                radius=10.2, asphericity=-3.1316, thickness=4.0
+            ),
+            "lens_back": StandardSurface(
+                radius=-6.0, asphericity=-1, thickness=16.3203
+            ),
             "retina": StandardSurface(radius=-12.0, asphericity=0),
         }
         surfaces.update(**kwargs)
@@ -421,37 +430,53 @@ def create_geometry(
         If the base geometry is not a class or if it is not a subclass of EyeGeometry.
     """
     if not isinstance(base, type):
-        raise ValueError("The base geometry must be a class. Did you put parentheses after the class name?")
+        raise ValueError(
+            "The base geometry must be a class. Did you put parentheses after the class name?"
+        )
 
     if not issubclass(base, EyeGeometry):
         raise ValueError("The base geometry must be a subclass of EyeGeometry.")
 
     if estimate_cornea_back and cornea_back_radius is not None:
-        warn("The cornea back radius was provided, but it will be ignored because estimate_cornea_back is True.")
+        warn(
+            "The cornea back radius was provided, but it will be ignored because estimate_cornea_back is True."
+        )
 
     geometry = base()
 
     _update_attribute_if_specified(geometry.cornea_front, "thickness", cornea_thickness)
     _update_attribute_if_specified(geometry.cornea_front, "radius", cornea_front_radius)
-    _update_attribute_if_specified(geometry.cornea_front, "asphericity", cornea_front_asphericity)
+    _update_attribute_if_specified(
+        geometry.cornea_front, "asphericity", cornea_front_asphericity
+    )
 
     if estimate_cornea_back:
         cornea_back_radius = 0.81 * geometry.cornea_front.radius
 
-    _update_attribute_if_specified(geometry.cornea_back, "thickness", anterior_chamber_depth)
+    _update_attribute_if_specified(
+        geometry.cornea_back, "thickness", anterior_chamber_depth
+    )
     _update_attribute_if_specified(geometry.cornea_back, "radius", cornea_back_radius)
-    _update_attribute_if_specified(geometry.cornea_back, "asphericity", cornea_back_asphericity)
+    _update_attribute_if_specified(
+        geometry.cornea_back, "asphericity", cornea_back_asphericity
+    )
 
     _update_attribute_if_specified(geometry.pupil, "semi_diameter", pupil_radius)
 
     _update_attribute_if_specified(geometry.lens_front, "thickness", lens_thickness)
     _update_attribute_if_specified(geometry.lens_front, "radius", lens_front_radius)
-    _update_attribute_if_specified(geometry.lens_front, "asphericity", lens_front_asphericity)
+    _update_attribute_if_specified(
+        geometry.lens_front, "asphericity", lens_front_asphericity
+    )
 
-    vitreous_thickness = axial_length - (cornea_thickness + anterior_chamber_depth + lens_thickness)
+    vitreous_thickness = axial_length - (
+        cornea_thickness + anterior_chamber_depth + lens_thickness
+    )
     _update_attribute_if_specified(geometry.lens_back, "thickness", vitreous_thickness)
     _update_attribute_if_specified(geometry.lens_back, "radius", lens_back_radius)
-    _update_attribute_if_specified(geometry.lens_back, "asphericity", lens_back_asphericity)
+    _update_attribute_if_specified(
+        geometry.lens_back, "asphericity", lens_back_asphericity
+    )
 
     _update_attribute_if_specified(geometry.retina, "radius", retina_radius)
     _update_attribute_if_specified(geometry.retina, "asphericity", retina_asphericity)

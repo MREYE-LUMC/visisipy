@@ -8,7 +8,7 @@ from matplotlib.axes import Axes
 from matplotlib.path import Path
 from scipy.optimize import fsolve
 
-from visisipy.models import EyeGeometry
+from visisipy.models import EyeGeometry, EyeModel
 
 __all__ = ("plot_eye",)
 
@@ -48,7 +48,9 @@ def plot_surface(
         A `matplotlib.path.Path` object with the surface.
     """
     if conic > -1:
-        return plot_ellipse(position, radius, conic, cutoff, return_endpoint=return_endpoint)
+        return plot_ellipse(
+            position, radius, conic, cutoff, return_endpoint=return_endpoint
+        )
     if conic == -1:
         return plot_parabola(position, radius, cutoff, return_endpoint=return_endpoint)
 
@@ -207,7 +209,9 @@ def plot_hyperbola(position: float, radius: float, conic: float, cutoff: float) 
     position -= a
 
     if (cutoff < position and radius > 0) or (cutoff > position and radius < 0):
-        message = "The cutoff coordinate is located outside the domain of the hyperbola."
+        message = (
+            "The cutoff coordinate is located outside the domain of the hyperbola."
+        )
         raise ValueError(message)
 
     t_max = np.arccosh((cutoff - position) / a)
@@ -271,7 +275,7 @@ def _lens_surface_function(radius, conic, position) -> Callable[[float], float]:
 
 def plot_eye(
     ax: Axes,
-    geometry: EyeGeometry,
+    geometry: EyeModel | EyeGeometry,
     lens_edge_thickness: float = 0.0,
     retina_cutoff_position: float | None = None,
     **kwargs,
@@ -304,13 +308,17 @@ def plot_eye(
     ValueError
         If `lens_edge_thickness` is less than 0 or `retina_cutoff_position` is located behind the retina.
     """
+    # Extract geometry when an EyeModel is supplied
+    geometry = geometry if isinstance(geometry, EyeGeometry) else geometry.geometry
+
     # Input data validation
     if lens_edge_thickness < 0:
         message = f"lens_edge_thickness should be a positive number, got {lens_edge_thickness}."
         raise ValueError(message)
     if (
         retina_cutoff_position is not None
-        and retina_cutoff_position > geometry.lens_thickness + geometry.vitreous_thickness
+        and retina_cutoff_position
+        > geometry.lens_thickness + geometry.vitreous_thickness
     ):
         message = "retina_cutoff_position is located behind the retina."
         raise ValueError(message)
@@ -337,7 +345,9 @@ def plot_eye(
         geometry.lens_thickness + geometry.vitreous_thickness,
         geometry.retina.radius,
         geometry.retina.asphericity,
-        cutoff=geometry.lens_thickness if retina_cutoff_position is None else retina_cutoff_position,
+        cutoff=geometry.lens_thickness
+        if retina_cutoff_position is None
+        else retina_cutoff_position,
     )
 
     # Solve with the lens front surface shifted forward by lens_edge_thickness
@@ -401,7 +411,9 @@ def plot_eye(
     ]
     iris = Path(vertices, codes)
 
-    eye = Path.make_compound_path(cornea_front, cornea_back, iris, lens_front, lens_back, lens_edges, retina)
+    eye = Path.make_compound_path(
+        cornea_front, cornea_back, iris, lens_front, lens_back, lens_edges, retina
+    )
     ax.add_patch(patches.PathPatch(eye, fill=None, **kwargs))
 
     return ax

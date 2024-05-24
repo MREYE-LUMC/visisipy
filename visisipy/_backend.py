@@ -3,17 +3,49 @@ from __future__ import annotations
 import importlib
 from abc import ABC, abstractmethod
 from os import PathLike
-from typing import TYPE_CHECKING, Literal
+from typing import Iterable, TYPE_CHECKING, Literal
 from warnings import warn
 
 if TYPE_CHECKING:
+    from pandas import DataFrame
     from visisipy.models import BaseEye, EyeModel
+    from visisipy.analysis import FourierPowerVectorRefraction
 
 _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Literal["opticstudio"] = "opticstudio"
 
 
+class _classproperty(property):
+    def __get__(self, instance, owner=None):
+        return self.fget(owner)
+
+
+class BaseAnalysis(ABC):
+    @staticmethod
+    @abstractmethod
+    def raytrace(
+        self,
+        coordinates: Iterable[tuple[float, float]],
+        field_type: Literal["angle", "object"] = "angle",
+        pupil: tuple[float, float] = (0, 0),
+    ) -> DataFrame:
+        ...
+
+    @staticmethod
+    @abstractmethod
+    def refraction(
+        self,
+        field_coordinate: tuple[float, float] | None = None,
+        wavelength: float | None = None,
+    ) -> FourierPowerVectorRefraction:
+        ...
+
+
 class BaseBackend(ABC):
+    @_classproperty
+    def analysis(self) -> BaseAnalysis:
+        ...
+
     @classmethod
     @abstractmethod
     def build_model(cls, model: EyeModel, **kwargs) -> BaseEye:

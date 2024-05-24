@@ -17,7 +17,9 @@ class BaseOpticStudioEye(BaseEye):
         ...
 
     @abstractmethod
-    def build(self, oss: OpticStudioSystem, *, start_from_index: int, replace_existing: bool):
+    def build(
+        self, oss: OpticStudioSystem, *, start_from_index: int, replace_existing: bool
+    ):
         """Create the eye in OpticStudio.
 
         Create the eye model in the provided `OpticStudioSystem` `oss`, starting from `start_from_index`.
@@ -49,9 +51,15 @@ class BaseOpticStudioEye(BaseEye):
     @property
     def surfaces(self) -> dict[str, OpticStudioSurface]:
         """Dictionary with surface names as keys and surfaces as values."""
-        return {k.lstrip("_"): v for k, v in self.__dict__.items() if isinstance(v, OpticStudioSurface)}
+        return {
+            k.lstrip("_"): v
+            for k, v in self.__dict__.items()
+            if isinstance(v, OpticStudioSurface)
+        }
 
-    def update_surfaces(self, attribute: str, value: Any, surfaces: list[str] = None) -> None:
+    def update_surfaces(
+        self, attribute: str, value: Any, surfaces: list[str] = None
+    ) -> None:
         """Batch update all surfaces.
 
         Set `attribute` to `value` for multiple surfaces. If `surfaces` is not specified, all surfaces of the eye
@@ -70,7 +78,11 @@ class BaseOpticStudioEye(BaseEye):
         -------
 
         """
-        surfaces = [self.surfaces[s] for s in surfaces] if surfaces is not None else self.surfaces.keys()
+        surfaces = (
+            [self.surfaces[s] for s in surfaces]
+            if surfaces is not None
+            else self.surfaces.keys()
+        )
 
         for s in surfaces:
             setattr(s, attribute, value)
@@ -98,20 +110,28 @@ class OpticStudioEye(BaseOpticStudioEye):
     def __init__(self, eye_model: EyeModel) -> None:
         self._eye_model = eye_model
 
-        self._cornea_front = make_surface(eye_model.geometry.cornea_front, eye_model.materials.cornea, "cornea front")
+        self._cornea_front = make_surface(
+            eye_model.geometry.cornea_front, eye_model.materials.cornea, "cornea front"
+        )
         self._cornea_back = make_surface(
             eye_model.geometry.cornea_back,
             eye_model.materials.aqueous,
             "cornea back / aqueous",
         )
-        self._pupil = make_surface(eye_model.geometry.pupil, eye_model.materials.aqueous, "pupil")
-        self._lens_front = make_surface(eye_model.geometry.lens_front, eye_model.materials.lens, "lens front")
+        self._pupil = make_surface(
+            eye_model.geometry.pupil, eye_model.materials.aqueous, "pupil"
+        )
+        self._lens_front = make_surface(
+            eye_model.geometry.lens_front, eye_model.materials.lens, "lens front"
+        )
         self._lens_back = make_surface(
             eye_model.geometry.lens_back,
             eye_model.materials.vitreous,
             "lens back / vitreous",
         )
-        self._retina = make_surface(eye_model.geometry.retina, eye_model.materials.vitreous, "retina")
+        self._retina = make_surface(
+            eye_model.geometry.retina, eye_model.materials.vitreous, "retina"
+        )
 
     @property
     def eye_model(self) -> EyeModel:
@@ -199,11 +219,19 @@ class OpticStudioEye(BaseOpticStudioEye):
         AssertionError
             If the retina is not located at the IMAGE surface.
         """
-        self.cornea_front.build(oss, position=start_from_index + 1, replace_existing=replace_existing)
-        self.cornea_back.build(oss, position=start_from_index + 2, replace_existing=replace_existing)
+        self.cornea_front.build(
+            oss, position=start_from_index + 1, replace_existing=replace_existing
+        )
+        self.cornea_back.build(
+            oss, position=start_from_index + 2, replace_existing=replace_existing
+        )
         self.pupil.build(oss, position=start_from_index + 3, replace_existing=True)
-        self.lens_front.build(oss, position=start_from_index + 4, replace_existing=replace_existing)
-        self.lens_back.build(oss, position=start_from_index + 5, replace_existing=replace_existing)
+        self.lens_front.build(
+            oss, position=start_from_index + 4, replace_existing=replace_existing
+        )
+        self.lens_back.build(
+            oss, position=start_from_index + 5, replace_existing=replace_existing
+        )
         self.retina.build(oss, position=start_from_index + 6, replace_existing=True)
 
         # Sanity checks
@@ -327,12 +355,22 @@ class OpticStudioReverseEye(BaseOpticStudioEye):
         replace_existing: bool = False,
     ):
         self.retina.build(oss, position=start_from_index, replace_existing=True)
-        self.lens_back.build(oss, position=start_from_index + 1, replace_existing=replace_existing)
-        self.lens_front.build(oss, position=start_from_index + 2, replace_existing=replace_existing)
+        self.lens_back.build(
+            oss, position=start_from_index + 1, replace_existing=replace_existing
+        )
+        self.lens_front.build(
+            oss, position=start_from_index + 2, replace_existing=replace_existing
+        )
         self.iris.build(oss, position=start_from_index + 3, replace_existing=True)
-        self.aqueous.build(oss, position=start_from_index + 4, replace_existing=replace_existing)
-        self.cornea_back.build(oss, position=start_from_index + 5, replace_existing=replace_existing)
-        self.cornea_front.build(oss, position=start_from_index + 6, replace_existing=replace_existing)
+        self.aqueous.build(
+            oss, position=start_from_index + 4, replace_existing=replace_existing
+        )
+        self.cornea_back.build(
+            oss, position=start_from_index + 5, replace_existing=replace_existing
+        )
+        self.cornea_front.build(
+            oss, position=start_from_index + 6, replace_existing=replace_existing
+        )
 
         # Sanity checks
         if not self.retina.surface.IsObject:

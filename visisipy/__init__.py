@@ -1,4 +1,4 @@
-from visisipy import opticstudio, plots
+from visisipy import analysis, opticstudio, plots
 from visisipy._backend import get_backend, set_backend
 from visisipy.models import (
     EyeGeometry,
@@ -15,6 +15,7 @@ __all__ = (
     "EyeMaterials",
     "NavarroGeometry",
     "NavarroMaterials",
+    "analysis",
     "opticstudio",
     "get_backend",
     "set_backend",

@@ -27,7 +27,9 @@ def geometry_parameters():
 
 @pytest.mark.parametrize("geometry", [EyeGeometry, NavarroGeometry])
 @pytest.mark.parametrize("asphericity", [-1, -1.5])
-def test_non_ellipsoid_retina_raises_valueerror(geometry, asphericity, geometry_parameters):
+def test_non_ellipsoid_retina_raises_valueerror(
+    geometry, asphericity, geometry_parameters
+):
     geometry_parameters.update(retina_asphericity=asphericity)
 
     with pytest.raises(ValueError):
@@ -57,8 +59,12 @@ def test_vitreous_thickness(geometry_parameters):
         (-10, 0.5, 8.164965809, 6.666666667),  # Oblate ellipse
     ],
 )
-def test_retinal_half_axes(geometry_parameters, curvature, asphericity, radial_axis, axial_axis):
-    geometry_parameters.update(retina_curvature=curvature, retina_asphericity=asphericity)
+def test_retinal_half_axes(
+    geometry_parameters, curvature, asphericity, radial_axis, axial_axis
+):
+    geometry_parameters.update(
+        retina_curvature=curvature, retina_asphericity=asphericity
+    )
     geometry = EyeGeometry(**geometry_parameters)
 
     assert np.isclose(geometry.retina_axial_half_axis, axial_axis)

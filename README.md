@@ -22,6 +22,7 @@ In its current state, `EyeSimulator` provides
 ```python
 import visisipy
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Initialize the default Navarro model
 model = visisipy.EyeModel()
@@ -29,12 +30,18 @@ model = visisipy.EyeModel()
 # Build the model in OpticStudio
 model.build()
 
+# Perform a raytrace analysis
+raytrace = visisipy.analysis.raytrace(coordinates=zip([0] * 5, range(0, 60, 10)))
+
 # Visualize the model
 fig, ax = plt.subplots()
 visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
 ax.set_xlim((-7, 23))
 ax.set_ylim((-15, 15))
 ax.set_aspect('equal')
+
+sns.lineplot(raytrace, x="z", y="y", hue="field", ax=ax)
+
 plt.show()
 ```
 
