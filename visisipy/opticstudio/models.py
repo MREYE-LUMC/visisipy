@@ -16,6 +16,12 @@ class BaseOpticStudioEye(BaseEye):
     def __init__(self, model: EyeModel):
         ...
 
+    @property
+    @abstractmethod
+    def pupil(self) -> OpticStudioSurface:
+        """Iris / pupil surface."""
+        ...
+
     @abstractmethod
     def build(
         self, oss: OpticStudioSystem, *, start_from_index: int, replace_existing: bool

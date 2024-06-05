@@ -8,7 +8,7 @@ import zospy as zp
 from pandas import DataFrame
 
 from visisipy._backend import BaseAnalysis
-from visisipy.analysis import FourierPowerVectorRefraction
+from visisipy.analysis.refraction import FourierPowerVectorRefraction
 
 if TYPE_CHECKING:
     from zospy.api import _ZOSAPI
@@ -166,13 +166,72 @@ class OpticStudioAnalysis(BaseAnalysis):
 
         return _build_raytrace_result(raytrace_results)
 
+    def zernike_standard_coefficients(
+        self,
+        field_coordinate: tuple[float, float] | None = None,
+        wavelength: float | None = None,
+        field_type: Literal["angle", "object_height"] = "angle",
+        sampling: str = "512x512",
+        maximum_term: int = 45,
+    ) -> tuple[zp.analyses.base.AttrDict, zp.analyses.base.AttrDict]:
+        """
+        Calculates the Zernike standard coefficients at the retina surface.
+
+        Parameters
+        ----------
+        field_coordinate : tuple[float, float] | None, optional
+            The field coordinate for the Zernike calculation. When `None`, the first field in OpticStudio is used.
+            Defaults to `None`.
+        wavelength : float | None, optional
+            The wavelength for the Zernike calculation. When `None`, the first wavelength in OpticStudio is used.
+            Defaults to `None`.
+        field_type : Literal["angle", "object_height"], optional
+            The type of field to be used when setting the field coordinate. This parameter is only used when
+            `field_coordinate` is specified. Defaults to "angle".
+        sampling : str, optional
+            The sampling for the Zernike calculation. Defaults to "512x512".
+        maximum_term : int, optional
+            The maximum term for the Zernike calculation. Defaults to 45.
+
+        Returns
+        -------
+        AttrDict
+            ZOSPy Zernike standard coefficients analysis output.
+        """
+        wavelength_number = (
+            1 if wavelength is None else self._backend.get_wavelength_number(wavelength)
+        )
+
+        if wavelength_number is None:
+            self._backend.set_wavelengths([wavelength])
+            wavelength_number = 1
+
+        if field_coordinate is not None:
+            self._backend.set_fields([field_coordinate], field_type=field_type)
+
+        zernike_result = zp.analyses.wavefront.zernike_standard_coefficients(
+            self._oss,
+            sampling=sampling,
+            maximum_term=maximum_term,
+            wavelength=wavelength_number,
+            field=1,
+            reference_opd_to_vertex=False,
+            surface="Image",
+            sx=0.0,
+            sy=0.0,
+            sr=1.0,
+        )
+
+        return zernike_result, zernike_result
+
     def refraction(
         self,
         use_higher_order_aberrations: bool = True,
         field_coordinate: tuple[float, float] | None = None,
         wavelength: float | None = None,
+        pupil_diameter: float | None = None,
         field_type: Literal["angle", "object_height"] = "angle",
-    ) -> FourierPowerVectorRefraction:
+    ) -> tuple[FourierPowerVectorRefraction, zp.analyses.base.AttrDict]:
         """Calculates the ocular refraction.
 
         The ocular refraction is calculated from Zernike standard coefficients and represented in Fourier power
@@ -188,6 +247,9 @@ class OpticStudioAnalysis(BaseAnalysis):
         wavelength : float, optional
             The wavelength for the Zernike calculation. When `None`, the first wavelength in OpticStudio is used.
             Defaults to `None`.
+        pupil_diameter : float, optional
+            The diameter of the pupil for the refraction calculation. Defaults to the pupil diameter configured in the
+            model.
         field_type : Literal["angle", "object_height"], optional
             The type of field to be used when setting the field coordinate. This parameter is only used when
             `field_coordinate` is specified. Defaults to "angle".
@@ -197,41 +259,32 @@ class OpticStudioAnalysis(BaseAnalysis):
          FourierPowerVectorRefraction
               The ocular refraction in Fourier power vector form.
         """
-        wavelength_number = (
-            1 if wavelength is None else self._backend.get_wavelength_number(wavelength)
-        )
+        # Get the wavelength from OpticStudio if not specified
         wavelength = (
             self._oss.SystemData.Wavelengths.GetWavelength(1).Wavelength
             if wavelength is None
             else wavelength
         )
 
-        if wavelength_number is None:
-            self._backend.set_wavelengths([wavelength])
-            wavelength_number = 1
-
-        if field_coordinate is not None:
-            self._backend.set_fields([field_coordinate], field_type=field_type)
+        # Temporarily change the pupil diameter
+        old_pupil_diameter = None
+        if pupil_diameter is not None:
+            old_pupil_diameter = self._backend._model.pupil.semi_diameter * 2
+            self._backend._model.pupil.semi_diameter = pupil_diameter / 2
 
         pupil_data = zp.functions.lde.get_pupil(self._oss)
-        zernike_standard_coefficients = (
-            zp.analyses.wavefront.zernike_standard_coefficients(
-                self._oss,
-                sampling="512x512",
-                maximum_term=45,
-                wavelength=wavelength_number,
-                field=1,
-                reference_opd_to_vertex=False,
-                surface="Image",
-                sx=0.0,
-                sy=0.0,
-                sr=1.0,
-            )
+        zernike_standard_coefficients, _ = self.zernike_standard_coefficients(
+            field_coordinate=field_coordinate,
+            wavelength=wavelength,
+            field_type=field_type,
         )
+
+        if old_pupil_diameter is not None:
+            self._backend._model.pupil.semi_diameter = old_pupil_diameter
 
         return _zernike_data_to_refraction(
             zernike_standard_coefficients,
             pupil_data,
             wavelength,
             use_higher_order_aberrations,
-        )
+        ), zernike_standard_coefficients

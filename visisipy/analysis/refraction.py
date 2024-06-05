@@ -1,58 +1,15 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Iterable, Literal
-
 import numpy as np
 
+from dataclasses import dataclass
+from typing import Literal, TYPE_CHECKING
+
+from visisipy.analysis.base import analysis
 from visisipy._backend import get_backend
 
-__all__ = ("raytrace", "refraction")
-
-
-def raytrace(
-    coordinates: Iterable[tuple[float, float]],
-    wavelengths: Iterable[float] = (0.543,),
-    field_type: Literal["angle", "object"] = "angle",
-    pupil: tuple[float, float] = (0, 0),
-):
-    """
-    Performs a ray trace analysis using the given parameters.
-    The analysis returns a Dataframe with the following columns:
-
-    - field: The field coordinates for the ray trace.
-    - wavelength: The wavelength used in the ray trace.
-    - surface: The surface number in the system.
-    - comment: The comment for the surface.
-    - x: The X-coordinate of the ray trace.
-    - y: The Y-coordinate of the ray trace.
-    - z: The Z-coordinate of the ray trace.
-
-    Parameters
-    ----------
-    coordinates : Iterable[tuple[float, float]]
-        An iterable of tuples representing the coordinates for the ray trace.
-        If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.
-        If `field_type` is "object_height", the coordinates should be the object heights along the
-        (X, Y) axes in mm.
-    wavelengths : Iterable[float], optional
-        An iterable of wavelengths to be used in the ray trace. Defaults to (0.543,).
-    field_type : Literal["angle", "object_height"], optional
-        The type of field to be used in the ray trace. Can be either "angle" or "object_height". Defaults to "angle".
-    pupil : tuple[float, float], optional
-        A tuple representing the pupil coordinates for the ray trace. Defaults to (0, 0).
-
-    Returns
-    -------
-    DataFrame
-        A pandas DataFrame containing the results of the ray trace analysis.
-    """
-    return get_backend().analysis.raytrace(
-        coordinates=coordinates,
-        wavelengths=wavelengths,
-        field_type=field_type,
-        pupil=pupil,
-    )
+if TYPE_CHECKING:
+    from visisipy import EyeModel
 
 
 @dataclass
@@ -227,11 +184,16 @@ class SpheroCylindricalRefraction:
             return self._convert_cylinder_form()
 
 
+@analysis
 def refraction(
+    model: EyeModel | None,
     use_higher_order_aberrations: bool = True,
     field_coordinate: tuple[float, float] | None = None,
     wavelength: float | None = None,
+    pupil_diameter: float | None = None,
     field_type: Literal["angle", "object_height"] = "angle",
+    *,
+    return_raw_result: bool = False,
 ) -> FourierPowerVectorRefraction:
     """Calculates the ocular refraction.
 
@@ -250,15 +212,23 @@ def refraction(
     field_type : Literal["angle", "object_height"], optional
         The type of field to be used when setting the field coordinate. This parameter is only used when
         `field_coordinate` is specified. Defaults to "angle".
+    pupil_diameter : float, optional
+        The diameter of the pupil for the refraction calculation. Defaults to the pupil diameter configured in the
+        model.
+    return_raw_result : bool, optional
+        Return the raw analysis result from the backend. Defaults to `False`.
 
     Returns
     -------
      FourierPowerVectorRefraction
           The ocular refraction in Fourier power vector form.
+    Any
+        The raw analysis result from the backend.
     """
     return get_backend().analysis.refraction(
         use_higher_order_aberrations=use_higher_order_aberrations,
         field_coordinate=field_coordinate,
         wavelength=wavelength,
+        pupil_diameter=pupil_diameter,
         field_type=field_type,
     )

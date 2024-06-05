@@ -1,4 +1,4 @@
-from visisipy import analysis, opticstudio, plots
+from visisipy import analysis, models, opticstudio, plots
 from visisipy._backend import get_backend, set_backend
 from visisipy.models import (
     EyeGeometry,

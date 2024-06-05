@@ -18,29 +18,11 @@ def initialize_opticstudio(
     mode: Literal["standalone", "extension"] = "standalone",
     zosapi_nethelper: str | None = None,
     opticstudio_directory: str | None = None,
-    ray_aiming: Literal["off", "paraxial", "real"] = "off",
 ) -> tuple[ZOS, OpticStudioSystem]:
     zos = zp.ZOS(
         zosapi_nethelper=zosapi_nethelper, opticstudio_directory=opticstudio_directory
     )
     oss = zos.connect(mode)
-
-    if ray_aiming == "off":
-        oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Off
-    elif ray_aiming == "paraxial":
-        oss.SystemData.RayAiming.RayAiming = (
-            zp.constants.SystemData.RayAimingMethod.Paraxial
-        )
-    elif ray_aiming == "real":
-        oss.SystemData.RayAiming.RayAiming = (
-            zp.constants.SystemData.RayAimingMethod.Real
-        )
-    else:
-        raise ValueError("ray_aiming must be either 'off', 'paraxial', or 'real'.")
-
-    oss.SystemData.Aperture.ApertureType = (
-        zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
-    )
 
     return zos, oss
 
@@ -132,10 +114,41 @@ class OpticStudioBackend(BaseBackend):
             mode=mode,
             zosapi_nethelper=zosapi_nethelper,
             opticstudio_directory=opticstudio_directory,
-            ray_aiming=ray_aiming,
         )
 
-        cls._oss.new()
+        cls.new_model(ray_aiming=ray_aiming)
+
+    @classmethod
+    def new_model(
+        cls,
+        save_old_model: bool = False,
+        ray_aiming: Literal["off", "paraxial", "real"] = "off",
+    ) -> None:
+        """
+        Initializes a new optical system model.
+
+        This method initializes a new optical system model.
+        """
+        cls._oss.new(saveifneeded=save_old_model)
+
+        if ray_aiming == "off":
+            cls._oss.SystemData.RayAiming.RayAiming = (
+                zp.constants.SystemData.RayAimingMethod.Off
+            )
+        elif ray_aiming == "paraxial":
+            cls._oss.SystemData.RayAiming.RayAiming = (
+                zp.constants.SystemData.RayAimingMethod.Paraxial
+            )
+        elif ray_aiming == "real":
+            cls._oss.SystemData.RayAiming.RayAiming = (
+                zp.constants.SystemData.RayAimingMethod.Real
+            )
+        else:
+            raise ValueError("ray_aiming must be either 'off', 'paraxial', or 'real'.")
+
+        cls._oss.SystemData.Aperture.ApertureType = (
+            zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
+        )
 
     @classmethod
     def build_model(

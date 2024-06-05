@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "visisipy"
-description = "Accessible optical simulations of the eye."
+description = "Accessible vision simulations in Python."
 authors = [
     { name = "Corné Haasjes", email = "c.haasjes@lumc.nl" },
     { name = "Jan-Willem Beenakker", email = "j.w.m.beenakker@lumc.nl" },

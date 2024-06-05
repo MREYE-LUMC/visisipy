@@ -354,6 +354,44 @@ def _update_attribute_if_specified(obj: Surface, attribute: str, value: Any):
         setattr(obj, attribute, value)
 
 
+def _calculate_vitreous_thickness(
+    geometry: EyeGeometry,
+    axial_length: float | None = None,
+    cornea_thickness: float | None = None,
+    anterior_chamber_depth: float | None = None,
+    lens_thickness: float | None = None,
+) -> float:
+    """Calculate the thickness of the vitreous body for a partially initialized eye geometry."""
+    _axial_length = geometry.axial_length if axial_length is None else axial_length
+    _cornea_thickness = (
+        geometry.cornea_thickness if cornea_thickness is None else cornea_thickness
+    )
+    _anterior_chamber_depth = (
+        geometry.anterior_chamber_depth
+        if anterior_chamber_depth is None
+        else anterior_chamber_depth
+    )
+    _lens_thickness = (
+        geometry.lens_thickness if lens_thickness is None else lens_thickness
+    )
+
+    if None in (
+        _axial_length,
+        _cornea_thickness,
+        _anterior_chamber_depth,
+        _lens_thickness,
+    ):
+        raise ValueError(
+            "Cannot calculate vitreous thickness from the supplied parameters."
+        )
+
+    vitreous_thickness = _axial_length - (
+        _cornea_thickness + _anterior_chamber_depth + _lens_thickness
+    )
+
+    return vitreous_thickness
+
+
 GeometryType = TypeVar("GeometryType", bound=EyeGeometry)
 
 
@@ -469,9 +507,10 @@ def create_geometry(
         geometry.lens_front, "asphericity", lens_front_asphericity
     )
 
-    vitreous_thickness = axial_length - (
-        cornea_thickness + anterior_chamber_depth + lens_thickness
+    vitreous_thickness = _calculate_vitreous_thickness(
+        geometry, axial_length, cornea_thickness, anterior_chamber_depth, lens_thickness
     )
+
     _update_attribute_if_specified(geometry.lens_back, "thickness", vitreous_thickness)
     _update_attribute_if_specified(geometry.lens_back, "radius", lens_back_radius)
     _update_attribute_if_specified(
