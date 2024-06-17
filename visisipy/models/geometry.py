@@ -160,12 +160,12 @@ class EyeGeometry:
 
     def __init__(
         self,
-        cornea_front: StandardSurface,
-        cornea_back: StandardSurface,
-        pupil: Stop,
-        lens_front: StandardSurface,
-        lens_back: StandardSurface,
-        retina: StandardSurface,
+        cornea_front: StandardSurface | None = None,
+        cornea_back: StandardSurface | None = None,
+        pupil: Stop | None = None,
+        lens_front: StandardSurface | None = None,
+        lens_back: StandardSurface | None = None,
+        retina: StandardSurface | None = None,
     ):
         """
         Initializes an instance of the EyeGeometry class.
@@ -186,12 +186,12 @@ class EyeGeometry:
             The retina of the eye. If not provided, a default Surface instance will be used.
         """
 
-        self._cornea_front = cornea_front
-        self._cornea_back = cornea_back
-        self._pupil = pupil
-        self._lens_front = lens_front
-        self._lens_back = lens_back
-        self._retina = retina
+        self.cornea_front = cornea_front or StandardSurface()
+        self.cornea_back = cornea_back or StandardSurface()
+        self.pupil = pupil or Stop()
+        self.lens_front = lens_front or StandardSurface()
+        self.lens_back = lens_back or StandardSurface()
+        self.retina = retina or StandardSurface()
 
     @property
     def cornea_front(self) -> StandardSurface:
@@ -468,7 +468,7 @@ def create_geometry(
         If the base geometry is not a class or if it is not a subclass of EyeGeometry.
     """
     if not isinstance(base, type):
-        raise ValueError(
+        raise TypeError(
             "The base geometry must be a class. Did you put parentheses after the class name?"
         )
 
@@ -510,6 +510,12 @@ def create_geometry(
     vitreous_thickness = _calculate_vitreous_thickness(
         geometry, axial_length, cornea_thickness, anterior_chamber_depth, lens_thickness
     )
+
+    if vitreous_thickness <= 0:
+        raise ValueError(
+            "The sum of the cornea thickness, anterior chamber depth and lens thickness is greater than "
+            "or equal to the axial length."
+        )
 
     _update_attribute_if_specified(geometry.lens_back, "thickness", vitreous_thickness)
     _update_attribute_if_specified(geometry.lens_back, "radius", lens_back_radius)

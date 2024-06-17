@@ -87,7 +87,7 @@ class BaseOpticStudioEye(BaseEye):
         surfaces = (
             [self.surfaces[s] for s in surfaces]
             if surfaces is not None
-            else self.surfaces.keys()
+            else self.surfaces.values()
         )
 
         for s in surfaces:
@@ -241,12 +241,16 @@ class OpticStudioEye(BaseOpticStudioEye):
         self.retina.build(oss, position=start_from_index + 6, replace_existing=True)
 
         # Sanity checks
+        if not self.pupil.surface.IsStop:
+            message = "The pupil is not located at the stop position."
+            raise ValueError(message)
+
         if not self.retina.surface.IsImage:
             message = "The retina is not located at the image position."
             raise ValueError(message)
 
 
-class OpticStudioReverseEye(BaseOpticStudioEye):
+class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
     def __init__(self, eye_model: EyeModel):
         self._eye_model = eye_model
 

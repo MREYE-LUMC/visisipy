@@ -16,15 +16,26 @@ dependencies = [
     "numpy",
     "scipy"
 ]
+requires-python = ">=3.9, <3.13"
 
 [tool.hatch.envs.default]
 python = "3.11"
-skip-install = true
 
-[tool.hatch.envs.default.scripts]
-format = [
-    "isort .",
-    "black ."
+[tool.hatch.envs.py39]
+python = "3.9"
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12"]
+
+[tool.pytest.ini_options]
+markers = [
+    "needs_opticstudio: test needs OpticStudio and will be skipped if it is not available",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError"
 ]
 
 [tool.black]

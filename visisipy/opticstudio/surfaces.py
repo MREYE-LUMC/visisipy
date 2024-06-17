@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from functools import singledispatch
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar, Union
+from warnings import warn
 
 import zospy as zp
 
@@ -90,7 +91,10 @@ class OpticStudioSurface(BaseSurface):
 
         return self.surface.Material
 
-    def _set_material(self, material: MaterialModel | str) -> None:
+    def _set_material(self, material: MaterialModel | str | None) -> None:
+        if material is None:  # Do nothing if material is None
+            return
+
         if isinstance(material, MaterialModel):
             zp.solvers.material_model(
                 self.surface.MaterialCell,
@@ -106,6 +110,11 @@ class OpticStudioSurface(BaseSurface):
     @property
     def material(self) -> MaterialModel | str:
         return self._get_material()
+
+    @material.setter
+    def material(self, material: MaterialModel | str) -> None:
+        if self._is_built:
+            self._set_material(material)
 
     @property
     def surface(self) -> _ZOSAPI.Editors.LDE.ILDERow | None:
@@ -137,7 +146,7 @@ class OpticStudioSurface(BaseSurface):
         oss : zospy.zpcore.OpticStudioSystem
             OpticStudioSystem in which the surface is created.
         position : int
-            Index at which the surface is located.
+            Index at which the surface is located, starting at 0 for the object surface.
         replace_existing : bool
             If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
         """
@@ -161,8 +170,13 @@ class OpticStudioSurface(BaseSurface):
             self.semi_diameter = self._semi_diameter
 
         # Only set IsStop when explicitly specified
-        if self._is_stop is not None:
+        if self._is_stop is True:
             self.is_stop = self._is_stop
+        elif self._is_stop is False:
+            warn(
+                "is_stop is set to False, but this is not supported in OpticStudio. Explicitly setting is_stop will "
+                "always convert the surface to a stop. This setting has been ignored."
+            )
 
         self._is_built = True
 
@@ -197,7 +211,7 @@ class OpticStudioSurface(BaseSurface):
 
 @singledispatch
 def make_surface(
-    surface: Surface, material: str | MaterialModel, comment: str = ""
+    surface: Surface, material: "str | MaterialModel", comment: str = ""
 ) -> OpticStudioSurface:
     """Create an `OpticStudioSurface` instance from a given `Surface` instance.
 
@@ -223,7 +237,7 @@ def make_surface(
 
 @make_surface.register
 def _make_surface(
-    surface: StandardSurface, material: str | MaterialModel, comment: str = ""
+    surface: StandardSurface, material: Union[str, MaterialModel], comment: str = ""
 ) -> OpticStudioSurface:
     return OpticStudioSurface(
         comment=comment,
@@ -237,7 +251,7 @@ def _make_surface(
 
 @make_surface.register
 def _make_surface(
-    surface: Stop, material: str | MaterialModel = "", comment: str = ""
+    surface: Stop, material: Union[str, MaterialModel] = "", comment: str = ""
 ) -> OpticStudioSurface:
     return OpticStudioSurface(
         comment=comment,

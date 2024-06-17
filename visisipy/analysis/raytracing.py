@@ -35,6 +35,8 @@ def raytrace(
 
     Parameters
     ----------
+    model : EyeModel | None
+        The eye model to be used in the ray trace. If `None`, the current eye model will be used.
     coordinates : Iterable[tuple[float, float]]
         An iterable of tuples representing the coordinates for the ray trace.
         If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.

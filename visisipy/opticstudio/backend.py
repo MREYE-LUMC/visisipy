@@ -30,12 +30,12 @@ def initialize_opticstudio(
 def _set_field_type(oss: OpticStudioSystem, field_type: str) -> None:
     if field_type == "angle":
         oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
-    elif field_type == "object":
+    elif field_type == "object_height":
         oss.SystemData.Fields.SetFieldType(
             zp.constants.SystemData.FieldType.ObjectHeight
         )
     else:
-        raise ValueError("field_type must be either 'angle' or 'object'.")
+        raise ValueError("field_type must be either 'angle' or 'object_height'.")
 
 
 def _set_fields(
@@ -282,7 +282,10 @@ class OpticStudioBackend(BaseBackend):
             The wavelength number, or `None` if the wavelength is not present.
         """
         for i in range(cls._oss.SystemData.Wavelengths.NumberOfWavelengths):
-            if cls._oss.SystemData.Wavelengths.GetWavelength(i + 1) == wavelength:
+            if (
+                cls._oss.SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
+                == wavelength
+            ):
                 return i + 1
 
         return None
