@@ -9,16 +9,6 @@ from visisipy.opticstudio.backend import OpticStudioBackend
 pytestmark = [pytest.mark.needs_opticstudio]
 
 
-@pytest.fixture(scope="function")
-def opticstudio_backend(zos, monkeypatch):
-    OpticStudioBackend.initialize(mode="standalone")
-
-    yield OpticStudioBackend
-
-    if OpticStudioBackend._zos is not None and OpticStudioBackend._oss is not None:
-        OpticStudioBackend.disconnect()
-
-
 class TestOpticStudioBackend:
     def test_initialize_opticstudio(self, opticstudio_backend):
         assert opticstudio_backend._zos is not None

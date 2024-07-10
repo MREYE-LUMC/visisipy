@@ -3,6 +3,8 @@ from __future__ import annotations
 import pytest
 import zospy as zp
 
+from visisipy.opticstudio.backend import OpticStudioBackend
+
 
 @pytest.fixture(scope="session")
 def monkeypatch_session():
@@ -51,3 +53,13 @@ def new_oss(oss):
     oss.new()
 
     return oss
+
+
+@pytest.fixture(scope="function")
+def opticstudio_backend(zos, monkeypatch):
+    OpticStudioBackend.initialize(mode="standalone")
+
+    yield OpticStudioBackend
+
+    if OpticStudioBackend._zos is not None and OpticStudioBackend._oss is not None:
+        OpticStudioBackend.disconnect()
