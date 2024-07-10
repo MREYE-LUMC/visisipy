@@ -90,7 +90,7 @@ def analysis(function: Callable[..., tuple[Any, Any]]) -> Callable:
 
     @wraps(function)
     def analysis_wrapper(
-        model: EyeModel | None,
+        model: EyeModel | None = None,
         *args: Any,
         return_raw_result: bool = False,
         **kwargs: Any,
