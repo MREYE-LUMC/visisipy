@@ -175,7 +175,7 @@ class OpticStudioBackend(BaseBackend):
             The built optical system model.
         """
         if not replace_existing and cls._model is not None:
-            cls.clear_model()
+            cls.new_model()
 
         opticstudio_eye = OpticStudioEye(model)
         opticstudio_eye.build(cls._oss, replace_existing=replace_existing, **kwargs)
