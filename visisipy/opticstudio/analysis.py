@@ -105,7 +105,7 @@ class OpticStudioAnalysis(BaseAnalysis):
         wavelengths: Iterable[float] = (0.543,),
         field_type: Literal["angle", "object_height"] = "angle",
         pupil: tuple[float, float] = (0, 0),
-    ) -> DataFrame:
+    ) -> tuple[DataFrame, list[zp.analyses.base.AnalysisResult]]:
         """
         Perform a ray trace analysis using the given parameters.
         The ray trace is performed for each wavelength and field in the system, using the Single Ray Trace analysis
@@ -164,7 +164,7 @@ class OpticStudioAnalysis(BaseAnalysis):
 
                 raytrace_results.append(raytrace_result)
 
-        return _build_raytrace_result(raytrace_results)
+        return _build_raytrace_result(raytrace_results), raytrace_results
 
     def zernike_standard_coefficients(
         self,
@@ -173,7 +173,7 @@ class OpticStudioAnalysis(BaseAnalysis):
         field_type: Literal["angle", "object_height"] = "angle",
         sampling: str = "512x512",
         maximum_term: int = 45,
-    ) -> tuple[zp.analyses.base.AttrDict, zp.analyses.base.AttrDict]:
+    ) -> tuple[zp.analyses.base.AttrDict, zp.analyses.base.AnalysisResult]:
         """
         Calculates the Zernike standard coefficients at the retina surface.
 
@@ -222,7 +222,7 @@ class OpticStudioAnalysis(BaseAnalysis):
             sr=1.0,
         )
 
-        return zernike_result, zernike_result
+        return zernike_result.Data, zernike_result
 
     def refraction(
         self,
@@ -231,7 +231,7 @@ class OpticStudioAnalysis(BaseAnalysis):
         wavelength: float | None = None,
         pupil_diameter: float | None = None,
         field_type: Literal["angle", "object_height"] = "angle",
-    ) -> tuple[FourierPowerVectorRefraction, zp.analyses.base.AttrDict]:
+    ) -> tuple[FourierPowerVectorRefraction, zp.analyses.base.AnalysisResult]:
         """Calculates the ocular refraction.
 
         The ocular refraction is calculated from Zernike standard coefficients and represented in Fourier power
@@ -267,20 +267,20 @@ class OpticStudioAnalysis(BaseAnalysis):
         )
 
         # Temporarily change the pupil diameter
-        old_pupil_diameter = None
+        old_pupil_semi_diameter = None
         if pupil_diameter is not None:
-            old_pupil_diameter = self._backend._model.pupil.semi_diameter * 2
+            old_pupil_semi_diameter = self._backend._model.pupil.semi_diameter
             self._backend._model.pupil.semi_diameter = pupil_diameter / 2
 
         pupil_data = zp.functions.lde.get_pupil(self._oss)
-        zernike_standard_coefficients, _ = self.zernike_standard_coefficients(
+        _, zernike_standard_coefficients = self.zernike_standard_coefficients(
             field_coordinate=field_coordinate,
             wavelength=wavelength,
             field_type=field_type,
         )
 
-        if old_pupil_diameter is not None:
-            self._backend._model.pupil.semi_diameter = old_pupil_diameter
+        if old_pupil_semi_diameter is not None:
+            self._backend._model.pupil.semi_diameter = old_pupil_semi_diameter
 
         return _zernike_data_to_refraction(
             zernike_standard_coefficients,
