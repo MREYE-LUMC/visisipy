@@ -1,6 +1,5 @@
 import pytest
 
-from contextlib import nullcontext as does_not_raise
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -73,28 +72,30 @@ class MockOpticstudioModel:
 
 class TestRefractionAnalysis:
     @pytest.mark.parametrize(
-        "use_higher_order_aberrations,wavelength,pupil_diameter,expectation",
+        "use_higher_order_aberrations,wavelength,pupil_diameter",
         [
-            (False, None, None, does_not_raise()),
-            (False, 0.543, 0.5, does_not_raise()),
-            (True, 0.543, 1, does_not_raise()),
+            (False, None, None),
+            (False, 0.543, 0.5),
+            (True, 0.543, 1),
         ],
     )
     def test_refraction(
         self,
-        new_oss,
         opticstudio_analysis,
         use_higher_order_aberrations,
         wavelength,
         pupil_diameter,
-        expectation,
+        monkeypatch,
     ):
-        with expectation:
-            assert opticstudio_analysis.refraction(
-                use_higher_order_aberrations=use_higher_order_aberrations,
-                wavelength=wavelength,
-                pupil_diameter=pupil_diameter,
-            )
+        monkeypatch.setattr(
+            opticstudio_analysis._backend, "_model", MockOpticstudioModel()
+        )
+
+        assert opticstudio_analysis.refraction(
+            use_higher_order_aberrations=use_higher_order_aberrations,
+            wavelength=wavelength,
+            pupil_diameter=pupil_diameter,
+        )
 
     @pytest.mark.parametrize(
         "pupil_diameter,changed_pupil_diameter",
