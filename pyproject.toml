@@ -33,6 +33,9 @@ markers = [
 ]
 
 [tool.coverage.report]
+omit = [
+    "tests/*",
+]
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError"
