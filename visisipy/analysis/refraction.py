@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from dataclasses import dataclass
-from typing import Literal, TYPE_CHECKING
+from typing import Any, Literal, TYPE_CHECKING
 
 from visisipy.analysis.base import analysis
 from visisipy._backend import get_backend
@@ -194,7 +194,7 @@ def refraction(
     field_type: Literal["angle", "object_height"] = "angle",
     *,
     return_raw_result: bool = False,
-) -> FourierPowerVectorRefraction:
+) -> FourierPowerVectorRefraction | tuple[FourierPowerVectorRefraction, Any]:
     """Calculates the ocular refraction.
 
     The ocular refraction is calculated from Zernike standard coefficients and represented in Fourier power vector form.

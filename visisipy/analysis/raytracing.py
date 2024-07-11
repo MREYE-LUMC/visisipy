@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Union, Literal, TYPE_CHECKING, Any
+from typing import Iterable, Literal, TYPE_CHECKING, Any
 
 from visisipy._backend import get_backend
 
@@ -20,7 +20,7 @@ def raytrace(
     pupil: tuple[float, float] = (0, 0),
     *,
     return_raw_result: bool = False,
-) -> DataFrame | Union[DataFrame, Any]:
+) -> DataFrame | tuple[DataFrame, Any]:
     """
     Performs a ray trace analysis using the given parameters.
     The analysis returns a Dataframe with the following columns:
