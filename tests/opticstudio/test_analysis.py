@@ -88,7 +88,7 @@ class TestRefractionAnalysis:
         monkeypatch,
     ):
         monkeypatch.setattr(
-            opticstudio_analysis._backend, "_model", MockOpticstudioModel()
+            opticstudio_analysis._backend, "model", MockOpticstudioModel()
         )
 
         assert opticstudio_analysis.refraction(
@@ -108,7 +108,7 @@ class TestRefractionAnalysis:
         self, opticstudio_analysis, pupil_diameter, changed_pupil_diameter, monkeypatch
     ):
         monkeypatch.setattr(
-            opticstudio_analysis._backend, "_model", MockOpticstudioModel()
+            opticstudio_analysis._backend, "model", MockOpticstudioModel()
         )
 
         assert not opticstudio_analysis._backend.model.pupil.changed_semi_diameter

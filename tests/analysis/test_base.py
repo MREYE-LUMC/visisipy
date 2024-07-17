@@ -13,10 +13,10 @@ def mock_backend(monkeypatch):
 
     class MockBackend:
         def __init__(self):
-            self._model = None
+            self.model = None
 
         def build_model(self, model):
-            self._model = SimpleNamespace(eye_model=model)
+            self.model = SimpleNamespace(eye_model=model)
 
     backend = MockBackend()
 
@@ -48,9 +48,7 @@ class TestAnalysisDecorator:
         decorated_analysis = base.analysis(example_analysis)
         decorated_analysis(model, 1)
 
-        assert (
-            mock_backend._model is not None and mock_backend._model.eye_model == model
-        )
+        assert mock_backend.model is not None and mock_backend.model.eye_model == model
 
     def test_no_model_raises_valueerror(self):
         def example_analysis(x, return_raw_result: bool = False):
