@@ -34,12 +34,8 @@ class TestRayTraceAnalysis:
 
 
 class TestZernikeStandardCoefficientsAnalysis:
-    @pytest.mark.parametrize(
-        "field_coordinate,wavelength", [(None, None), ((0, 0), 0.543), ((1, 1), 0.632)]
-    )
-    def test_zernike_standard_coefficients(
-        self, opticstudio_analysis, field_coordinate, wavelength
-    ):
+    @pytest.mark.parametrize("field_coordinate,wavelength", [(None, None), ((0, 0), 0.543), ((1, 1), 0.632)])
+    def test_zernike_standard_coefficients(self, opticstudio_analysis, field_coordinate, wavelength):
         assert opticstudio_analysis.zernike_standard_coefficients(
             field_coordinate=field_coordinate, wavelength=wavelength
         )
@@ -86,9 +82,7 @@ class TestRefractionAnalysis:
         pupil_diameter,
         monkeypatch,
     ):
-        monkeypatch.setattr(
-            opticstudio_analysis._backend, "model", MockOpticstudioModel()
-        )
+        monkeypatch.setattr(opticstudio_analysis._backend, "model", MockOpticstudioModel())
 
         assert opticstudio_analysis.refraction(
             use_higher_order_aberrations=use_higher_order_aberrations,
@@ -103,19 +97,12 @@ class TestRefractionAnalysis:
             (0.5, True),
         ],
     )
-    def test_refraction_change_pupil(
-        self, opticstudio_analysis, pupil_diameter, changed_pupil_diameter, monkeypatch
-    ):
-        monkeypatch.setattr(
-            opticstudio_analysis._backend, "model", MockOpticstudioModel()
-        )
+    def test_refraction_change_pupil(self, opticstudio_analysis, pupil_diameter, changed_pupil_diameter, monkeypatch):
+        monkeypatch.setattr(opticstudio_analysis._backend, "model", MockOpticstudioModel())
 
         assert not opticstudio_analysis._backend.model.pupil.changed_semi_diameter
 
         opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)
 
-        assert (
-            opticstudio_analysis._backend.model.pupil.changed_semi_diameter
-            == changed_pupil_diameter
-        )
+        assert opticstudio_analysis._backend.model.pupil.changed_semi_diameter == changed_pupil_diameter
         assert opticstudio_analysis._backend.model.pupil.semi_diameter == 1.0

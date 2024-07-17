@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Literal
 
 from visisipy.analysis.base import analysis
 from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from pandas import DataFrame
 
     from visisipy import EyeModel
@@ -14,13 +15,13 @@ if TYPE_CHECKING:
 
 @analysis
 def raytrace(
-    model: EyeModel | None,
+    model: EyeModel | None,  # noqa: ARG001
     coordinates: Iterable[tuple[float, float]],
     wavelengths: Iterable[float] = (0.543,),
     field_type: Literal["angle", "object"] = "angle",
     pupil: tuple[float, float] = (0, 0),
     *,
-    return_raw_result: bool = False,
+    return_raw_result: bool = False,  # noqa: ARG001
 ) -> DataFrame | tuple[DataFrame, Any]:
     """
     Performs a ray trace analysis using the given parameters.

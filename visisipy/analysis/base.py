@@ -29,22 +29,21 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
     """
 
     signature = inspect.signature(function)
-    first_parameter = list(signature.parameters)[0]
-    last_parameter = list(signature.parameters)[-1]
+    first_parameter, *_, last_parameter = signature.parameters
 
     if first_parameter != "model":
         raise ValueError("The first parameter of an analysis function must be 'model'.")
-    elif signature.parameters["model"].annotation != "EyeModel | None":
+
+    if signature.parameters["model"].annotation != "EyeModel | None":
         raise ValueError(
             f"The first parameter of an analysis function must have type 'EyeModel | None', "
             f"got '{signature.parameters['model'].annotation}'"
         )
 
     if last_parameter != "return_raw_result":
-        raise ValueError(
-            "The last parameter of an analysis function must be 'return_raw_result'."
-        )
-    elif signature.parameters["return_raw_result"].annotation != "bool":
+        raise ValueError("The last parameter of an analysis function must be 'return_raw_result'.")
+
+    if signature.parameters["return_raw_result"].annotation != "bool":
         raise ValueError(
             f"The last parameter of an analysis function must have type 'bool', "
             f"got '{signature.parameters['return_raw_result'].annotation}'"
@@ -95,9 +94,7 @@ def analysis(function: Callable[..., tuple[Any, Any]]) -> Callable:
         if model is not None:
             _build_model(model)
 
-        result, raw_result = function(
-            model, *args, return_raw_result=return_raw_result, **kwargs
-        )
+        result, raw_result = function(model, *args, return_raw_result=return_raw_result, **kwargs)
 
         if return_raw_result:
             return result, raw_result

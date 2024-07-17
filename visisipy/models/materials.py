@@ -48,9 +48,7 @@ class EyeMaterials:
     vitreous: MaterialModel
 
 
-def _material_model_factory(
-    refractive_index, abbe_number, partial_dispersion
-) -> Callable[[], MaterialModel]:
+def _material_model_factory(refractive_index, abbe_number, partial_dispersion) -> Callable[[], MaterialModel]:
     def factory() -> MaterialModel:
         return MaterialModel(refractive_index, abbe_number, partial_dispersion)
 

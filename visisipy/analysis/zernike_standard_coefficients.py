@@ -11,14 +11,14 @@ if TYPE_CHECKING:
 
 @analysis
 def zernike_standard_coefficients(
-    model: EyeModel | None,
+    model: EyeModel | None,  # noqa: ARG001
     field_coordinate: tuple[float, float] | None = None,
     wavelength: float | None = None,
     field_type: Literal["angle", "object_height"] = "angle",
     sampling: str = "512x512",
     maximum_term: int = 45,
     *,
-    return_raw_result: bool = False,
+    return_raw_result: bool = False,  # noqa: ARG001
 ) -> tuple[dict, Any]:
     """
     Calculates the Zernike standard coefficients at the retina surface.

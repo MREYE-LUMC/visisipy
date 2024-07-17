@@ -18,9 +18,7 @@ def opticstudio_model(new_oss):
     refraction at the refracting interface. This allows to calculate the refractive index of the refracting interface
     from the angle of incidence at the refracting interface and the angle of incidence at the image surface.
     """
-    new_oss.SystemData.Aperture.ApertureType = (
-        zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
-    )
+    new_oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
 
     new_oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
     new_oss.SystemData.Fields.GetField(1).Y = 20
@@ -39,9 +37,7 @@ def opticstudio_model(new_oss):
     stop.Comment = "stop"
     stop.Thickness = 5.0
     stop.SemiDiameter = 1.0
-    zp.solvers.material_model(
-        stop.MaterialCell, refractive_index=1.0, abbe_number=0.0, partial_dispersion=0.0
-    )
+    zp.solvers.material_model(stop.MaterialCell, refractive_index=1.0, abbe_number=0.0, partial_dispersion=0.0)
 
     interface = new_oss.LDE.InsertNewSurfaceAt(2)
     interface.Comment = "interface"
@@ -99,19 +95,13 @@ def _set_material_model(material_cell, material_model):
         (NavarroMaterials().vitreous, 0.6328, 1.3347),
     ],
 )
-def test_material_model_refractive_index(
-    opticstudio_model, material_model, wavelength, expected_index
-):
+def test_material_model_refractive_index(opticstudio_model, material_model, wavelength, expected_index):
     # Set wavelength
     opticstudio_model.SystemData.Wavelengths.GetWavelength(1).Wavelength = wavelength
 
     # Set material model of test surface and image surface to the material model
-    _set_material_model(
-        opticstudio_model.LDE.GetSurfaceAt(2).MaterialCell, material_model
-    )
-    _set_material_model(
-        opticstudio_model.LDE.GetSurfaceAt(3).MaterialCell, material_model
-    )
+    _set_material_model(opticstudio_model.LDE.GetSurfaceAt(2).MaterialCell, material_model)
+    _set_material_model(opticstudio_model.LDE.GetSurfaceAt(3).MaterialCell, material_model)
 
     # Get angle of incidence at image surface. As the refracting surface and the image surface are parallel, the angle
     # of incidence at the image surface is equal to the angle of refraction at the refracting surface.

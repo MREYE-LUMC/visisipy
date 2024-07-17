@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import importlib
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
-from os import PathLike
 from typing import TYPE_CHECKING, Literal
 from warnings import warn
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from os import PathLike
+
     from pandas import DataFrame
 
     from visisipy.analysis import FourierPowerVectorRefraction
@@ -17,7 +18,7 @@ _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Literal["opticstudio"] = "opticstudio"
 
 
-class _classproperty(property):
+class _classproperty(property):  # noqa: N801
     def __get__(self, instance, owner=None):
         return self.fget(owner)
 
@@ -30,8 +31,7 @@ class BaseAnalysis(ABC):
         coordinates: Iterable[tuple[float, float]],
         field_type: Literal["angle", "object"] = "angle",
         pupil: tuple[float, float] = (0, 0),
-    ) -> DataFrame:
-        ...
+    ) -> DataFrame: ...
 
     @staticmethod
     @abstractmethod
@@ -39,35 +39,30 @@ class BaseAnalysis(ABC):
         self,
         field_coordinate: tuple[float, float] | None = None,
         wavelength: float | None = None,
-    ) -> FourierPowerVectorRefraction:
-        ...
+    ) -> FourierPowerVectorRefraction: ...
 
 
 class BaseBackend(ABC):
     model: BaseEye | None
 
     @_classproperty
-    def analysis(self) -> BaseAnalysis:
-        ...
+    def analysis(self) -> BaseAnalysis: ...
 
     @classmethod
     @abstractmethod
-    def build_model(cls, model: EyeModel, **kwargs) -> BaseEye:
-        ...
+    def build_model(cls, model: EyeModel, **kwargs) -> BaseEye: ...
 
     @classmethod
     @abstractmethod
-    def clear_model(cls) -> None:
-        ...
+    def clear_model(cls) -> None: ...
 
     @classmethod
     @abstractmethod
-    def save_model(cls, filename: str | PathLike | None = None) -> None:
-        ...
+    def save_model(cls, filename: str | PathLike | None = None) -> None: ...
 
 
 def set_backend(backend: Literal["opticstudio"] = "opticstudio", **kwargs) -> None:
-    global _BACKEND
+    global _BACKEND  # noqa: PLW0603
 
     if _BACKEND is not None:
         warn(
@@ -84,8 +79,6 @@ def set_backend(backend: Literal["opticstudio"] = "opticstudio", **kwargs) -> No
 
 
 def get_backend() -> BaseBackend:
-    global _BACKEND
-
     if _BACKEND is None:
         set_backend(_DEFAULT_BACKEND)
 

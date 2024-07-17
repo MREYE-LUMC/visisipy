@@ -12,9 +12,7 @@ class MockAnalysis:
     ):
         return None, None
 
-    def zernike_standard_coefficients(
-        self, field_coordinate, wavelength, field_type, sampling, maximum_term
-    ):
+    def zernike_standard_coefficients(self, field_coordinate, wavelength, field_type, sampling, maximum_term):
         return None, None
 
     def refraction(

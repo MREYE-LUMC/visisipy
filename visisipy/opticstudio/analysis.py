@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
@@ -12,6 +11,8 @@ from visisipy.analysis.refraction import FourierPowerVectorRefraction
 from visisipy.backend import BaseAnalysis
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from zospy.api import _ZOSAPI
     from zospy.zpcore import OpticStudioSystem
 
@@ -40,18 +41,10 @@ def _build_raytrace_result(raytrace_results: list[DataFrame]) -> DataFrame:
         "Z-coordinate": "z",
     }
 
-    df = (
-        pd.concat(raytrace_results)[columns.keys()]
-        .rename(columns=columns)
-        .reset_index()
-    )
-
-    return df
+    return pd.concat(raytrace_results)[columns.keys()].rename(columns=columns).reset_index()
 
 
-def _get_zernike_coefficient(
-    zernike_result: zp.analyses.base.AttrDict, coefficient: int
-) -> float:
+def _get_zernike_coefficient(zernike_result: zp.analyses.base.AttrDict, coefficient: int) -> float:
     return zernike_result.Data.Coefficients.loc["Z" + str(coefficient)].Value
 
 
@@ -59,36 +52,37 @@ def _zernike_data_to_refraction(
     zernike_data: zp.analyses.base.AttrDict,
     pupil_data: zp.functions.lde.PupilData,
     wavelength: float,
+    *,
     use_higher_order_aberrations: bool = True,
 ) -> FourierPowerVectorRefraction:
-    Z4 = _get_zernike_coefficient(zernike_data, 4) * wavelength * 4 * np.sqrt(3)
-    Z11 = _get_zernike_coefficient(zernike_data, 11) * wavelength * 12 * np.sqrt(5)
-    Z22 = _get_zernike_coefficient(zernike_data, 22) * wavelength * 24 * np.sqrt(7)
-    Z37 = _get_zernike_coefficient(zernike_data, 37) * wavelength * 40 * np.sqrt(9)
+    z4 = _get_zernike_coefficient(zernike_data, 4) * wavelength * 4 * np.sqrt(3)
+    z11 = _get_zernike_coefficient(zernike_data, 11) * wavelength * 12 * np.sqrt(5)
+    z22 = _get_zernike_coefficient(zernike_data, 22) * wavelength * 24 * np.sqrt(7)
+    z37 = _get_zernike_coefficient(zernike_data, 37) * wavelength * 40 * np.sqrt(9)
 
-    Z6 = _get_zernike_coefficient(zernike_data, 6) * wavelength * 2 * np.sqrt(6)
-    Z12 = _get_zernike_coefficient(zernike_data, 12) * wavelength * 6 * np.sqrt(10)
-    Z24 = _get_zernike_coefficient(zernike_data, 24) * wavelength * 12 * np.sqrt(14)
-    Z38 = _get_zernike_coefficient(zernike_data, 38) * wavelength * 60 * np.sqrt(2)
+    z6 = _get_zernike_coefficient(zernike_data, 6) * wavelength * 2 * np.sqrt(6)
+    z12 = _get_zernike_coefficient(zernike_data, 12) * wavelength * 6 * np.sqrt(10)
+    z24 = _get_zernike_coefficient(zernike_data, 24) * wavelength * 12 * np.sqrt(14)
+    z38 = _get_zernike_coefficient(zernike_data, 38) * wavelength * 60 * np.sqrt(2)
 
-    Z5 = _get_zernike_coefficient(zernike_data, 5) * wavelength * 2 * np.sqrt(6)
-    Z13 = _get_zernike_coefficient(zernike_data, 13) * wavelength * 6 * np.sqrt(10)
-    Z23 = _get_zernike_coefficient(zernike_data, 23) * wavelength * 12 * np.sqrt(14)
-    Z39 = _get_zernike_coefficient(zernike_data, 39) * wavelength * 60 * np.sqrt(2)
+    z5 = _get_zernike_coefficient(zernike_data, 5) * wavelength * 2 * np.sqrt(6)
+    z13 = _get_zernike_coefficient(zernike_data, 13) * wavelength * 6 * np.sqrt(10)
+    z23 = _get_zernike_coefficient(zernike_data, 23) * wavelength * 12 * np.sqrt(14)
+    z39 = _get_zernike_coefficient(zernike_data, 39) * wavelength * 60 * np.sqrt(2)
 
     exit_pupil_radius = pupil_data.ExitPupilDiameter / 2
 
     if use_higher_order_aberrations:
         return FourierPowerVectorRefraction(
-            M=(-Z4 + Z11 - Z22 + Z37) / (exit_pupil_radius**2),
-            J0=(-Z6 + Z12 - Z24 + Z38) / (exit_pupil_radius**2),
-            J45=(-Z5 + Z13 - Z23 + Z39) / (exit_pupil_radius**2),
+            M=(-z4 + z11 - z22 + z37) / (exit_pupil_radius**2),
+            J0=(-z6 + z12 - z24 + z38) / (exit_pupil_radius**2),
+            J45=(-z5 + z13 - z23 + z39) / (exit_pupil_radius**2),
         )
 
     return FourierPowerVectorRefraction(
-        M=(-Z4) / (exit_pupil_radius**2),
-        J0=(-Z6) / (exit_pupil_radius**2),
-        J45=(-Z5) / (exit_pupil_radius**2),
+        M=(-z4) / (exit_pupil_radius**2),
+        J0=(-z6) / (exit_pupil_radius**2),
+        J45=(-z5) / (exit_pupil_radius**2),
     )
 
 
@@ -159,9 +153,7 @@ class OpticStudioAnalysis(BaseAnalysis):
                     global_coordinates=True,
                 ).Data.RealRayTraceData
 
-                raytrace_result.insert(
-                    0, "Field", [(field.X, field.Y)] * len(raytrace_result)
-                )
+                raytrace_result.insert(0, "Field", [(field.X, field.Y)] * len(raytrace_result))
                 raytrace_result.insert(0, "Wavelength", wavelength)
 
                 raytrace_results.append(raytrace_result)
@@ -200,9 +192,7 @@ class OpticStudioAnalysis(BaseAnalysis):
         AttrDict
             ZOSPy Zernike standard coefficients analysis output.
         """
-        wavelength_number = (
-            1 if wavelength is None else self._backend.get_wavelength_number(wavelength)
-        )
+        wavelength_number = 1 if wavelength is None else self._backend.get_wavelength_number(wavelength)
 
         if wavelength_number is None:
             self._backend.set_wavelengths([wavelength])
@@ -228,11 +218,12 @@ class OpticStudioAnalysis(BaseAnalysis):
 
     def refraction(
         self,
-        use_higher_order_aberrations: bool = True,
         field_coordinate: tuple[float, float] | None = None,
         wavelength: float | None = None,
         pupil_diameter: float | None = None,
         field_type: Literal["angle", "object_height"] = "angle",
+        *,
+        use_higher_order_aberrations: bool = True,
     ) -> tuple[FourierPowerVectorRefraction, zp.analyses.base.AnalysisResult]:
         """Calculates the ocular refraction.
 
@@ -262,11 +253,7 @@ class OpticStudioAnalysis(BaseAnalysis):
               The ocular refraction in Fourier power vector form.
         """
         # Get the wavelength from OpticStudio if not specified
-        wavelength = (
-            self._oss.SystemData.Wavelengths.GetWavelength(1).Wavelength
-            if wavelength is None
-            else wavelength
-        )
+        wavelength = self._oss.SystemData.Wavelengths.GetWavelength(1).Wavelength if wavelength is None else wavelength
 
         # Temporarily change the pupil diameter
         old_pupil_semi_diameter = None
@@ -288,5 +275,5 @@ class OpticStudioAnalysis(BaseAnalysis):
             zernike_standard_coefficients,
             pupil_data,
             wavelength,
-            use_higher_order_aberrations,
+            use_higher_order_aberrations=use_higher_order_aberrations,
         ), zernike_standard_coefficients

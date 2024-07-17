@@ -149,9 +149,7 @@ class SpheroCylindricalRefraction:
             axis=(self.axis + 90) % 180,
         )
 
-    def convert_cylinder_form(
-        self, to: Literal["positive", "negative"]
-    ) -> SpheroCylindricalRefraction:
+    def convert_cylinder_form(self, to: Literal["positive", "negative"]) -> SpheroCylindricalRefraction:
         """Converts from positive cylinder refraction to negative cylinder refraction and vice-versa.
 
         Parameters
@@ -175,25 +173,23 @@ class SpheroCylindricalRefraction:
         if to not in ("negative", "positive"):
             raise ValueError('"to" should be either "negative" or "positive"')
 
-        if (to == "negative" and self.has_negative_cylinder) or (
-            to == "positive" and self.has_positive_cylinder
-        ):
+        if (to == "negative" and self.has_negative_cylinder) or (to == "positive" and self.has_positive_cylinder):
             # Conversion not needed
             return self
-        else:
-            return self._convert_cylinder_form()
+
+        return self._convert_cylinder_form()
 
 
 @analysis
 def refraction(
-    model: EyeModel | None,
-    use_higher_order_aberrations: bool = True,
+    model: EyeModel | None,  # noqa: ARG001
     field_coordinate: tuple[float, float] | None = None,
     wavelength: float | None = None,
     pupil_diameter: float | None = None,
     field_type: Literal["angle", "object_height"] = "angle",
     *,
-    return_raw_result: bool = False,
+    use_higher_order_aberrations: bool = True,
+    return_raw_result: bool = False,  # noqa: ARG001
 ) -> FourierPowerVectorRefraction | tuple[FourierPowerVectorRefraction, Any]:
     """Calculates the ocular refraction.
 

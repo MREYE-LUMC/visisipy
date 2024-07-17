@@ -41,16 +41,23 @@ exclude_also = [
     "raise NotImplementedError"
 ]
 
-[tool.black]
-line-length = 120
-
 [tool.isort]
 profile = "black"
 
-[tool.ruff.lint]
-#extend-ignore = [
-#    "TRY"
-#]
+[tool.ruff]
+line-length = 120
 
-[tool.ruff.format]
-#skip-magic-trailing-comma = true
+[tool.ruff.lint]
+extend-ignore = [
+    "B028",
+    "TRY003", # Avoid specifying long messages outside the exception class
+    "EM101", # Exception must not use a string literal, assign to variable first
+    "EM102", # Exception must not use an f-string literal, assign to variable first
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/*" = [ "ARG001", "ARG002" ]
+"tests/opticstudio/*" = [ "SLF001" ]
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-names-type = "csv"

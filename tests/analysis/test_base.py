@@ -30,7 +30,7 @@ def mock_backend(monkeypatch):
 def example_analysis():
     """Example analysis function to test the analysis decorator."""
 
-    def example_analysis(model: EyeModel | None, x: int, return_raw_result: bool):
+    def example_analysis(model: EyeModel | None, x: int, *, return_raw_result: bool):
         return x, x
 
     return example_analysis
@@ -49,10 +49,11 @@ class TestAnalysisDecorator:
         decorated_analysis = base.analysis(example_analysis)
         decorated_analysis(model, 1)
 
-        assert mock_backend.model is not None and mock_backend.model.eye_model == model
+        assert mock_backend.model is not None
+        assert mock_backend.model.eye_model == model
 
     def test_no_model_raises_valueerror(self):
-        def example_analysis(x, return_raw_result: bool = False):
+        def example_analysis(x, *, return_raw_result: bool = False):
             return x, x
 
         with pytest.raises(
@@ -62,7 +63,7 @@ class TestAnalysisDecorator:
             base.analysis(example_analysis)
 
     def test_invalid_model_annotation_raises_valueerror(self):
-        def example_analysis(model: str, x, return_raw_result: bool = False):
+        def example_analysis(model: str, x, *, return_raw_result: bool = False):
             return x, x
 
         with pytest.raises(

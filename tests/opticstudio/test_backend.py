@@ -20,20 +20,19 @@ class TestOpticStudioBackend:
             ("off", "Off", does_not_raise()),
             ("paraxial", "Paraxial", does_not_raise()),
             ("real", "Real", does_not_raise()),
-            ("invalid", None, pytest.raises(ValueError)),
+            (
+                "invalid",
+                None,
+                pytest.raises(ValueError, match="ray_aiming must be either 'off', 'paraxial', or 'real'"),
+            ),
         ],
     )
-    def test_new_model(
-        self, opticstudio_backend, ray_aiming, ray_aiming_constant, expectation
-    ):
+    def test_new_model(self, opticstudio_backend, ray_aiming, ray_aiming_constant, expectation):
         with expectation:
             OpticStudioBackend.new_model(save_old_model=False, ray_aiming=ray_aiming)
 
-            assert (
-                opticstudio_backend.oss.SystemData.RayAiming.RayAiming
-                == zp.constants.process_constant(
-                    zp.constants.SystemData.RayAimingMethod, ray_aiming_constant
-                )
+            assert opticstudio_backend.oss.SystemData.RayAiming.RayAiming == zp.constants.process_constant(
+                zp.constants.SystemData.RayAimingMethod, ray_aiming_constant
             )
             assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
 
@@ -112,38 +111,25 @@ class TestOpticStudioBackend:
             ),
         ],
     )
-    def test_set_fields(
-        self, opticstudio_backend, coordinates, field_type, field_constant, expectation
-    ):
+    def test_set_fields(self, opticstudio_backend, coordinates, field_type, field_constant, expectation):
         with expectation:
             opticstudio_backend.set_fields(coordinates, field_type)
 
-            assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(
-                coordinates
-            )
+            assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(coordinates)
             for i in range(len(coordinates)):
                 field = opticstudio_backend.oss.SystemData.Fields.GetField(i + 1)
                 assert coordinates[i] == (field.X, field.Y)
 
-            assert (
-                opticstudio_backend.oss.SystemData.Fields.GetFieldType()
-                == zp.constants.process_constant(
-                    zp.constants.SystemData.FieldType, field_constant
-                )
+            assert opticstudio_backend.oss.SystemData.Fields.GetFieldType() == zp.constants.process_constant(
+                zp.constants.SystemData.FieldType, field_constant
             )
 
     def test_set_wavelengths(self, opticstudio_backend):
         opticstudio_backend.set_wavelengths([0.543, 0.650])
 
         assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == 2
-        assert (
-            opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength
-            == 0.543
-        )
-        assert (
-            opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(2).Wavelength
-            == 0.650
-        )
+        assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength == 0.543
+        assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(2).Wavelength == 0.650
 
     def test_get_wavelength_number(self, opticstudio_backend):
         opticstudio_backend.set_wavelengths([0.543, 0.650])

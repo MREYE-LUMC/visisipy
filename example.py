@@ -26,7 +26,7 @@ model = visisipy.EyeModel()
 model.build()
 
 # Add dummy surface
-dummy_surface = visisipy.get_backend()._oss.LDE.InsertNewSurfaceAt(1)
+dummy_surface = visisipy.get_backend().oss.LDE.InsertNewSurfaceAt(1)
 dummy_surface.Comment = "dummy"
 dummy_surface.Thickness = 1
 
@@ -45,9 +45,7 @@ class InputOutputAngles(NamedTuple):
     output_angle_retina_center: float
 
     @staticmethod
-    def output_angle(
-        coordinate: tuple[float, float], reference_coordinate: tuple[float, float]
-    ) -> float:
+    def output_angle(coordinate: tuple[float, float], reference_coordinate: tuple[float, float]) -> float:
         return np.rad2deg(
             np.arctan2(
                 coordinate[1] - reference_coordinate[1],
@@ -64,27 +62,19 @@ class InputOutputAngles(NamedTuple):
         location_retina_center: float,
         coordinate: str = "y",
     ):
-        image_coordinate: tuple[float, float] = tuple(
-            raytrace.query("comment == 'retina'").iloc[0][["z", coordinate]]
-        )
+        image_coordinate: tuple[float, float] = tuple(raytrace.query("comment == 'retina'").iloc[0][["z", coordinate]])
 
         return cls(
             input_angle=raytrace.field.iloc[0]["xy".index(coordinate)],
             output_angle_np2=cls.output_angle(image_coordinate, (location_np2, 0)),
             output_angle_pupil=cls.output_angle(image_coordinate, (location_pupil, 0)),
-            output_angle_retina_center=cls.output_angle(
-                image_coordinate, (location_retina_center, 0)
-            ),
+            output_angle_retina_center=cls.output_angle(image_coordinate, (location_retina_center, 0)),
         )
 
 
-location_np2 = 7.45 - (
-    model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth
-)
+location_np2 = 7.45 - (model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth)
 location_retina_center = (
-    model.geometry.lens_thickness
-    + model.geometry.vitreous_thickness
-    - abs(model.geometry.retina.half_axes.axial)
+    model.geometry.lens_thickness + model.geometry.vitreous_thickness - abs(model.geometry.retina.half_axes.axial)
 )
 
 angles = pd.DataFrame(
@@ -96,7 +86,13 @@ angles = pd.DataFrame(
 fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(8, 4), gridspec_kw={"width_ratios": [1, 0.8]})
 
 sns.lineplot(
-    raytrace, x="z", y="y", hue="input_angle", legend="brief", palette="plasma", ax=ax[0]
+    raytrace,
+    x="z",
+    y="y",
+    hue="input_angle",
+    legend="brief",
+    palette="plasma",
+    ax=ax[0],
 )
 sns.move_legend(ax[0], "lower right", title="input angle [°]")
 

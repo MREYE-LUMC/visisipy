@@ -26,7 +26,7 @@ def zos(monkeypatch_session):
     zos = zp.ZOS()
 
     def patched_zos(
-        preload: bool = False,
+        preload: bool = False,  # noqa: FBT001, FBT002
         zosapi_nethelper: str | None = None,
         opticstudio_directory: str | None = None,
     ):
@@ -55,7 +55,7 @@ def new_oss(oss):
     return oss
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def opticstudio_backend(zos, monkeypatch):
     OpticStudioBackend.initialize(mode="standalone")
 

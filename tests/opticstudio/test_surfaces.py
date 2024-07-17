@@ -54,9 +54,7 @@ class TestOpticStudioSurfaceProperty:
     def test_set_none(self):
         mock_surface = self.MockOpticStudioSurface(None)
 
-        with pytest.raises(
-            AttributeError, match="Cannot set attribute .+ of non-built surface"
-        ):
+        with pytest.raises(AttributeError, match="Cannot set attribute .+ of non-built surface"):
             mock_surface.comment = "New comment"
 
 
@@ -84,9 +82,7 @@ class TestOpticStudioSurface:
         assert surface.thickness == 2.0
         assert surface.semi_diameter == 3.0
         assert surface.conic == 4.0
-        assert (
-            surface.material == "TEST MATERIAL"
-        )  # OpticStudio capitalizes material names
+        assert surface.material == "TEST MATERIAL"  # OpticStudio capitalizes material names
         assert surface.is_stop is bool(is_stop)
 
     def test_is_stop_false_warns(self, new_oss):
@@ -97,9 +93,7 @@ class TestOpticStudioSurface:
         "material_model",
         [
             MaterialModel(refractive_index=1.5, abbe_number=0, partial_dispersion=0),
-            MaterialModel(
-                refractive_index=1.5, abbe_number=50, partial_dispersion=0.67
-            ),
+            MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
         ],
     )
     def test_set_material_model(self, new_oss, material_model):
@@ -107,9 +101,7 @@ class TestOpticStudioSurface:
         surface.build(new_oss, position=1)
         surface.material = material_model
 
-        material_solvedata = (
-            surface.surface.MaterialCell.GetSolveData()._S_MaterialModel
-        )
+        material_solvedata = surface.surface.MaterialCell.GetSolveData()._S_MaterialModel
         assert material_solvedata.IndexNd == material_model.refractive_index
         assert material_solvedata.AbbeVd == material_model.abbe_number
         assert material_solvedata.dPgF == material_model.partial_dispersion
@@ -118,9 +110,7 @@ class TestOpticStudioSurface:
         "refractive_index,abbe_number,partial_dispersion",
         [(1.5, 0, 0), (1.5, 50, 0.67)],
     )
-    def test_get_material_model(
-        self, new_oss, refractive_index, abbe_number, partial_dispersion
-    ):
+    def test_get_material_model(self, new_oss, refractive_index, abbe_number, partial_dispersion):
         surface = OpticStudioSurface(comment="Test")
         surface.build(new_oss, position=1)
         solve_material_model(
@@ -155,11 +145,11 @@ class TestOpticStudioSurface:
 
         assert surface.material == "TEST MATERIAL"
 
-    def test_set_material_incorrect_type_raises_valueerror(self, new_oss):
+    def test_set_material_incorrect_type_raises_typeerror(self, new_oss):
         surface = OpticStudioSurface(comment="Test")
         surface.build(new_oss, position=1)
 
-        with pytest.raises(ValueError, match="'material' must be MaterialModel or str"):
+        with pytest.raises(TypeError, match="'material' must be MaterialModel or str"):
             surface.material = 5
 
     def test_relink_surface(self, new_oss):
@@ -206,15 +196,11 @@ class TestMakeSurface:
                 6,
                 7,
                 8,
-                MaterialModel(
-                    refractive_index=1.5, abbe_number=50, partial_dispersion=0.67
-                ),
+                MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
             ),
         ],
     )
-    def test_make_standard_surface(
-        self, radius, thickness, semi_diameter, asphericity, material
-    ):
+    def test_make_standard_surface(self, radius, thickness, semi_diameter, asphericity, material):
         surface = StandardSurface(
             radius=radius,
             thickness=thickness,
@@ -237,9 +223,7 @@ class TestMakeSurface:
             (
                 3,
                 4,
-                MaterialModel(
-                    refractive_index=1.5, abbe_number=50, partial_dispersion=0.67
-                ),
+                MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
             ),
         ],
     )

@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-from os import PathLike
 from typing import TYPE_CHECKING, Literal
 
 import zospy as zp
-from zospy.zpcore import ZOS, OpticStudioSystem
 
 from visisipy.backend import BaseBackend, _classproperty
 from visisipy.opticstudio.analysis import OpticStudioAnalysis
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from os import PathLike
+
+    from zospy.zpcore import ZOS, OpticStudioSystem
+
     from visisipy import EyeModel
 
 
@@ -20,9 +22,7 @@ def initialize_opticstudio(
     zosapi_nethelper: str | None = None,
     opticstudio_directory: str | None = None,
 ) -> tuple[ZOS, OpticStudioSystem]:
-    zos = zp.ZOS(
-        zosapi_nethelper=zosapi_nethelper, opticstudio_directory=opticstudio_directory
-    )
+    zos = zp.ZOS(zosapi_nethelper=zosapi_nethelper, opticstudio_directory=opticstudio_directory)
     oss = zos.connect(mode)
 
     return zos, oss
@@ -32,9 +32,7 @@ def _set_field_type(oss: OpticStudioSystem, field_type: str) -> None:
     if field_type == "angle":
         oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
     elif field_type == "object_height":
-        oss.SystemData.Fields.SetFieldType(
-            zp.constants.SystemData.FieldType.ObjectHeight
-        )
+        oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.ObjectHeight)
     else:
         raise ValueError("field_type must be either 'angle' or 'object_height'.")
 
@@ -64,7 +62,7 @@ class OpticStudioBackend(BaseBackend):
     model: BaseOpticStudioEye | None = None
 
     @_classproperty
-    def analysis(cls) -> OpticStudioAnalysis:
+    def analysis(cls) -> OpticStudioAnalysis:  # noqa: N805
         """
         Provides access to the `OpticStudioAnalysis` instance.
 
@@ -122,6 +120,7 @@ class OpticStudioBackend(BaseBackend):
     @classmethod
     def new_model(
         cls,
+        *,
         save_old_model: bool = False,
         ray_aiming: Literal["off", "paraxial", "real"] = "off",
     ) -> None:
@@ -133,28 +132,18 @@ class OpticStudioBackend(BaseBackend):
         cls.oss.new(saveifneeded=save_old_model)
 
         if ray_aiming == "off":
-            cls.oss.SystemData.RayAiming.RayAiming = (
-                zp.constants.SystemData.RayAimingMethod.Off
-            )
+            cls.oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Off
         elif ray_aiming == "paraxial":
-            cls.oss.SystemData.RayAiming.RayAiming = (
-                zp.constants.SystemData.RayAimingMethod.Paraxial
-            )
+            cls.oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Paraxial
         elif ray_aiming == "real":
-            cls.oss.SystemData.RayAiming.RayAiming = (
-                zp.constants.SystemData.RayAimingMethod.Real
-            )
+            cls.oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Real
         else:
             raise ValueError("ray_aiming must be either 'off', 'paraxial', or 'real'.")
 
-        cls.oss.SystemData.Aperture.ApertureType = (
-            zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
-        )
+        cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
 
     @classmethod
-    def build_model(
-        cls, model: EyeModel, replace_existing: bool = False, **kwargs
-    ) -> OpticStudioEye:
+    def build_model(cls, model: EyeModel, *, replace_existing: bool = False, **kwargs) -> OpticStudioEye:
         """
         Builds an optical system based on the provided eye model.
 
@@ -283,10 +272,7 @@ class OpticStudioBackend(BaseBackend):
             The wavelength number, or `None` if the wavelength is not present.
         """
         for i in range(cls.oss.SystemData.Wavelengths.NumberOfWavelengths):
-            if (
-                cls.oss.SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
-                == wavelength
-            ):
+            if cls.oss.SystemData.Wavelengths.GetWavelength(i + 1).Wavelength == wavelength:
                 return i + 1
 
         return None

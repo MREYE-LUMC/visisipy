@@ -28,7 +28,7 @@ def detect_opticstudio() -> bool:
         zos.disconnect()
         assert zos.Application is None
 
-        zp.ZOS._instances = set()
+        zp.ZOS._instances = set()  # noqa: SLF001
         del zos
 
     except FileNotFoundError:
@@ -48,8 +48,5 @@ def opticstudio_available(request) -> bool:
 
 @pytest.fixture(autouse=True)
 def skip_opticstudio(request, opticstudio_available):
-    if (
-        request.node.get_closest_marker("needs_opticstudio")
-        and not opticstudio_available
-    ):
+    if request.node.get_closest_marker("needs_opticstudio") and not opticstudio_available:
         pytest.skip("OpticStudio is not available.")

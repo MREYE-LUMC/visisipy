@@ -7,23 +7,23 @@ from visisipy.models.geometry import StandardSurface, Stop
 
 @pytest.fixture
 def example_geometry_parameters():
-    return dict(
-        axial_length=20,
-        cornea_thickness=0.5,
-        anterior_chamber_depth=3,
-        lens_thickness=4,
-        cornea_front_radius=7,
-        cornea_front_asphericity=0,
-        cornea_back_radius=6,
-        cornea_back_asphericity=0,
-        lens_front_radius=10,
-        lens_front_asphericity=0,
-        lens_back_radius=-6,
-        lens_back_asphericity=0,
-        retina_radius=-12,
-        retina_asphericity=0,
-        pupil_radius=1.0,
-    )
+    return {
+        "axial_length": 20,
+        "cornea_thickness": 0.5,
+        "anterior_chamber_depth": 3,
+        "lens_thickness": 4,
+        "cornea_front_radius": 7,
+        "cornea_front_asphericity": 0,
+        "cornea_back_radius": 6,
+        "cornea_back_asphericity": 0,
+        "lens_front_radius": 10,
+        "lens_front_asphericity": 0,
+        "lens_back_radius": -6,
+        "lens_back_asphericity": 0,
+        "retina_radius": -12,
+        "retina_asphericity": 0,
+        "pupil_radius": 1.0,
+    }
 
 
 @pytest.fixture
@@ -83,7 +83,7 @@ class TestStandardSurface:
         surface = StandardSurface(radius=12, asphericity=asphericity)
 
         with pytest.raises(NotImplementedError):
-            half_axes = surface.half_axes
+            _ = surface.half_axes
 
 
 class TestStop:
@@ -106,7 +106,7 @@ class TestEyeGeometry:
         )
 
     def test_init_geometry_non_stop_pupil_raises_valueerror(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="The pupil surface must be a stop"):
             EyeGeometry(
                 cornea_front=StandardSurface(),
                 cornea_back=StandardSurface(),
@@ -118,7 +118,7 @@ class TestEyeGeometry:
 
     @pytest.mark.parametrize("asphericity", [-1, -1.5])
     def test_init_geometry_non_ellipsoid_retina_raises_valueerror(self, asphericity):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Only an elliptical retina is allowed"):
             EyeGeometry(
                 cornea_front=StandardSurface(),
                 cornea_back=StandardSurface(),
@@ -129,29 +129,16 @@ class TestEyeGeometry:
             )
 
     def test_axial_length(self, example_geometry_parameters, example_geometry):
-        assert (
-            example_geometry.axial_length == example_geometry_parameters["axial_length"]
-        )
+        assert example_geometry.axial_length == example_geometry_parameters["axial_length"]
 
     def test_cornea_thickness(self, example_geometry_parameters, example_geometry):
-        assert (
-            example_geometry.cornea_thickness
-            == example_geometry_parameters["cornea_thickness"]
-        )
+        assert example_geometry.cornea_thickness == example_geometry_parameters["cornea_thickness"]
 
-    def test_anterior_chamber_depth(
-        self, example_geometry_parameters, example_geometry
-    ):
-        assert (
-            example_geometry.anterior_chamber_depth
-            == example_geometry_parameters["anterior_chamber_depth"]
-        )
+    def test_anterior_chamber_depth(self, example_geometry_parameters, example_geometry):
+        assert example_geometry.anterior_chamber_depth == example_geometry_parameters["anterior_chamber_depth"]
 
     def test_lens_thickness(self, example_geometry_parameters, example_geometry):
-        assert (
-            example_geometry.lens_thickness
-            == example_geometry_parameters["lens_thickness"]
-        )
+        assert example_geometry.lens_thickness == example_geometry_parameters["lens_thickness"]
 
     def test_vitreous_thickness(self, example_geometry_parameters, example_geometry):
         vitreous_thickness = example_geometry_parameters["axial_length"] - (
@@ -164,9 +151,7 @@ class TestEyeGeometry:
 
 @pytest.mark.parametrize("base_geometry", [NavarroGeometry])
 class TestCreateGeometry:
-    def test_create_geometry(
-        self, base_geometry, example_geometry_parameters, example_geometry
-    ):
+    def test_create_geometry(self, base_geometry, example_geometry_parameters, example_geometry):
         geometry = create_geometry(
             base=base_geometry,
             **example_geometry_parameters,
@@ -175,9 +160,7 @@ class TestCreateGeometry:
 
         assert geometry.__dict__ == example_geometry.__dict__
 
-    def test_create_geometry_estimate_cornea_back(
-        self, base_geometry, example_geometry_parameters
-    ):
+    def test_create_geometry_estimate_cornea_back(self, base_geometry, example_geometry_parameters):
         geometry = create_geometry(
             base=base_geometry,
             **example_geometry_parameters,
@@ -190,23 +173,17 @@ class TestCreateGeometry:
         with pytest.raises(TypeError, match="The base geometry must be a class."):
             create_geometry(base=base_geometry())
 
-    def test_base_no_eyegeometry_raises_valueerror(self, base_geometry):
+    def test_base_no_eyegeometry_raises_typeerror(self, base_geometry):
         class InvalidGeometry:
             ...
 
-        with pytest.raises(
-            ValueError, match="The base geometry must be a subclass of EyeGeometry."
-        ):
+        with pytest.raises(TypeError, match="The base geometry must be a subclass of EyeGeometry."):
             create_geometry(base=InvalidGeometry)
 
-    @pytest.mark.filterwarnings("ignore")
-    def test_estimate_cornea_back_and_radius_warns(
-        self, base_geometry, example_geometry_parameters
-    ):
+    def test_estimate_cornea_back_and_radius_warns(self, base_geometry, example_geometry_parameters):
         with pytest.warns(
             UserWarning,
-            match="The cornea back radius was provided, but it will be ignored because "
-            "estimate_cornea_back is True.",
+            match="The cornea back radius was provided, but it will be ignored because estimate_cornea_back is True",
         ):
             create_geometry(
                 base=base_geometry,
@@ -235,23 +212,11 @@ class TestCreateGeometry:
     @pytest.mark.parametrize(
         "geometry_parameters",
         [
-            dict(
-                axial_length=10,
-                cornea_thickness=1,
-                anterior_chamber_depth=4,
-                lens_thickness=5,
-            ),
-            dict(
-                axial_length=10,
-                cornea_thickness=2,
-                anterior_chamber_depth=4,
-                lens_thickness=5,
-            ),
+            {"axial_length": 10, "cornea_thickness": 1, "anterior_chamber_depth": 4, "lens_thickness": 5},
+            {"axial_length": 10, "cornea_thickness": 2, "anterior_chamber_depth": 4, "lens_thickness": 5},
         ],
     )
-    def test_invalid_vitreous_thickness_raises_valueerror(
-        self, base_geometry, geometry_parameters
-    ):
+    def test_invalid_vitreous_thickness_raises_valueerror(self, base_geometry, geometry_parameters):
         with pytest.raises(
             ValueError,
             match="The sum of the cornea thickness, anterior chamber depth and lens thickness is greater than "
