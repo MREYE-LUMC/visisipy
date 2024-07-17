@@ -1,0 +1,41 @@
+name: "CI"
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  format:
+    name: "Format and lint"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+    - name: Install hatch
+      run: |
+        pipx install hatch
+
+    - name: Format and lint
+      run: hatch fmt --check
+    
+  test:
+    name: "Test"
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        pip install --editable .
+        pip install pytest
+
+    - name: Run tests
+      run: pytest ./tests --no-opticstudio
