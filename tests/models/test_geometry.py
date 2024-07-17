@@ -174,8 +174,7 @@ class TestCreateGeometry:
             create_geometry(base=base_geometry())
 
     def test_base_no_eyegeometry_raises_typeerror(self, base_geometry):
-        class InvalidGeometry:
-            ...
+        class InvalidGeometry: ...
 
         with pytest.raises(TypeError, match="The base geometry must be a subclass of EyeGeometry."):
             create_geometry(base=InvalidGeometry)

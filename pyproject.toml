@@ -24,6 +24,9 @@ python = "3.11"
 [tool.hatch.envs.py39]
 python = "3.9"
 
+[tool.hatch.envs.hatch-static-analysis]
+config-path = "ruff_defaults.toml"
+
 [[tool.hatch.envs.hatch-test.matrix]]
 python = ["3.9", "3.10", "3.11", "3.12"]
 
@@ -41,10 +44,8 @@ exclude_also = [
     "raise NotImplementedError"
 ]
 
-[tool.isort]
-profile = "black"
-
 [tool.ruff]
+extend = "ruff_defaults.toml"
 line-length = 120
 
 [tool.ruff.lint]
