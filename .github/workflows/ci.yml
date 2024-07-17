@@ -32,9 +32,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install hatch
-      run: |
-        pipx install hatch
+    - name: Install dependencies
+      run: pip install pytest pytest-cov
 
     - name: Run tests
-      run: hatch test -py=${{ matrix.python-version }} --no-opticstudio
+      run: pytest tests/ --no-opticstudio
