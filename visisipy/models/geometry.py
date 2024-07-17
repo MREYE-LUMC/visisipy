@@ -18,7 +18,7 @@ __all__ = (
 
 
 @dataclass
-class Surface(ABC):
+class Surface(ABC):  # noqa: B024
     """Base class for optical surfaces.
 
     Attributes
