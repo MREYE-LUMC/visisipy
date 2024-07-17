@@ -33,7 +33,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: pip install pytest pytest-cov
+      run: |
+        pip install --editable .
+        pip install pytest
 
     - name: Run tests
-      run: pytest tests/ --no-opticstudio
+      run: pytest ./tests --no-opticstudio
