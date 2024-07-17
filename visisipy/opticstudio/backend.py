@@ -6,7 +6,7 @@ from typing import Iterable, TYPE_CHECKING, Literal
 import zospy as zp
 from zospy.zpcore import ZOS, OpticStudioSystem
 
-from visisipy._backend import BaseBackend, _classproperty
+from visisipy.backend import BaseBackend, _classproperty
 from visisipy.opticstudio.analysis import OpticStudioAnalysis
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 

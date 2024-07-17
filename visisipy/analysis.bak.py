@@ -5,7 +5,7 @@ from typing import Any, Iterable, Literal, Union, TYPE_CHECKING
 
 import numpy as np
 
-from visisipy._backend import get_backend
+from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from pandas import DataFrame

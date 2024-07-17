@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, TYPE_CHECKING
 
 from visisipy.analysis.base import analysis
-from visisipy._backend import get_backend
+from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from visisipy import EyeModel

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable, Literal, TYPE_CHECKING, Any
 
-from visisipy._backend import get_backend
+from visisipy.backend import get_backend
 
 from visisipy.analysis.base import analysis
 

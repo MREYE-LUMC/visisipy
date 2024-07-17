@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from visisipy import analysis, models, opticstudio, plots
-from visisipy._backend import get_backend, set_backend
+from visisipy.backend import get_backend, set_backend
 from visisipy.models import (
     EyeGeometry,
     EyeMaterials,

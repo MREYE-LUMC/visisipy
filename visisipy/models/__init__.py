@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from os import PathLike
 from typing import Any
 
-from visisipy import _backend
 from visisipy.models.geometry import EyeGeometry, NavarroGeometry, create_geometry
 from visisipy.models.materials import EyeMaterials, NavarroMaterials
 

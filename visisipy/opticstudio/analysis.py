@@ -7,7 +7,7 @@ import pandas as pd
 import zospy as zp
 from pandas import DataFrame
 
-from visisipy._backend import BaseAnalysis
+from visisipy.backend import BaseAnalysis
 from visisipy.analysis.refraction import FourierPowerVectorRefraction
 
 if TYPE_CHECKING:

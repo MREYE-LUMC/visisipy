@@ -5,7 +5,7 @@ from typing import Any, Callable, TYPE_CHECKING
 import inspect
 from functools import wraps
 
-from visisipy._backend import get_backend
+from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from visisipy.models import EyeModel

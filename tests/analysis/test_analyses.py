@@ -1,5 +1,5 @@
 import visisipy
-import visisipy._backend
+import visisipy.backend
 
 
 class MockAnalysis:
@@ -33,7 +33,7 @@ class MockBackend:
 
 
 def test_raytracing_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy._backend, "_BACKEND", MockBackend)
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
 
     assert visisipy.analysis.raytrace(coordinates=[(0, 0)]) is None
     assert visisipy.analysis.raytrace(coordinates=[(0, 0)], return_raw_result=True) == (
@@ -43,7 +43,7 @@ def test_raytracing_analysis(monkeypatch):
 
 
 def test_zernike_standard_coefficients_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy._backend, "_BACKEND", MockBackend)
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
 
     assert visisipy.analysis.zernike_standard_coefficients() is None
     assert visisipy.analysis.zernike_standard_coefficients(return_raw_result=True) == (
@@ -53,7 +53,7 @@ def test_zernike_standard_coefficients_analysis(monkeypatch):
 
 
 def test_refraction_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy._backend, "_BACKEND", MockBackend)
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
 
     assert visisipy.analysis.refraction() is None
     assert visisipy.analysis.refraction(return_raw_result=True) == (None, None)
