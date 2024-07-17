@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import importlib
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from os import PathLike
-from typing import Iterable, TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal
 from warnings import warn
 
 if TYPE_CHECKING:
     from pandas import DataFrame
-    from visisipy.models import BaseEye, EyeModel
+
     from visisipy.analysis import FourierPowerVectorRefraction
+    from visisipy.models import BaseEye, EyeModel
 
 _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Literal["opticstudio"] = "opticstudio"

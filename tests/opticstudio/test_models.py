@@ -5,7 +5,6 @@ from visisipy.models.geometry import StandardSurface, Stop
 from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio import OpticStudioEye
 
-
 pytestmark = [pytest.mark.needs_opticstudio]
 
 

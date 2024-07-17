@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-from typing import Iterable, Literal, TYPE_CHECKING, Any
-
-from visisipy.backend import get_backend
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, Literal
 
 from visisipy.analysis.base import analysis
+from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from pandas import DataFrame
+
     from visisipy import EyeModel
 
 

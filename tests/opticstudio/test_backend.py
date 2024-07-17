@@ -1,7 +1,7 @@
+from contextlib import nullcontext as does_not_raise
+
 import pytest
 import zospy as zp
-
-from contextlib import nullcontext as does_not_raise
 
 from visisipy import EyeModel
 from visisipy.opticstudio.backend import OpticStudioBackend
@@ -123,7 +123,7 @@ class TestOpticStudioBackend:
             )
             for i in range(len(coordinates)):
                 field = opticstudio_backend.oss.SystemData.Fields.GetField(i + 1)
-                assert (field.X, field.Y) == coordinates[i]
+                assert coordinates[i] == (field.X, field.Y)
 
             assert (
                 opticstudio_backend.oss.SystemData.Fields.GetFieldType()

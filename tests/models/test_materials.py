@@ -1,4 +1,4 @@
-from visisipy.models.materials import MaterialModel, EyeMaterials, NavarroMaterials
+from visisipy.models.materials import EyeMaterials, MaterialModel, NavarroMaterials
 
 
 class TestMaterialModel:

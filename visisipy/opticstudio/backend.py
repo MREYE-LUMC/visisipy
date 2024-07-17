@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from os import PathLike
-from typing import Iterable, TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal
 
 import zospy as zp
 from zospy.zpcore import ZOS, OpticStudioSystem

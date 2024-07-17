@@ -1,18 +1,20 @@
 from __future__ import annotations
 
-from typing import Iterable, Literal, TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
 import zospy as zp
 from pandas import DataFrame
 
-from visisipy.backend import BaseAnalysis
 from visisipy.analysis.refraction import FourierPowerVectorRefraction
+from visisipy.backend import BaseAnalysis
 
 if TYPE_CHECKING:
     from zospy.api import _ZOSAPI
     from zospy.zpcore import OpticStudioSystem
+
     from visisipy.opticstudio.backend import OpticStudioBackend
 
 

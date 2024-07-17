@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Callable, TYPE_CHECKING
-
 import inspect
 from functools import wraps
+from typing import TYPE_CHECKING, Any, Callable
 
 from visisipy.backend import get_backend
 
@@ -63,9 +62,7 @@ def _build_model(model: EyeModel) -> None:
     """
     backend = get_backend()
 
-    if backend.model is None:
-        backend.build_model(model)
-    elif backend.model.eye_model is not model:
+    if backend.model is None or backend.model.eye_model is not model:
         backend.build_model(model)
 
 

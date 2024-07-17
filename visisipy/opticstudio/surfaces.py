@@ -211,7 +211,7 @@ class OpticStudioSurface(BaseSurface):
 
 @singledispatch
 def make_surface(
-    surface: Surface, material: "str | MaterialModel", comment: str = ""
+    surface: Surface, material: str | MaterialModel, comment: str = ""
 ) -> OpticStudioSurface:
     """Create an `OpticStudioSurface` instance from a given `Surface` instance.
 

@@ -188,7 +188,7 @@ class TestCreateGeometry:
 
     def test_base_no_class_raises_typeerror(self, base_geometry):
         with pytest.raises(TypeError, match="The base geometry must be a class."):
-            create_geometry(base=base_geometry(), **{})
+            create_geometry(base=base_geometry())
 
     def test_base_no_eyegeometry_raises_valueerror(self, base_geometry):
         class InvalidGeometry:
@@ -197,7 +197,7 @@ class TestCreateGeometry:
         with pytest.raises(
             ValueError, match="The base geometry must be a subclass of EyeGeometry."
         ):
-            create_geometry(base=InvalidGeometry, **{})
+            create_geometry(base=InvalidGeometry)
 
     @pytest.mark.filterwarnings("ignore")
     def test_estimate_cornea_back_and_radius_warns(

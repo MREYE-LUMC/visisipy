@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import pytest
-import visisipy.analysis.base as base
-
 from types import SimpleNamespace
+
+import pytest
+
 from visisipy import EyeModel
+from visisipy.analysis import base
 
 
 @pytest.fixture

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable, Literal, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 import numpy as np
 

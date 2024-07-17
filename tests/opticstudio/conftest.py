@@ -48,7 +48,7 @@ def oss(zos):
     oss.close()
 
 
-@pytest.fixture()
+@pytest.fixture
 def new_oss(oss):
     oss.new()
 

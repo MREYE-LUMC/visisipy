@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal
 
-from visisipy.backend import get_backend
 from visisipy.analysis.base import analysis
+from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from visisipy.models import EyeModel

@@ -1,15 +1,13 @@
 import pytest
+from zospy.solvers import material_model as solve_material_model
 
+from visisipy.models.geometry import StandardSurface, Stop, Surface
 from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio.surfaces import (
     OpticStudioSurface,
     OpticStudioSurfaceProperty,
     make_surface,
 )
-from visisipy.models.geometry import StandardSurface, Stop, Surface
-
-from zospy.solvers import material_model as solve_material_model
-
 
 pytestmark = [pytest.mark.needs_opticstudio]
 

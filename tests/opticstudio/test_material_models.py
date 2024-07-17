@@ -1,13 +1,13 @@
-import pytest
 import numpy as np
+import pytest
 import zospy as zp
-from visisipy.models.materials import NavarroMaterials
 
+from visisipy.models.materials import NavarroMaterials
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
 
-@pytest.fixture()
+@pytest.fixture
 def opticstudio_model(new_oss):
     """
     Simple optical system with 3 parallel surfaces: a stop, refracting interface, and image surface.

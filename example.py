@@ -1,12 +1,12 @@
 # %%
+from typing import NamedTuple
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-import visisipy
-import matplotlib.pyplot as plt
 import seaborn as sns
 
-from typing import NamedTuple
+import visisipy
 
 sns.set_style(
     "whitegrid",
