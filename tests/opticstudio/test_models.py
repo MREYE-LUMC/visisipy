@@ -6,6 +6,9 @@ from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio import OpticStudioEye
 
 
+pytestmark = [pytest.mark.needs_opticstudio]
+
+
 @pytest.fixture
 def eye_model():
     geometry = EyeGeometry(

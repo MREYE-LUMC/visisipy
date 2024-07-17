@@ -4,6 +4,9 @@ import zospy as zp
 from visisipy.models.materials import NavarroMaterials
 
 
+pytestmark = [pytest.mark.needs_opticstudio]
+
+
 @pytest.fixture()
 def opticstudio_model(new_oss):
     """

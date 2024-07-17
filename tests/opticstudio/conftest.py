@@ -16,7 +16,7 @@ def monkeypatch_session():
 
 
 @pytest.fixture(scope="session")
-def zos(monkeypatch_session, skip_opticstudio):
+def zos(monkeypatch_session):
     """
     Initialize a ZOS instance.
 

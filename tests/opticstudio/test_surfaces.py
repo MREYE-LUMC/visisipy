@@ -11,6 +11,9 @@ from visisipy.models.geometry import StandardSurface, Stop, Surface
 from zospy.solvers import material_model as solve_material_model
 
 
+pytestmark = [pytest.mark.needs_opticstudio]
+
+
 @pytest.fixture
 def surface(new_oss):
     surface = new_oss.LDE.InsertNewSurfaceAt(1)

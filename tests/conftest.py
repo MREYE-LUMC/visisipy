@@ -9,6 +9,13 @@ def pytest_addoption(parser):
     )
 
 
+def pytest_collection_modifyitems(config, items):
+    for item in items:
+        needs_opticstudio = item.get_closest_marker("needs_opticstudio")
+        if needs_opticstudio and config.getoption("--no-opticstudio"):
+            item.add_marker("skip")
+
+
 def detect_opticstudio() -> bool:
     import zospy as zp
 
