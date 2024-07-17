@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "visisipy"
+description = "Accessible vision simulations in Python."
+authors = [
+    { name = "Corné Haasjes", email = "c.haasjes@lumc.nl" },
+    { name = "Jan-Willem Beenakker", email = "j.w.m.beenakker@lumc.nl" },
+]
+version = "0.0.1"
+dependencies = [
+    "zospy==1.2.1",
+    "matplotlib",
+    "numpy",
+    "scipy"
+]
+requires-python = ">=3.9, <3.13"
+
+[tool.hatch.envs.default]
+python = "3.11"
+
+[tool.hatch.envs.py39]
+python = "3.9"
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12"]
+
+[tool.pytest.ini_options]
+markers = [
+    "needs_opticstudio: test needs OpticStudio and will be skipped if it is not available",
+]
+
+[tool.coverage.report]
+omit = [
+    "tests/*",
+]
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError"
+]
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff.lint]
+#extend-ignore = [
+#    "TRY"
+#]
+
+[tool.ruff.format]
+#skip-magic-trailing-comma = true
