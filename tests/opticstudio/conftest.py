@@ -61,5 +61,5 @@ def opticstudio_backend(zos, monkeypatch):
 
     yield OpticStudioBackend
 
-    if OpticStudioBackend._zos is not None and OpticStudioBackend._oss is not None:
+    if OpticStudioBackend.zos is not None and OpticStudioBackend.oss is not None:
         OpticStudioBackend.disconnect()

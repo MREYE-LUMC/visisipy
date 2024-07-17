@@ -111,12 +111,12 @@ class TestRefractionAnalysis:
             opticstudio_analysis._backend, "_model", MockOpticstudioModel()
         )
 
-        assert not opticstudio_analysis._backend._model.pupil.changed_semi_diameter
+        assert not opticstudio_analysis._backend.model.pupil.changed_semi_diameter
 
         opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)
 
         assert (
-            opticstudio_analysis._backend._model.pupil.changed_semi_diameter
+            opticstudio_analysis._backend.model.pupil.changed_semi_diameter
             == changed_pupil_diameter
         )
-        assert opticstudio_analysis._backend._model.pupil.semi_diameter == 1.0
+        assert opticstudio_analysis._backend.model.pupil.semi_diameter == 1.0

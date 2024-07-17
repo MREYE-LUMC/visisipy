@@ -11,8 +11,8 @@ pytestmark = [pytest.mark.needs_opticstudio]
 
 class TestOpticStudioBackend:
     def test_initialize_opticstudio(self, opticstudio_backend):
-        assert opticstudio_backend._zos is not None
-        assert opticstudio_backend._oss is not None
+        assert opticstudio_backend.zos is not None
+        assert opticstudio_backend.oss is not None
 
     @pytest.mark.parametrize(
         "ray_aiming,ray_aiming_constant,expectation",
@@ -30,33 +30,33 @@ class TestOpticStudioBackend:
             OpticStudioBackend.new_model(save_old_model=False, ray_aiming=ray_aiming)
 
             assert (
-                opticstudio_backend._oss.SystemData.RayAiming.RayAiming
+                opticstudio_backend.oss.SystemData.RayAiming.RayAiming
                 == zp.constants.process_constant(
                     zp.constants.SystemData.RayAimingMethod, ray_aiming_constant
                 )
             )
-            assert opticstudio_backend._oss.LDE.NumberOfSurfaces == 3
+            assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
 
     def test_build_model(self, opticstudio_backend):
         model = EyeModel()
 
         opticstudio_backend.build_model(model)
 
-        assert opticstudio_backend._model is not None
-        assert opticstudio_backend._model.eye_model == model
-        assert opticstudio_backend._oss.LDE.NumberOfSurfaces == 7
+        assert opticstudio_backend.model is not None
+        assert opticstudio_backend.model.eye_model == model
+        assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 7
 
     def test_clear_model(self, opticstudio_backend):
         model = EyeModel()
 
         opticstudio_backend.build_model(model)
-        assert opticstudio_backend._model is not None
-        assert opticstudio_backend._oss.LDE.NumberOfSurfaces == 7
+        assert opticstudio_backend.model is not None
+        assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 7
 
         opticstudio_backend.clear_model()
 
-        assert opticstudio_backend._model is None
-        assert opticstudio_backend._oss.LDE.NumberOfSurfaces == 3
+        assert opticstudio_backend.model is None
+        assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
 
     def test_save_model(self, opticstudio_backend, tmp_path):
         model = EyeModel()
@@ -82,8 +82,8 @@ class TestOpticStudioBackend:
     def test_disconnect(self, opticstudio_backend):
         opticstudio_backend.disconnect()
 
-        assert opticstudio_backend._zos is None
-        assert opticstudio_backend._oss is None
+        assert opticstudio_backend.zos is None
+        assert opticstudio_backend.oss is None
 
     @pytest.mark.parametrize(
         "coordinates,field_type,field_constant,expectation",
@@ -118,15 +118,15 @@ class TestOpticStudioBackend:
         with expectation:
             opticstudio_backend.set_fields(coordinates, field_type)
 
-            assert opticstudio_backend._oss.SystemData.Fields.NumberOfFields == len(
+            assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(
                 coordinates
             )
             for i in range(len(coordinates)):
-                field = opticstudio_backend._oss.SystemData.Fields.GetField(i + 1)
+                field = opticstudio_backend.oss.SystemData.Fields.GetField(i + 1)
                 assert (field.X, field.Y) == coordinates[i]
 
             assert (
-                opticstudio_backend._oss.SystemData.Fields.GetFieldType()
+                opticstudio_backend.oss.SystemData.Fields.GetFieldType()
                 == zp.constants.process_constant(
                     zp.constants.SystemData.FieldType, field_constant
                 )
@@ -135,13 +135,13 @@ class TestOpticStudioBackend:
     def test_set_wavelengths(self, opticstudio_backend):
         opticstudio_backend.set_wavelengths([0.543, 0.650])
 
-        assert opticstudio_backend._oss.SystemData.Wavelengths.NumberOfWavelengths == 2
+        assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == 2
         assert (
-            opticstudio_backend._oss.SystemData.Wavelengths.GetWavelength(1).Wavelength
+            opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength
             == 0.543
         )
         assert (
-            opticstudio_backend._oss.SystemData.Wavelengths.GetWavelength(2).Wavelength
+            opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(2).Wavelength
             == 0.650
         )
 

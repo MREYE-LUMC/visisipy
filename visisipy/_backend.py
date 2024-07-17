@@ -42,7 +42,7 @@ class BaseAnalysis(ABC):
 
 
 class BaseBackend(ABC):
-    _model: BaseEye | None
+    model: BaseEye | None
 
     @_classproperty
     def analysis(self) -> BaseAnalysis:

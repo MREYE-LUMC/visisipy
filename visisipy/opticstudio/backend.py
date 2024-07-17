@@ -58,9 +58,9 @@ def _remove_wavelenghts(oss: OpticStudioSystem) -> None:
 
 
 class OpticStudioBackend(BaseBackend):
-    _zos: ZOS | None = None
-    _oss: OpticStudioSystem | None = None
-    _model: BaseOpticStudioEye | None = None
+    zos: ZOS | None = None
+    oss: OpticStudioSystem | None = None
+    model: BaseOpticStudioEye | None = None
 
     @_classproperty
     def analysis(cls) -> OpticStudioAnalysis:
@@ -80,7 +80,7 @@ class OpticStudioBackend(BaseBackend):
         OpticStudioAnalysis
             The `OpticStudioAnalysis` instance.
         """
-        if cls._oss is None:
+        if cls.oss is None:
             raise RuntimeError("The opticstudio backend has not been initialized.")
 
         return OpticStudioAnalysis(cls)
@@ -110,7 +110,7 @@ class OpticStudioBackend(BaseBackend):
         ray_aiming : Literal["off", "paraxial", "real"], optional
             The ray aiming method to use. Can be either "off", "paraxial", or "real". Defaults to "off".
         """
-        cls._zos, cls._oss = initialize_opticstudio(
+        cls.zos, cls.oss = initialize_opticstudio(
             mode=mode,
             zosapi_nethelper=zosapi_nethelper,
             opticstudio_directory=opticstudio_directory,
@@ -129,24 +129,24 @@ class OpticStudioBackend(BaseBackend):
 
         This method initializes a new optical system model.
         """
-        cls._oss.new(saveifneeded=save_old_model)
+        cls.oss.new(saveifneeded=save_old_model)
 
         if ray_aiming == "off":
-            cls._oss.SystemData.RayAiming.RayAiming = (
+            cls.oss.SystemData.RayAiming.RayAiming = (
                 zp.constants.SystemData.RayAimingMethod.Off
             )
         elif ray_aiming == "paraxial":
-            cls._oss.SystemData.RayAiming.RayAiming = (
+            cls.oss.SystemData.RayAiming.RayAiming = (
                 zp.constants.SystemData.RayAimingMethod.Paraxial
             )
         elif ray_aiming == "real":
-            cls._oss.SystemData.RayAiming.RayAiming = (
+            cls.oss.SystemData.RayAiming.RayAiming = (
                 zp.constants.SystemData.RayAimingMethod.Real
             )
         else:
             raise ValueError("ray_aiming must be either 'off', 'paraxial', or 'real'.")
 
-        cls._oss.SystemData.Aperture.ApertureType = (
+        cls.oss.SystemData.Aperture.ApertureType = (
             zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
         )
 
@@ -174,13 +174,13 @@ class OpticStudioBackend(BaseBackend):
         OpticStudioEye
             The built optical system model.
         """
-        if not replace_existing and cls._model is not None:
+        if not replace_existing and cls.model is not None:
             cls.new_model()
 
         opticstudio_eye = OpticStudioEye(model)
-        opticstudio_eye.build(cls._oss, replace_existing=replace_existing, **kwargs)
+        opticstudio_eye.build(cls.oss, replace_existing=replace_existing, **kwargs)
 
-        cls._model = opticstudio_eye
+        cls.model = opticstudio_eye
 
         return opticstudio_eye
 
@@ -191,8 +191,8 @@ class OpticStudioBackend(BaseBackend):
 
         This method initializes a new optical system, discarding any existing model.
         """
-        cls._oss.new(saveifneeded=False)
-        cls._model = None
+        cls.oss.new(saveifneeded=False)
+        cls.model = None
 
     @classmethod
     def save_model(cls, path: str | PathLike | None = None) -> None:
@@ -208,9 +208,9 @@ class OpticStudioBackend(BaseBackend):
             The path where the model should be saved. If None, the model is saved in the current working directory.
         """
         if path is not None:
-            cls._oss.save_as(path)
+            cls.oss.save_as(path)
         else:
-            cls._oss.save()
+            cls.oss.save()
 
     @classmethod
     def disconnect(cls) -> None:
@@ -220,10 +220,10 @@ class OpticStudioBackend(BaseBackend):
         This method closes the current optical system, sets the system and ZOS instances to None,
         and disconnects the ZOS instance.
         """
-        cls._oss.close()
-        cls._oss = None
-        cls._zos.disconnect()
-        cls._zos = None
+        cls.oss.close()
+        cls.oss = None
+        cls.zos.disconnect()
+        cls.zos = None
 
     @classmethod
     def set_fields(
@@ -244,8 +244,8 @@ class OpticStudioBackend(BaseBackend):
             The type of field to be used in the optical system. Can be either "angle" or "object_height".
             Defaults to "angle".
         """
-        _set_field_type(cls._oss, field_type)
-        _set_fields(cls._oss, coordinates)
+        _set_field_type(cls.oss, field_type)
+        _set_fields(cls.oss, coordinates)
 
     @classmethod
     def set_wavelengths(cls, wavelengths: Iterable[float]) -> None:
@@ -260,10 +260,10 @@ class OpticStudioBackend(BaseBackend):
         wavelengths : Iterable[float]
             An iterable of wavelengths to be set for the optical system.
         """
-        _remove_wavelenghts(cls._oss)
+        _remove_wavelenghts(cls.oss)
 
         for w in wavelengths:
-            cls._oss.SystemData.Wavelengths.AddWavelength(Wavelength=w, Weight=1.0)
+            cls.oss.SystemData.Wavelengths.AddWavelength(Wavelength=w, Weight=1.0)
 
     @classmethod
     def get_wavelength_number(cls, wavelength: float) -> int | None:
@@ -281,9 +281,9 @@ class OpticStudioBackend(BaseBackend):
         int | None
             The wavelength number, or `None` if the wavelength is not present.
         """
-        for i in range(cls._oss.SystemData.Wavelengths.NumberOfWavelengths):
+        for i in range(cls.oss.SystemData.Wavelengths.NumberOfWavelengths):
             if (
-                cls._oss.SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
+                cls.oss.SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
                 == wavelength
             ):
                 return i + 1

@@ -97,7 +97,7 @@ class OpticStudioAnalysis(BaseAnalysis):
 
     def __init__(self, backend: OpticStudioBackend):
         self._backend = backend
-        self._oss = backend._oss
+        self._oss = backend.oss
 
     def raytrace(
         self,
@@ -146,10 +146,10 @@ class OpticStudioAnalysis(BaseAnalysis):
 
         raytrace_results = []
 
-        for wavelength_number, wavelength in _iter_wavelengths(self._backend._oss):
-            for field_number, field in _iter_fields(self._backend._oss):
+        for wavelength_number, wavelength in _iter_wavelengths(self._backend.oss):
+            for field_number, field in _iter_fields(self._backend.oss):
                 raytrace_result = zp.analyses.raysandspots.single_ray_trace(
-                    self._backend._oss,
+                    self._backend.oss,
                     px=pupil[0],
                     py=pupil[1],
                     field=field_number,
@@ -269,8 +269,8 @@ class OpticStudioAnalysis(BaseAnalysis):
         # Temporarily change the pupil diameter
         old_pupil_semi_diameter = None
         if pupil_diameter is not None:
-            old_pupil_semi_diameter = self._backend._model.pupil.semi_diameter
-            self._backend._model.pupil.semi_diameter = pupil_diameter / 2
+            old_pupil_semi_diameter = self._backend.model.pupil.semi_diameter
+            self._backend.model.pupil.semi_diameter = pupil_diameter / 2
 
         pupil_data = zp.functions.lde.get_pupil(self._oss)
         _, zernike_standard_coefficients = self.zernike_standard_coefficients(
@@ -280,7 +280,7 @@ class OpticStudioAnalysis(BaseAnalysis):
         )
 
         if old_pupil_semi_diameter is not None:
-            self._backend._model.pupil.semi_diameter = old_pupil_semi_diameter
+            self._backend.model.pupil.semi_diameter = old_pupil_semi_diameter
 
         return _zernike_data_to_refraction(
             zernike_standard_coefficients,
