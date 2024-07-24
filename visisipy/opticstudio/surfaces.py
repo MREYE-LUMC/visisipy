@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from functools import singledispatch
 from typing import TYPE_CHECKING, Generic, TypeVar, Union
 from warnings import warn
@@ -7,14 +8,14 @@ from warnings import warn
 import zospy as zp
 
 from visisipy.models import BaseSurface
-from visisipy.models.geometry import StandardSurface, Stop, Surface
+from visisipy.models.geometry import StandardSurface, Stop, Surface, ZernikeCoefficients, ZernikeStandardSagSurface
 from visisipy.models.materials import MaterialModel
 
 if TYPE_CHECKING:
     from zospy.api import _ZOSAPI
     from zospy.zpcore import OpticStudioSystem
 
-__all__ = ("OpticStudioSurface", "make_surface")
+__all__ = ("OpticStudioSurface", "OpticStudioZernikeStandardSagSurface", "make_surface")
 
 PropertyType = TypeVar("PropertyType")
 
@@ -37,6 +38,24 @@ class OpticStudioSurfaceProperty(Generic[PropertyType]):
         setattr(obj.surface, self.name, value)
 
 
+class OpticStudioSurfaceDataProperty(Generic[PropertyType]):
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def __get__(self, obj: OpticStudioSurface, objtype=None) -> PropertyType:
+        if obj.surface is None:
+            return None
+
+        return getattr(obj.surface.SurfaceData, self.name)
+
+    def __set__(self, obj: OpticStudioSurface, value: PropertyType) -> None:
+        if obj.surface is None:
+            message = f"Cannot set attribute {self.name} of non-built surface."
+            raise AttributeError(message)
+
+        setattr(obj.surface.SurfaceData, self.name, value)
+
+
 class OpticStudioSurface(BaseSurface):
     """
     Sequential surface in OpticStudio.
@@ -45,15 +64,15 @@ class OpticStudioSurface(BaseSurface):
     _TYPE: str = "Standard"
 
     def __init__(
-        self,
-        *,
-        comment: str,
-        radius: float = float("inf"),
-        thickness: float = 0.0,
-        semi_diameter: float | None = None,
-        conic: float = 0.0,
-        material: MaterialModel | str | None = None,
-        is_stop: bool | None = None,
+            self,
+            comment: str,
+            *,
+            radius: float = float("inf"),
+            thickness: float = 0.0,
+            semi_diameter: float | None = None,
+            conic: float = 0.0,
+            material: MaterialModel | str | None = None,
+            is_stop: bool | None = None,
     ):
         self._comment = comment
         self._radius = radius
@@ -137,7 +156,7 @@ class OpticStudioSurface(BaseSurface):
         Parameters
         ----------
         oss : zospy.zpcore.OpticStudioSystem
-            OpticStudioSystem in which the surface is created.
+            OpticStudio system in which the surface is created.
         position : int
             Index at which the surface is located, starting at 0 for the object surface.
         replace_existing : bool
@@ -198,6 +217,192 @@ class OpticStudioSurface(BaseSurface):
         return False
 
 
+class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
+    """Base class for Zernike surfaces in OpticStudio.
+
+    This class provides methods and properties shared by all Zernike surfaces.
+    """
+
+    def __new__(cls, *args, **kwargs):  # noqa: ARG003
+        if cls is BaseOpticStudioZernikeSurface:
+            raise TypeError("Only child classes of BaseOpticStudioZernikeSurface may be instantiated.")
+
+        return super().__new__(cls)
+
+    def __init__(
+            self,
+            comment: str,
+            *,
+            radius: float = float("inf"),
+            thickness: float = 0.0,
+            semi_diameter: float | None = None,
+            conic: float = 0.0,
+            material: MaterialModel | str | None = None,
+            is_stop: bool | None = None,
+            number_of_terms: int = 0,
+            norm_radius: float = 100,
+            zernike_coefficients: ZernikeCoefficients | None = None,
+    ):
+        super().__init__(
+            comment=comment,
+            radius=radius,
+            thickness=thickness,
+            semi_diameter=semi_diameter,
+            conic=conic,
+            material=material,
+            is_stop=is_stop,
+        )
+
+        if zernike_coefficients is not None:
+            if any(key > number_of_terms for key in zernike_coefficients):
+                raise ValueError(f"Zernike coefficients must be smaller than the maximum term {number_of_terms}.")
+            if any(key < 1 for key in zernike_coefficients):
+                raise ValueError("Zernike coefficients must be larger than 0.")
+
+        self._number_of_terms = number_of_terms
+        self._norm_radius = norm_radius
+        self._zernike_coefficients = zernike_coefficients or ZernikeCoefficients()
+
+    number_of_terms: int = OpticStudioSurfaceDataProperty("NumberOfTerms")
+    norm_radius: float = OpticStudioSurfaceDataProperty("NormRadius")
+
+    def _validate_coefficient(self, n: int):
+        if n < 1:
+            raise ValueError("Zernike coefficient must be larger than 0.")
+        if n > self.number_of_terms:
+            raise ValueError(f"Zernike coefficient must be smaller than the maximum term {self.number_of_terms}.")
+
+    def get_zernike_coefficient(self, n: int) -> float:
+        """Get the value of the nth Zernike coefficient.
+
+        Parameters
+        ----------
+        n : int
+            The Zernike coefficient to retrieve.
+
+        Returns
+        -------
+        float
+            The value of the Zernike coefficient.
+
+        Raises
+        ------
+        ValueError
+            If `n` is less than 0 or larger than the maximum term.
+        """
+        self._validate_coefficient(n)
+
+        return self.surface.SurfaceData.GetNthZernikeCoefficient(n)
+
+    def set_zernike_coefficient(self, n: int, value: float) -> None:
+        """Set the value of the nth Zernike coefficient.
+
+        Parameters
+        ----------
+        n : int
+            The Zernike coefficient to set.
+        value : float
+            The value of the Zernike coefficient.
+
+        Raises
+        ------
+        ValueError
+            If `n` is less than 0 or larger than the maximum term.
+        """
+        self._validate_coefficient(n)
+
+        self.surface.SurfaceData.SetNthZernikeCoefficient(n, value)
+
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
+        """Create the surface in OpticStudio.
+
+        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
+        is set to `True`.
+
+        Parameters
+        ----------
+        oss : zospy.zpcore.OpticStudioSystem
+            OpticStudio system in which the surface is created.
+        position : int
+            Index at which the surface is located, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+        """
+        super().build(oss, position=position, replace_existing=replace_existing)
+
+        self.number_of_terms = self._number_of_terms
+        self.norm_radius = self._norm_radius
+
+        for n, value in self._zernike_coefficients.items():
+            self.set_zernike_coefficient(n, value)
+
+
+class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
+    """Zernike Standard Sag surface in OpticStudio."""
+    _TYPE = "ZernikeStandardSag"
+
+    def __init__(
+            self,
+            comment: str,
+            *,
+            radius: float = float("inf"),
+            thickness: float = 0.0,
+            semi_diameter: float | None = None,
+            conic: float = 0.0,
+            material: MaterialModel | str | None = None,
+            is_stop: bool | None = None,
+            extrapolate: int = 0,
+            zernike_decenter_x: float = 0.0,
+            zernike_decenter_y: float = 0.0,
+            number_of_terms: int = 0,
+            norm_radius: float = 100,
+            zernike_coefficients: ZernikeCoefficients | None = None,
+    ):
+        super().__init__(
+            comment=comment,
+            radius=radius,
+            thickness=thickness,
+            semi_diameter=semi_diameter,
+            conic=conic,
+            material=material,
+            is_stop=is_stop,
+            number_of_terms=number_of_terms,
+            norm_radius=norm_radius,
+            zernike_coefficients=zernike_coefficients,
+        )
+
+        self._extrapolate = extrapolate
+        self._zernike_decenter_x = zernike_decenter_x
+        self._zernike_decenter_y = zernike_decenter_y
+
+    extrapolate: int = OpticStudioSurfaceDataProperty("Extrapolate")
+    zernike_decenter_x: float = OpticStudioSurfaceDataProperty("ZernikeDecenter_X")
+    zernike_decenter_y: float = OpticStudioSurfaceDataProperty("ZernikeDecenter_Y")
+
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
+        """Create the surface in OpticStudio.
+
+        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
+        is set to `True`.
+
+        Parameters
+        ----------
+        oss : zospy.zpcore.OpticStudioSystem
+            OpticStudio system in which the surface is created.
+        position : int
+            Index at which the surface is located, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+        """
+        super().build(oss, position=position, replace_existing=replace_existing)
+
+        self.extrapolate = self._extrapolate
+        self.zernike_decenter_x = self._zernike_decenter_x
+        self.zernike_decenter_y = self._zernike_decenter_y
+
+
 @singledispatch
 def make_surface(surface: Surface, material: str | MaterialModel, comment: str = "") -> OpticStudioSurface:
     """Create an `OpticStudioSurface` instance from a given `Surface` instance.
@@ -222,9 +427,9 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
 
 @make_surface.register
 def _make_surface(
-    surface: StandardSurface,
-    material: Union[str, MaterialModel],  # noqa: UP007
-    comment: str = "",
+        surface: StandardSurface,
+        material: Union[str, MaterialModel],  # noqa: UP007
+        comment: str = "",
 ) -> OpticStudioSurface:
     return OpticStudioSurface(
         comment=comment,
@@ -237,11 +442,36 @@ def _make_surface(
 
 
 @make_surface.register
-def _make_surface(surface: Stop, material: Union[str, MaterialModel] = "", comment: str = "") -> OpticStudioSurface:  # noqa: UP007
+def _make_surface(
+        surface: Stop,
+        material: Union[str, MaterialModel] = "",  # noqa: UP007
+        comment: str = "") -> OpticStudioSurface:
     return OpticStudioSurface(
         comment=comment,
         thickness=surface.thickness,
         material=material,
         semi_diameter=surface.semi_diameter,
         is_stop=True,
+    )
+
+
+@make_surface.register
+def _make_surface(
+        surface: ZernikeStandardSagSurface,
+        material: Union[str, MaterialModel] = "",  # noqa: UP007
+        comment: str = ""
+) -> OpticStudioZernikeStandardSagSurface:
+    return OpticStudioZernikeStandardSagSurface(
+        comment=comment,
+        radius=surface.radius,
+        thickness=surface.thickness,
+        semi_diameter=surface.semi_diameter,
+        conic=surface.asphericity,
+        material=material,
+        zernike_coefficients=surface.zernike_coefficients,
+        extrapolate=1 if surface.extrapolate else 0,
+        zernike_decenter_x=surface.zernike_decenter_x,
+        zernike_decenter_y=surface.zernike_decenter_y,
+        number_of_terms=surface.maximum_term,
+        norm_radius=surface.norm_radius,
     )

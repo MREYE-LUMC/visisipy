@@ -1,13 +1,20 @@
+from contextlib import nullcontext as does_not_raise
+from types import SimpleNamespace
+
 import pytest
 from zospy.solvers import material_model as solve_material_model
 
-from visisipy.models.geometry import StandardSurface, Stop, Surface
+from visisipy.models.geometry import StandardSurface, Stop, Surface, ZernikeStandardSagSurface
 from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio.surfaces import (
+    BaseOpticStudioZernikeSurface,
     OpticStudioSurface,
+    OpticStudioSurfaceDataProperty,
     OpticStudioSurfaceProperty,
+    OpticStudioZernikeStandardSagSurface,
     make_surface,
 )
+from visisipy.wavefront import ZernikeCoefficients
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -20,7 +27,16 @@ def surface(new_oss):
     return surface
 
 
+@pytest.mark.parametrize("surface_class", [OpticStudioSurface, OpticStudioZernikeStandardSagSurface])
+def test_surface_type_exists(zos, surface_class: OpticStudioSurface):
+    assert hasattr(zos.ZOSAPI.Editors.LDE.SurfaceType, surface_class._TYPE)
+
+
 class TestOpticStudioSurfaceProperty:
+    MockSurface = SimpleNamespace(
+        Comment="Test comment",
+    )
+
     class MockOpticStudioSurface:
         surface = None
 
@@ -33,8 +49,8 @@ class TestOpticStudioSurfaceProperty:
         prop = OpticStudioSurfaceProperty("Comment")
         assert prop.name == "Comment"
 
-    def test_get(self, surface):
-        mock_surface = self.MockOpticStudioSurface(surface)
+    def test_get(self):
+        mock_surface = self.MockOpticStudioSurface(self.MockSurface)
 
         assert mock_surface.comment == "Test comment"
 
@@ -43,7 +59,8 @@ class TestOpticStudioSurfaceProperty:
 
         assert mock_surface.comment is None
 
-    def test_set(self, surface):
+    def test_set(self):
+        surface = self.MockSurface
         mock_surface = self.MockOpticStudioSurface(surface)
 
         mock_surface.comment = "New comment"
@@ -56,6 +73,51 @@ class TestOpticStudioSurfaceProperty:
 
         with pytest.raises(AttributeError, match="Cannot set attribute .+ of non-built surface"):
             mock_surface.comment = "New comment"
+
+
+class TestOpticStudioSurfaceDataProperty:
+    MockSurface = SimpleNamespace(
+        SurfaceData=SimpleNamespace(
+            ExampleProperty="Example value",
+        )
+    )
+
+    class MockOpticStudioSurface:
+        surface = None
+
+        def __init__(self, surface):
+            self.surface = surface
+
+        example_property = OpticStudioSurfaceDataProperty("ExampleProperty")
+
+    def test_init(self):
+        prop = OpticStudioSurfaceDataProperty("ExampleProperty")
+        assert prop.name == "ExampleProperty"
+
+    def test_get(self):
+        mock_surface = self.MockOpticStudioSurface(self.MockSurface)
+
+        assert mock_surface.example_property == "Example value"
+
+    def test_get_none(self):
+        mock_surface = self.MockOpticStudioSurface(None)
+
+        assert mock_surface.example_property is None
+
+    def test_set(self, monkeypatch):
+        surface = self.MockSurface
+        mock_surface = self.MockOpticStudioSurface(surface)
+
+        monkeypatch.setattr(mock_surface, "example_property", "New value")
+
+        assert mock_surface.example_property == "New value"
+        assert surface.SurfaceData.ExampleProperty == "New value"
+
+    def test_set_none(self):
+        mock_surface = self.MockOpticStudioSurface(None)
+
+        with pytest.raises(AttributeError, match="Cannot set attribute .+ of non-built surface"):
+            mock_surface.example_property = "New value"
 
 
 class TestOpticStudioSurface:
@@ -178,6 +240,112 @@ class TestOpticStudioSurface:
         assert surface.surface.TypeName == "ABCD"
 
 
+class TestBaseOpticStudioZernikeSurface:
+    class MockOpticStudioZernikeSurface(BaseOpticStudioZernikeSurface):
+        """Very basic implementation of BaseOpticStudioZernikeSurface for testing purposes.
+
+        This class is necessary because BaseOpticStudioZernikeSurface cannot be instantiated directly.
+        """
+        _TYPE = "ZernikeStandardSag"
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+    def test_instantiation_raises_typeerror(self):
+        with pytest.raises(TypeError, match="Only child classes of BaseOpticStudioZernikeSurface may be instantiated"):
+            BaseOpticStudioZernikeSurface("Useless comment")
+
+    def test_init_large_zernike_coefficient_raises_valueerror(self):
+        with pytest.raises(ValueError, match="Zernike coefficients must be smaller than the maximum term 1"):
+            self.MockOpticStudioZernikeSurface(
+                comment="Test",
+                number_of_terms=1,
+                zernike_coefficients={2: 3.14},
+            )
+
+    @pytest.mark.parametrize("key", [0, -1, -3.14])
+    def test_init_negative_zernike_coefficient_raises_valueerror(self, key):
+        with pytest.raises(ValueError, match="Zernike coefficients must be larger than 0"):
+            self.MockOpticStudioZernikeSurface(
+                comment="Test",
+                number_of_terms=3,
+                zernike_coefficients={key: 1.234},
+            )
+
+    @pytest.mark.parametrize(
+        "n,value,maximum_term,expectation", [
+            (0, 1.234, 1, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
+            (1, 1.234, 2, does_not_raise()),
+            (2, 1.234, 2, does_not_raise()),
+            (2, 1.234, 1,
+             pytest.raises(ValueError, match="Zernike coefficient must be smaller than the maximum term 1")),
+        ])
+    def test_set_zernike_coefficient(self, new_oss, n: int, value: float, maximum_term: int, expectation):
+        surface = self.MockOpticStudioZernikeSurface(
+            comment="Test",
+            number_of_terms=maximum_term,
+        )
+
+        surface.build(new_oss, position=1)
+
+        with expectation:
+            surface.set_zernike_coefficient(n, value)
+            assert surface.surface.SurfaceData.GetNthZernikeCoefficient(n) == value
+
+    @pytest.mark.parametrize(
+        "n,coefficients,expectation", [
+            (2, {1: 1.234, 2: 3.456}, does_not_raise()),
+            (4, {1: 1.234, 2: 3.456}, pytest.raises(
+                ValueError, match="Zernike coefficient must be smaller than the "
+                                  "maximum term 3")),
+            (0, {1: 1.234, 2: 3.456}, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
+        ]
+    )
+    def test_get_zernike_coefficient(self, new_oss, n, coefficients, expectation):
+        surface = OpticStudioZernikeStandardSagSurface(
+            comment="Test",
+            number_of_terms=3,
+            zernike_coefficients=coefficients,
+        )
+
+        surface.build(new_oss, position=1)
+
+        with expectation:
+            assert surface.get_zernike_coefficient(n) == coefficients[n]
+
+
+class TestOpticStudioZernikeStandardSagSurface:
+    @pytest.mark.parametrize(
+        "maximum_term,coefficients,decenter_x,decenter_y", [
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 0.0, 0.0),
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, -1.0, 1.0),
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1.0, -1.0),
+            (231, {}, 0.0, 0.0),
+            (231, None, 0.0, 0.0),
+        ])
+    def test_build(self, new_oss, maximum_term, coefficients, decenter_x, decenter_y):
+        surface = OpticStudioZernikeStandardSagSurface(
+            comment="Test comment",
+            number_of_terms=maximum_term,
+            zernike_decenter_x=decenter_x,
+            zernike_decenter_y=decenter_y,
+            zernike_coefficients=coefficients,
+        )
+
+        assert surface._is_built is False
+        surface.build(new_oss, position=1)
+        assert surface._is_built is True
+        assert str(surface.surface.Type) == "ZernikeStandardSag"
+
+        assert surface.comment == "Test comment"
+        assert surface.number_of_terms == maximum_term
+        assert surface.zernike_decenter_x == decenter_x
+        assert surface.zernike_decenter_y == decenter_y
+
+        for n, value in surface._zernike_coefficients.items():
+            assert surface.get_zernike_coefficient(n) == value
+
+
 class TestMakeSurface:
     def test_make_surface(self):
         surface = Surface(thickness=1)
@@ -192,11 +360,11 @@ class TestMakeSurface:
         [
             (1, 2, 3, 4, "BK7"),
             (
-                5,
-                6,
-                7,
-                8,
-                MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
+                    5,
+                    6,
+                    7,
+                    8,
+                    MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
             ),
         ],
     )
@@ -221,9 +389,9 @@ class TestMakeSurface:
         [
             (1, 2, "BK7"),
             (
-                3,
-                4,
-                MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
+                    3,
+                    4,
+                    MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
             ),
         ],
     )
@@ -236,3 +404,29 @@ class TestMakeSurface:
         assert opticstudio_surface._semi_diameter == semi_diameter
         assert opticstudio_surface._material == material
         assert opticstudio_surface._is_stop is True
+
+    def test_make_zernike_standard_sag_surface(self):
+        surface = ZernikeStandardSagSurface(
+            radius=1.0,
+            thickness=2.0,
+            semi_diameter=0.5,
+            asphericity=0.1,
+            zernike_decenter_x=0.2,
+            zernike_decenter_y=0.3,
+            maximum_term=3,
+            norm_radius=50,
+            zernike_coefficients=ZernikeCoefficients({1: 1.0, 2: 2.0, 3: 3.0}),
+        )
+
+        opticstudio_surface = make_surface(surface, material="BK7")
+
+        assert opticstudio_surface._radius == 1.0
+        assert opticstudio_surface._thickness == 2.0
+        assert opticstudio_surface._semi_diameter == 0.5
+        assert opticstudio_surface._conic == 0.1
+        assert opticstudio_surface._zernike_decenter_x == 0.2
+        assert opticstudio_surface._zernike_decenter_y == 0.3
+        assert opticstudio_surface._number_of_terms == 3
+        assert opticstudio_surface._norm_radius == 50
+        assert opticstudio_surface._zernike_coefficients == {1: 1.0, 2: 2.0, 3: 3.0}
+        assert opticstudio_surface._material == "BK7"
