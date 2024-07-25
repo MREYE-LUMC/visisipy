@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from abc import ABC
 from functools import singledispatch
-from typing import TYPE_CHECKING, Generic, TypeVar, Union
+from typing import Generic, TYPE_CHECKING, TypeVar, Union
 from warnings import warn
 
 import zospy as zp
 
 from visisipy.models import BaseSurface
-from visisipy.models.geometry import StandardSurface, Stop, Surface, ZernikeCoefficients, ZernikeStandardSagSurface
+from visisipy.models.geometry import StandardSurface, Stop, Surface, ZernikeCoefficients, ZernikeStandardPhaseSurface, \
+    ZernikeStandardSagSurface
 from visisipy.models.materials import MaterialModel
 
 if TYPE_CHECKING:
@@ -403,6 +404,67 @@ class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
         self.zernike_decenter_y = self._zernike_decenter_y
 
 
+class OpticStudioZernikeStandardPhaseSurface(BaseOpticStudioZernikeSurface):
+    """Zernike Standard Phase surface in OpticStudio."""
+    _TYPE = "ZernikeStandardPhase"
+
+    def __init__(
+            self,
+            comment: str,
+            *,
+            radius: float = float("inf"),
+            thickness: float = 0.0,
+            semi_diameter: float | None = None,
+            conic: float = 0.0,
+            material: MaterialModel | str | None = None,
+            is_stop: bool | None = None,
+            extrapolate: int = 0,
+            diffract_order: float = 0.0,
+            number_of_terms: int = 0,
+            norm_radius: float = 100,
+            zernike_coefficients: ZernikeCoefficients | None = None,
+    ):
+        super().__init__(
+            comment=comment,
+            radius=radius,
+            thickness=thickness,
+            semi_diameter=semi_diameter,
+            conic=conic,
+            material=material,
+            is_stop=is_stop,
+            number_of_terms=number_of_terms,
+            norm_radius=norm_radius,
+            zernike_coefficients=zernike_coefficients,
+        )
+
+        self._extrapolate = extrapolate
+        self._diffract_order = diffract_order
+
+    extrapolate: int = OpticStudioSurfaceDataProperty("Extrapolate")
+    diffract_order: float = OpticStudioSurfaceDataProperty("DiffractOrder")
+
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
+        """Create the surface in OpticStudio.
+
+        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
+        is set to `True`.
+
+        Parameters
+        ----------
+        oss : zospy.zpcore.OpticStudioSystem
+            OpticStudio system in which the surface is created.
+        position : int
+            Index at which the surface is located, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+        """
+        super().build(oss, position=position, replace_existing=replace_existing)
+
+        self.extrapolate = self._extrapolate
+        self.diffract_order = self._diffract_order
+
+
 @singledispatch
 def make_surface(surface: Surface, material: str | MaterialModel, comment: str = "") -> OpticStudioSurface:
     """Create an `OpticStudioSurface` instance from a given `Surface` instance.
@@ -472,6 +534,27 @@ def _make_surface(
         extrapolate=1 if surface.extrapolate else 0,
         zernike_decenter_x=surface.zernike_decenter_x,
         zernike_decenter_y=surface.zernike_decenter_y,
+        number_of_terms=surface.maximum_term,
+        norm_radius=surface.norm_radius,
+    )
+
+
+@make_surface.register
+def _make_surface(
+        surface: ZernikeStandardPhaseSurface,
+        material: Union[str, MaterialModel] = "",  # noqa: UP007
+        comment: str = ""
+) -> OpticStudioZernikeStandardPhaseSurface:
+    return OpticStudioZernikeStandardPhaseSurface(
+        comment=comment,
+        radius=surface.radius,
+        thickness=surface.thickness,
+        semi_diameter=surface.semi_diameter,
+        conic=surface.asphericity,
+        material=material,
+        zernike_coefficients=surface.zernike_coefficients,
+        extrapolate=1 if surface.extrapolate else 0,
+        diffract_order=surface.diffraction_order,
         number_of_terms=surface.maximum_term,
         norm_radius=surface.norm_radius,
     )

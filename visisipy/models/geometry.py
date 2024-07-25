@@ -125,7 +125,7 @@ class Stop(StandardSurface):
 
 @dataclass
 class ZernikeStandardSagSurface(StandardSurface):
-    """Zernike standard coefficients surface.
+    """Zernike standard coefficients surface with surface deformations.
 
     Represents a surface with surface deformations described by Zernike polynomials.
 
@@ -146,11 +146,54 @@ class ZernikeStandardSagSurface(StandardSurface):
         The maximum Zernike term to consider. Default is 0.
     norm_radius : float
         The normalization radius for the Zernike coefficients, in lens units (usually mm). Default is 100.
+
+    Raises
+    ------
+    ValueError
+        If the Zernike coefficients contain terms that are greater than the maximum term.
     """
     zernike_coefficients: ZernikeCoefficients | dict[int, float] = field(default_factory=dict)
     extrapolate: bool = True
     zernike_decenter_x: float = 0
     zernike_decenter_y: float = 0
+    maximum_term: int = 0
+    norm_radius: float = 100
+
+    def __post_init__(self):
+        if any(key > self.maximum_term for key in self.zernike_coefficients):
+            raise ValueError("The Zernike coefficients contain terms that are greater than the maximum term.")
+
+        self.zernike_coefficients = ZernikeCoefficients(self.zernike_coefficients)
+
+
+@dataclass
+class ZernikeStandardPhaseSurface(StandardSurface):
+    """Zernike standard coefficients surface with wavefront aberrations.
+
+    Represents a surface with wavefront aberrations described by Zernike polynomials.
+
+    Attributes
+    ----------
+    zernike_coefficients : ZernikeCoefficients | dict[int, float]
+        The Zernike coefficients of the surface. Default is an empty dictionary.
+    extrapolate : bool
+        If True, the Zernike coefficients will be considered even if the ray lands beyond the normalization radius.
+        Default is `True`.
+    diffraction_order : float
+        The diffraction order of the surface. Default is 0.
+    maximum_term : int
+        The maximum Zernike term to consider. Default is 0.
+    norm_radius : float
+        The normalization radius for the Zernike coefficients, in lens units (usually mm). Default is 100.
+
+    Raises
+    ------
+    ValueError
+        If the Zernike coefficients contain terms that are greater than the maximum term.
+    """
+    zernike_coefficients: ZernikeCoefficients | dict[int, float] = field(default_factory=dict)
+    extrapolate: bool = True
+    diffraction_order: float = 1
     maximum_term: int = 0
     norm_radius: float = 100
 
