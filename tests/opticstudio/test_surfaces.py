@@ -1,17 +1,19 @@
 from contextlib import nullcontext as does_not_raise
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 from zospy.solvers import material_model as solve_material_model
 
-from visisipy.models.geometry import StandardSurface, Stop, Surface, ZernikeStandardSagSurface
+from visisipy.models.geometry import StandardSurface, Stop, Surface, ZernikeStandardPhaseSurface, \
+    ZernikeStandardSagSurface
 from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio.surfaces import (
     BaseOpticStudioZernikeSurface,
     OpticStudioSurface,
     OpticStudioSurfaceDataProperty,
     OpticStudioSurfaceProperty,
-    OpticStudioZernikeStandardSagSurface,
+    OpticStudioZernikeStandardPhaseSurface, OpticStudioZernikeStandardSagSurface,
     make_surface,
 )
 from visisipy.wavefront import ZernikeCoefficients
@@ -316,17 +318,18 @@ class TestBaseOpticStudioZernikeSurface:
 
 class TestOpticStudioZernikeStandardSagSurface:
     @pytest.mark.parametrize(
-        "maximum_term,coefficients,decenter_x,decenter_y", [
-            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 0.0, 0.0),
-            (3, {1: 1.0, 2: 2.0, 3: 3.0}, -1.0, 1.0),
-            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1.0, -1.0),
-            (231, {}, 0.0, 0.0),
-            (231, None, 0.0, 0.0),
+        "maximum_term,coefficients,extrapolate,decenter_x,decenter_y", [
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1, 0.0, 0.0),
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 0, -1.0, 1.0),
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1, 1.0, -1.0),
+            (231, {}, 0, 0.0, 0.0),
+            (231, None, 1, 0.0, 0.0),
         ])
-    def test_build(self, new_oss, maximum_term, coefficients, decenter_x, decenter_y):
+    def test_build(self, new_oss, maximum_term, coefficients, extrapolate, decenter_x, decenter_y):
         surface = OpticStudioZernikeStandardSagSurface(
             comment="Test comment",
             number_of_terms=maximum_term,
+            extrapolate=extrapolate,
             zernike_decenter_x=decenter_x,
             zernike_decenter_y=decenter_y,
             zernike_coefficients=coefficients,
@@ -339,11 +342,109 @@ class TestOpticStudioZernikeStandardSagSurface:
 
         assert surface.comment == "Test comment"
         assert surface.number_of_terms == maximum_term
+        assert surface.extrapolate == extrapolate
         assert surface.zernike_decenter_x == decenter_x
         assert surface.zernike_decenter_y == decenter_y
 
         for n, value in surface._zernike_coefficients.items():
             assert surface.get_zernike_coefficient(n) == value
+
+    @pytest.mark.parametrize("decenter_x", np.arange(-2, 3, dtype=float))
+    def test_zernike_decenter_x(self, new_oss, decenter_x):
+        surface = OpticStudioZernikeStandardSagSurface(
+            comment="Test",
+            zernike_decenter_x=decenter_x,
+        )
+
+        surface.build(new_oss, position=1)
+
+        surface.zernike_decenter_x = decenter_x
+        assert surface.zernike_decenter_x == decenter_x
+        assert surface.surface.SurfaceData.ZernikeDecenter_X == decenter_x
+
+    @pytest.mark.parametrize("decenter_y", np.arange(-2, 3, dtype=float))
+    def test_zernike_decenter_y(self, new_oss, decenter_y):
+        surface = OpticStudioZernikeStandardSagSurface(
+            comment="Test",
+            zernike_decenter_y=decenter_y,
+        )
+
+        surface.build(new_oss, position=1)
+
+        surface.zernike_decenter_y = decenter_y
+        assert surface.zernike_decenter_y == decenter_y
+        assert surface.surface.SurfaceData.ZernikeDecenter_Y == decenter_y
+
+    @pytest.mark.parametrize("extrapolate", [0, 1, True, False])
+    def test_extrapolate(self, new_oss, extrapolate):
+        surface = OpticStudioZernikeStandardSagSurface(
+            comment="Test",
+            extrapolate=extrapolate,
+        )
+
+        surface.build(new_oss, position=1)
+
+        surface.extrapolate = extrapolate
+        assert surface.extrapolate == extrapolate
+        assert surface.surface.SurfaceData.Extrapolate == extrapolate
+
+
+class TestOpticStudioZernikeStandardPhaseSurface:
+    @pytest.mark.parametrize(
+        "maximum_term,coefficients,extrapolate,diffract_order", [
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1, 1),
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 0, 2.3),
+            (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1, 3.4),
+            (231, {}, 0, 4.5),
+            (231, None, 1, 5.6),
+        ])
+    def test_build(self, new_oss, maximum_term, coefficients, extrapolate, diffract_order):
+        surface = OpticStudioZernikeStandardPhaseSurface(
+            comment="Test comment",
+            number_of_terms=maximum_term,
+            extrapolate=extrapolate,
+            diffract_order=diffract_order,
+            zernike_coefficients=coefficients,
+        )
+
+        assert surface._is_built is False
+        surface.build(new_oss, position=1)
+        assert surface._is_built is True
+        assert str(surface.surface.Type) == "ZernikeStandardPhase"
+
+        assert surface.comment == "Test comment"
+        assert surface.number_of_terms == maximum_term
+        assert surface.extrapolate == extrapolate
+        assert surface.diffract_order == diffract_order
+
+        for n, value in surface._zernike_coefficients.items():
+            assert surface.get_zernike_coefficient(n) == value
+
+    @pytest.mark.parametrize("diffract_order", np.arange(0, 4, dtype=float))
+    def test_diffract_order(self, new_oss, diffract_order):
+        surface = OpticStudioZernikeStandardPhaseSurface(
+            comment="Test",
+            diffract_order=diffract_order,
+        )
+
+        surface.build(new_oss, position=1)
+
+        surface.diffract_order = diffract_order
+        assert surface.diffract_order == diffract_order
+        assert surface.surface.SurfaceData.DiffractOrder == diffract_order
+
+    @pytest.mark.parametrize("extrapolate", [0, 1, True, False])
+    def test_extrapolate(self, new_oss, extrapolate):
+        surface = OpticStudioZernikeStandardPhaseSurface(
+            comment="Test",
+            extrapolate=extrapolate,
+        )
+
+        surface.build(new_oss, position=1)
+
+        surface.extrapolate = extrapolate
+        assert surface.extrapolate == extrapolate
+        assert surface.surface.SurfaceData.Extrapolate == extrapolate
 
 
 class TestMakeSurface:
@@ -415,6 +516,7 @@ class TestMakeSurface:
             zernike_decenter_y=0.3,
             maximum_term=3,
             norm_radius=50,
+            extrapolate=False,
             zernike_coefficients=ZernikeCoefficients({1: 1.0, 2: 2.0, 3: 3.0}),
         )
 
@@ -428,5 +530,32 @@ class TestMakeSurface:
         assert opticstudio_surface._zernike_decenter_y == 0.3
         assert opticstudio_surface._number_of_terms == 3
         assert opticstudio_surface._norm_radius == 50
+        assert opticstudio_surface._extrapolate == 0
+        assert opticstudio_surface._zernike_coefficients == {1: 1.0, 2: 2.0, 3: 3.0}
+        assert opticstudio_surface._material == "BK7"
+
+    def test_make_zernike_standard_phase_surface(self):
+        surface = ZernikeStandardPhaseSurface(
+            radius=1.0,
+            thickness=2.0,
+            semi_diameter=0.5,
+            asphericity=0.1,
+            diffraction_order=2,
+            maximum_term=3,
+            norm_radius=50,
+            extrapolate=True,
+            zernike_coefficients=ZernikeCoefficients({1: 1.0, 2: 2.0, 3: 3.0}),
+        )
+
+        opticstudio_surface = make_surface(surface, material="BK7")
+
+        assert opticstudio_surface._radius == 1.0
+        assert opticstudio_surface._thickness == 2.0
+        assert opticstudio_surface._semi_diameter == 0.5
+        assert opticstudio_surface._conic == 0.1
+        assert opticstudio_surface._diffract_order == 2
+        assert opticstudio_surface._number_of_terms == 3
+        assert opticstudio_surface._norm_radius == 50
+        assert opticstudio_surface._extrapolate == 1
         assert opticstudio_surface._zernike_coefficients == {1: 1.0, 2: 2.0, 3: 3.0}
         assert opticstudio_surface._material == "BK7"
