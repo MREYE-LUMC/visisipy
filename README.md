@@ -53,6 +53,78 @@ sns.lineplot(raytrace, x="z", y="y", hue="field", ax=ax)
 plt.show()
 ```
 
+### Configure the backend
+
+Visisipy uses OpticStudio as a backend for calculations.
+This backend is automatically started and managed in the background, but can also be configured manually.
+
+```python
+import visisipy
+
+# Use OpticStudio in standalone mode (default)
+visisipy.set_backend("opticstudio")
+
+# Use OpticStudio in extension mode
+visisipy.set_backend("opticstudio", mode="extension")
+
+# Use OpticStudio in extension mode with ray aiming enabled
+visisipy.set_backend("opticstudio", mode="extension", ray_aiming="real")
+
+# Get the OpticStudioSystem from visisipy to interact with it manually
+# This only works when the backend is set to "opticstudio"
+# See https://zospy.readthedocs.io/en/latest/api/zospy.zpcore.OpticStudioSystem.html for documentation of this object
+oss = visisipy.backend.get_oss()
+```
+
+### Create a custom eye model from clinical parameters
+
+An eye model in visispy consists of two parts: the geometry and the material properties.
+The geometry is defined by `visisipy.models.EyeGeometry`, and the material properties are defined by `visisipy.models.Materials`.
+They are combined in `visisipy.EyeModel` to constitute a complete eye model.
+
+```python
+import visisipy
+
+geometry = visisipy.models.create_geometry(
+    axial_length=20,
+    cornea_thickness=0.5,
+    anterior_chamber_depth=3,
+    lens_thickness=4,
+    cornea_front_radius=7,
+    cornea_front_asphericity=0,
+    cornea_back_radius=6,
+    cornea_back_asphericity=0,
+    lens_front_radius=10,
+    lens_front_asphericity=0,
+    lens_back_radius=-6,
+    lens_back_asphericity=0,
+    retina_radius=-12,
+    retina_asphericity=0,
+    pupil_radius=1.0,
+)
+
+# Use this geometry together with the refractive indices of the Navarro model
+model = visisipy.EyeModel(geometry=geometry, materials=visisipy.models.materials.NavarroMaterials())
+
+# NavarroMaterials is the default, so this is equivalent:
+model = visisipy.EyeModel(geometry=geometry)
+```
+
+### Interact with the eye model in OpticStudio
+
+```python
+import visisipy
+
+# Just use the default Navarro model
+model = visisipy.EyeModel()
+
+# Build the model in OpticStudio
+built_model: visisipy.opticstudio.OpticStudioEye = model.build()
+
+# Update the lens front radius
+built_model.lens_front.radius = 10.5
+```
+
 ## Planned functions
 
 - Generation of realistic randomized eye models using the method proposed by Rozema et al.;
