@@ -1,4 +1,8 @@
+from contextlib import nullcontext as does_not_raise
+
 import pytest
+
+from visisipy.models import EyeModel
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -6,6 +10,23 @@ pytestmark = [pytest.mark.needs_opticstudio]
 @pytest.fixture
 def opticstudio_analysis(opticstudio_backend):
     return opticstudio_backend.analysis
+
+
+class TestCardinalPointsAnalysis:
+    @pytest.mark.parametrize("surface_1,surface_2,expectation", [
+        (None, None, does_not_raise()),
+        (1, 6, does_not_raise()),
+        (2, 4, does_not_raise()),
+        (-1, 7, pytest.raises(ValueError, match="surface_1 and surface_2 must be between 1 and the number of surfaces in the system")),
+        (1, 8, pytest.raises(ValueError, match="surface_1 and surface_2 must be between 1 and the number of surfaces in the system")),
+        (3, 3, pytest.raises(ValueError, match="surface_1 must be less than surface_2")),
+        (4, 2, pytest.raises(ValueError, match="surface_1 must be less than surface_2")),
+ ])
+    def test_cardinal_points(self, opticstudio_backend, opticstudio_analysis, surface_1, surface_2, expectation):
+        opticstudio_backend.build_model(EyeModel())
+
+        with expectation:
+            assert opticstudio_analysis.cardinal_points(surface_1, surface_2)
 
 
 class TestRayTraceAnalysis:
@@ -75,12 +96,12 @@ class TestRefractionAnalysis:
         ],
     )
     def test_refraction(
-        self,
-        opticstudio_analysis,
-        use_higher_order_aberrations,
-        wavelength,
-        pupil_diameter,
-        monkeypatch,
+            self,
+            opticstudio_analysis,
+            use_higher_order_aberrations,
+            wavelength,
+            pupil_diameter,
+            monkeypatch,
     ):
         monkeypatch.setattr(opticstudio_analysis._backend, "model", MockOpticstudioModel())
 

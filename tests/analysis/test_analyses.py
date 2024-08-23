@@ -3,6 +3,13 @@ import visisipy.backend
 
 
 class MockAnalysis:
+    def cardinal_points(
+        self,
+        surface_1,
+        surface_2,
+    ):
+        return None, None
+
     def raytrace(
         self,
         coordinates,
@@ -28,6 +35,13 @@ class MockAnalysis:
 
 class MockBackend:
     analysis = MockAnalysis()
+
+
+def test_cardinal_points_analysis(monkeypatch):
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+
+    assert visisipy.analysis.cardinal_points() is None
+    assert visisipy.analysis.cardinal_points(return_raw_result=True) == (None, None)
 
 
 def test_raytracing_analysis(monkeypatch):

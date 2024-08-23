@@ -2,14 +2,20 @@ from __future__ import annotations
 
 from abc import ABC
 from functools import singledispatch
-from typing import Generic, TYPE_CHECKING, TypeVar, Union
+from typing import TYPE_CHECKING, Generic, TypeVar, Union
 from warnings import warn
 
 import zospy as zp
 
 from visisipy.models import BaseSurface
-from visisipy.models.geometry import StandardSurface, Stop, Surface, ZernikeCoefficients, ZernikeStandardPhaseSurface, \
-    ZernikeStandardSagSurface
+from visisipy.models.geometry import (
+    StandardSurface,
+    Stop,
+    Surface,
+    ZernikeCoefficients,
+    ZernikeStandardPhaseSurface,
+    ZernikeStandardSagSurface,
+)
 from visisipy.models.materials import MaterialModel
 
 if TYPE_CHECKING:

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import Literal, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import zospy as zp
 from pandas import DataFrame
 
+from visisipy.analysis.cardinal_points import CardinalPoints, CardinalPointsResult
 from visisipy.backend import BaseAnalysis
 from visisipy.refraction import FourierPowerVectorRefraction
 
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     from zospy.zpcore import OpticStudioSystem
 
     from visisipy.opticstudio.backend import OpticStudioBackend
-
 
 __all__ = ("OpticStudioAnalysis",)
 
@@ -31,6 +31,35 @@ def _iter_fields(oss: OpticStudioSystem) -> tuple[int, _ZOSAPI.SystemData.IField
 def _iter_wavelengths(oss: OpticStudioSystem) -> tuple[int, float]:
     for i in range(oss.SystemData.Wavelengths.NumberOfWavelengths):
         yield i + 1, oss.SystemData.Wavelengths.GetWavelength(i + 1)
+
+
+def _build_cardinal_points_result(cardinal_points_result: zp.analyses.base.AttrDict) -> CardinalPointsResult:
+    return CardinalPointsResult(
+        focal_lengths=CardinalPoints(
+            image=cardinal_points_result.Data["Image Space"]["Focal Length"],
+            object=cardinal_points_result.Data["Object Space"]["Focal Length"],
+        ),
+        focal_points=CardinalPoints(
+            image=cardinal_points_result.Data["Image Space"]["Focal Planes"],
+            object=cardinal_points_result.Data["Object Space"]["Focal Planes"],
+        ),
+        principal_points=CardinalPoints(
+            image=cardinal_points_result.Data["Image Space"]["Principal Planes"],
+            object=cardinal_points_result.Data["Object Space"]["Principal Planes"],
+        ),
+        anti_principal_points=CardinalPoints(
+            image=cardinal_points_result.Data["Image Space"]["Anti-Principal Planes"],
+            object=cardinal_points_result.Data["Object Space"]["Anti-Principal Planes"],
+        ),
+        anti_nodal_points=CardinalPoints(
+            image=cardinal_points_result.Data["Image Space"]["Anti-Nodal Planes"],
+            object=cardinal_points_result.Data["Object Space"]["Anti-Nodal Planes"],
+        ),
+        nodal_points=CardinalPoints(
+            image=cardinal_points_result.Data["Image Space"]["Nodal Planes"],
+            object=cardinal_points_result.Data["Object Space"]["Nodal Planes"],
+        ),
+    )
 
 
 def _build_raytrace_result(raytrace_results: list[DataFrame]) -> DataFrame:
@@ -97,6 +126,48 @@ class OpticStudioAnalysis(BaseAnalysis):
     def __init__(self, backend: OpticStudioBackend):
         self._backend = backend
         self._oss = backend.oss
+
+    def cardinal_points(self, surface_1: int | None = None, surface_2: int | None = None) -> tuple[
+        CardinalPointsResult, zp.analyses.base.AnalysisResult]:
+        """
+        Get the cardinal points of the system between `surface_1` and `surface_2`.
+
+        Parameters
+        ----------
+        surface_1 : int | None, optional
+            The first surface to be used in the analysis. If `None`, the first surface in the system will be used.
+            Defaults to `None`.
+        surface_2 : int | None, optional
+            The second surface to be used in the analysis. If `None`, the last surface in the system will be used.
+            Defaults to `None`.
+
+        Returns
+        -------
+        CardinalPointsResult
+            The cardinal points of the system.
+
+        Raises
+        ------
+        ValueError
+            If `surface_1` or `surface_2` are not between 1 and the number of surfaces in the system, or if `surface_1`
+            is greater than or equal to `surface_2`.
+        """
+        surface_1 = surface_1 or 1
+        surface_2 = surface_2 or self._oss.LDE.NumberOfSurfaces - 1
+
+        if surface_1 < 1 or surface_2 > self._oss.LDE.NumberOfSurfaces - 1:
+            raise ValueError("surface_1 and surface_2 must be between 1 and the number of surfaces in the system.")
+
+        if surface_1 >= surface_2:
+            raise ValueError("surface_1 must be less than surface_2.")
+
+        cardinal_points_result = zp.analyses.reports.cardinal_points(
+            self._oss,
+            surface_1=surface_1,
+            surface_2=surface_2,
+        )
+
+        return _build_cardinal_points_result(cardinal_points_result), cardinal_points_result
 
     def raytrace(
             self,

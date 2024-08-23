@@ -5,15 +5,21 @@ import numpy as np
 import pytest
 from zospy.solvers import material_model as solve_material_model
 
-from visisipy.models.geometry import StandardSurface, Stop, Surface, ZernikeStandardPhaseSurface, \
-    ZernikeStandardSagSurface
+from visisipy.models.geometry import (
+    StandardSurface,
+    Stop,
+    Surface,
+    ZernikeStandardPhaseSurface,
+    ZernikeStandardSagSurface,
+)
 from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio.surfaces import (
     BaseOpticStudioZernikeSurface,
     OpticStudioSurface,
     OpticStudioSurfaceDataProperty,
     OpticStudioSurfaceProperty,
-    OpticStudioZernikeStandardPhaseSurface, OpticStudioZernikeStandardSagSurface,
+    OpticStudioZernikeStandardPhaseSurface,
+    OpticStudioZernikeStandardSagSurface,
     make_surface,
 )
 from visisipy.wavefront import ZernikeCoefficients
