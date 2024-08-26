@@ -9,6 +9,10 @@ This project aims to provide a standardized method to perform optical (ray traci
 3. Decouple the model definition interface as much as possible from the simulation software, i.e. Zemax OpticStudio;
 4. Introduce this as a standardized method for optical simulations of the eye, that can be used by the broader physiological optics community.
 
+## Contributing
+
+Visisipy aims to be a community-driven project and warmly accepts contributions. If you want to contribute, please email us (visisipy@mreye.nl) or [open a new discussion](https://github.com/MREYE-LUMC/visisipy/discussions).
+
 ## Current implementation
 
 In its current state, `EyeSimulator` provides
