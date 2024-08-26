@@ -35,7 +35,8 @@ model = visisipy.EyeModel()
 model.build()
 
 # Perform a raytrace analysis
-raytrace = visisipy.analysis.raytrace(coordinates=zip([0] * 5, range(0, 60, 10)))
+coordinates = [(0, 0), (0, 10), (0, 20), (0, 30), (0, 40)]
+raytrace = visisipy.analysis.raytrace(coordinates=coordinates)
 
 # Alternatively, the model can be built and analyzed in one go:
 # raytrace = visisipy.analysis.raytrace(model, coordinates=zip([0] * 5, range(0, 60, 10)))
