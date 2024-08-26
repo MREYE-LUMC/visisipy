@@ -6,7 +6,7 @@ It provides an easy-to-use interface to define and build eye models, and to perf
 ## Goals
 
 1. Provide a uniform interface to define, build and analyze various types of eye models, using abstractions that make sense in a clinical context;
-2. Provide a collection of ready-to-use eye models, such as the [Navarro model](https://doi.org/10.1364/JOSAA.16.001881), that can be customized at need;
+2. Provide a collection of ready-to-use eye models, such as the Navarro model[^navarro], that can be customized at need;
 3. Provide an accessible interface to clinically relevant analyses with these models.
 
 All calculations are currently performed in OpticStudio through the [ZOSPy][zospy] library, but visisipy is designed in a modular fashion to allow for other backends in the future.
@@ -143,4 +143,5 @@ built_model.lens_front.radius = 10.5
 [zospy]: https://zospy.readthedocs.io/
 
 [//]: # (References)
+[^navarro]: Escudero-Sanz, I., & Navarro, R. (1999). Off-axis aberrations of a wide-angle schematic eye model. JOSA A, 16(8), 1881–1891. https://doi.org/10.1364/JOSAA.16.001881
 [^rozema]: Rozema, J. J., Rodriguez, P., Navarro, R., & Tassignon, M.-J. (2016). SyntEyes: A Higher-Order Statistical Eye Model for Healthy Eyes. Investigative Ophthalmology & Visual Science, 57(2), 683–691. https://doi.org/10.1167/iovs.15-18067
