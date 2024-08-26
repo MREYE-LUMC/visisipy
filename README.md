@@ -11,6 +11,11 @@ It provides an easy-to-use interface to define and build eye models, and to perf
 
 All calculations are currently performed in OpticStudio through the [ZOSPy][zospy] library, but visisipy is designed in a modular fashion to allow for other backends in the future.
 
+## Contributing
+
+Visisipy aims to be a community-driven project and warmly accepts contributions.
+If you want to contribute, please email us (visisipy@mreye.nl) or [open a new discussion](https://github.com/MREYE-LUMC/visisipy/discussions).
+
 ## Installation
 
 Visisipy can be installed through `pip`:
@@ -55,7 +60,7 @@ plt.show()
 
 ### Configure the backend
 
-Visisipy uses OpticStudio as a backend for calculations.
+Visisipy uses OpticStudio as a backend for calculations; this is currently the only supported backend.
 This backend is automatically started and managed in the background, but can also be configured manually.
 
 ```python
@@ -127,7 +132,7 @@ built_model.lens_front.radius = 10.5
 
 ## Planned functions
 
-- Generation of realistic randomized eye models using the method proposed by Rozema et al.;
+- Generation of realistic randomized eye models using the method proposed by Rozema et al.[^rozema]
 
 ## Future ideas
 
@@ -136,3 +141,6 @@ built_model.lens_front.radius = 10.5
 - Add support for other (open source) ray tracing backends.
 
 [zospy]: https://zospy.readthedocs.io/
+
+[//]: # (References)
+[^rozema]: Rozema, J. J., Rodriguez, P., Navarro, R., & Tassignon, M.-J. (2016). SyntEyes: A Higher-Order Statistical Eye Model for Healthy Eyes. Investigative Ophthalmology & Visual Science, 57(2), 683–691. https://doi.org/10.1167/iovs.15-18067
