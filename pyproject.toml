@@ -57,6 +57,7 @@ extend-ignore = [
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
+"examples/*" = [ "INP001" ]
 "tests/*" = [ "ARG001", "ARG002" ]
 "tests/opticstudio/*" = [ "SLF001" ]
 

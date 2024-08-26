@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
-import pandas as pd
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 def get_ray_output_angle(
-        df: pd.DataFrame,
-        reference_point: tuple[float, float] = (0, 0),
-        coordinate="y",
+    df: pd.DataFrame,
+    reference_point: tuple[float, float] = (0, 0),
+    coordinate="y",
 ):
     """Calculate the output angle of a ray with respect to the optical axis and a reference point."""
     x0, y0 = reference_point
@@ -30,22 +32,18 @@ class InputOutputAngles(NamedTuple):
 
     @classmethod
     def from_ray_trace_result(
-            cls,
-            raytrace_result: pd.DataFrame,
-            np2: float,
-            np2_navarro: float = None,
-            retina_center: float = None,
-            patient: int = None,
-            coordinate="y",
-    ) -> "InputOutputAngles":
+        cls,
+        raytrace_result: pd.DataFrame,
+        np2: float,
+        np2_navarro: float | None = None,
+        retina_center: float | None = None,
+        patient: int | None = None,
+        coordinate="y",
+    ) -> InputOutputAngles:
         return cls(
             input_angle_field=raytrace_result.field[0][1],
-            output_angle_pupil=get_ray_output_angle(
-                raytrace_result, reference_point=(0, 0), coordinate=coordinate
-            ),
-            output_angle_np2=get_ray_output_angle(
-                raytrace_result, reference_point=(np2, 0), coordinate=coordinate
-            ),
+            output_angle_pupil=get_ray_output_angle(raytrace_result, reference_point=(0, 0), coordinate=coordinate),
+            output_angle_np2=get_ray_output_angle(raytrace_result, reference_point=(np2, 0), coordinate=coordinate),
             output_angle_retina_center=(
                 get_ray_output_angle(
                     raytrace_result,

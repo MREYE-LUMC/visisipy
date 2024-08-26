@@ -152,6 +152,7 @@ class ZernikeStandardSagSurface(StandardSurface):
     ValueError
         If the Zernike coefficients contain terms that are greater than the maximum term.
     """
+
     zernike_coefficients: ZernikeCoefficients | dict[int, float] = field(default_factory=dict)
     extrapolate: bool = True
     zernike_decenter_x: float = 0
@@ -191,6 +192,7 @@ class ZernikeStandardPhaseSurface(StandardSurface):
     ValueError
         If the Zernike coefficients contain terms that are greater than the maximum term.
     """
+
     zernike_coefficients: ZernikeCoefficients | dict[int, float] = field(default_factory=dict)
     extrapolate: bool = True
     diffraction_order: float = 1
@@ -342,10 +344,10 @@ class EyeGeometry:
     def axial_length(self) -> float:
         """Axial length of the eye, in mm."""
         return (
-                self.cornea_front.thickness
-                + self.cornea_back.thickness
-                + self.lens_front.thickness
-                + self.lens_back.thickness
+            self.cornea_front.thickness
+            + self.cornea_back.thickness
+            + self.lens_front.thickness
+            + self.lens_back.thickness
         )
 
     @property
@@ -434,11 +436,11 @@ def _update_attribute_if_specified(obj: Surface, attribute: str, value: Any):
 
 
 def _calculate_vitreous_thickness(
-        geometry: EyeGeometry,
-        axial_length: float | None = None,
-        cornea_thickness: float | None = None,
-        anterior_chamber_depth: float | None = None,
-        lens_thickness: float | None = None,
+    geometry: EyeGeometry,
+    axial_length: float | None = None,
+    cornea_thickness: float | None = None,
+    anterior_chamber_depth: float | None = None,
+    lens_thickness: float | None = None,
 ) -> float:
     """Calculate the thickness of the vitreous body for a partially initialized eye geometry."""
     _axial_length = geometry.axial_length if axial_length is None else axial_length
@@ -449,10 +451,10 @@ def _calculate_vitreous_thickness(
     _lens_thickness = geometry.lens_thickness if lens_thickness is None else lens_thickness
 
     if None in (
-            _axial_length,
-            _cornea_thickness,
-            _anterior_chamber_depth,
-            _lens_thickness,
+        _axial_length,
+        _cornea_thickness,
+        _anterior_chamber_depth,
+        _lens_thickness,
     ):
         raise ValueError("Cannot calculate vitreous thickness from the supplied parameters.")
 
@@ -463,24 +465,24 @@ GeometryType = TypeVar("GeometryType", bound=EyeGeometry)
 
 
 def create_geometry(
-        base: type[GeometryType] = NavarroGeometry,
-        axial_length: float | None = None,
-        cornea_thickness: float | None = None,
-        cornea_front_radius: float | None = None,
-        cornea_front_asphericity: float | None = None,
-        cornea_back_radius: float | None = None,
-        cornea_back_asphericity: float | None = None,
-        anterior_chamber_depth: float | None = None,
-        pupil_radius: float | None = None,
-        lens_thickness: float | None = None,
-        lens_back_radius: float | None = None,
-        lens_back_asphericity: float | None = None,
-        lens_front_radius: float | None = None,
-        lens_front_asphericity: float | None = None,
-        retina_radius: float | None = None,
-        retina_asphericity: float | None = None,
-        *,
-        estimate_cornea_back: bool = False,
+    base: type[GeometryType] = NavarroGeometry,
+    axial_length: float | None = None,
+    cornea_thickness: float | None = None,
+    cornea_front_radius: float | None = None,
+    cornea_front_asphericity: float | None = None,
+    cornea_back_radius: float | None = None,
+    cornea_back_asphericity: float | None = None,
+    anterior_chamber_depth: float | None = None,
+    pupil_radius: float | None = None,
+    lens_thickness: float | None = None,
+    lens_back_radius: float | None = None,
+    lens_back_asphericity: float | None = None,
+    lens_front_radius: float | None = None,
+    lens_front_asphericity: float | None = None,
+    retina_radius: float | None = None,
+    retina_asphericity: float | None = None,
+    *,
+    estimate_cornea_back: bool = False,
 ) -> GeometryType:
     """Create a geometry instance from clinically used parameters.
 
