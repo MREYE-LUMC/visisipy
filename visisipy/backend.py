@@ -124,6 +124,6 @@ def get_oss() -> OpticStudioSystem | None:
     os_backend = importlib.import_module("visisipy.opticstudio.backend")
 
     if _BACKEND is os_backend.OpicStudioBackend:
-        return os_backend._oss
+        return os_backend._oss  # noqa: SLF001
 
     return None

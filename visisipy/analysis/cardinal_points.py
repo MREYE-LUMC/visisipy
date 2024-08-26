@@ -7,7 +7,6 @@ from visisipy.analysis.base import analysis
 from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
-    from pandas import DataFrame
     from visisipy import EyeModel
 
 
@@ -18,6 +17,7 @@ class CardinalPoints(NamedTuple):
     """
     The cardinal points of a system in object and image space.
     """
+
     object: float
     image: float
 
@@ -42,6 +42,7 @@ class CardinalPointsResult:
     anti_nodal_points : CardinalPoints
         The anti-nodal points of the system.
     """
+
     focal_lengths: CardinalPoints
     focal_points: CardinalPoints
     principal_points: CardinalPoints

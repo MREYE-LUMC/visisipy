@@ -15,14 +15,14 @@ __all__ = ("refraction",)
 
 @analysis
 def refraction(
-        model: EyeModel | None,  # noqa: ARG001
-        field_coordinate: tuple[float, float] | None = None,
-        wavelength: float | None = None,
-        pupil_diameter: float | None = None,
-        field_type: Literal["angle", "object_height"] = "angle",
-        *,
-        use_higher_order_aberrations: bool = True,
-        return_raw_result: bool = False,  # noqa: ARG001
+    model: EyeModel | None,  # noqa: ARG001
+    field_coordinate: tuple[float, float] | None = None,
+    wavelength: float | None = None,
+    pupil_diameter: float | None = None,
+    field_type: Literal["angle", "object_height"] = "angle",
+    *,
+    use_higher_order_aberrations: bool = True,
+    return_raw_result: bool = False,  # noqa: ARG001
 ) -> FourierPowerVectorRefraction | tuple[FourierPowerVectorRefraction, Any]:
     """Calculates the ocular refraction.
 

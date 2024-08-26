@@ -71,15 +71,15 @@ class OpticStudioSurface(BaseSurface):
     _TYPE: str = "Standard"
 
     def __init__(
-            self,
-            comment: str,
-            *,
-            radius: float = float("inf"),
-            thickness: float = 0.0,
-            semi_diameter: float | None = None,
-            conic: float = 0.0,
-            material: MaterialModel | str | None = None,
-            is_stop: bool | None = None,
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
     ):
         self._comment = comment
         self._radius = radius
@@ -237,18 +237,18 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
         return super().__new__(cls)
 
     def __init__(
-            self,
-            comment: str,
-            *,
-            radius: float = float("inf"),
-            thickness: float = 0.0,
-            semi_diameter: float | None = None,
-            conic: float = 0.0,
-            material: MaterialModel | str | None = None,
-            is_stop: bool | None = None,
-            number_of_terms: int = 0,
-            norm_radius: float = 100,
-            zernike_coefficients: ZernikeCoefficients | None = None,
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+        number_of_terms: int = 0,
+        norm_radius: float = 100,
+        zernike_coefficients: ZernikeCoefficients | None = None,
     ):
         super().__init__(
             comment=comment,
@@ -347,24 +347,25 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
 
 class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
     """Zernike Standard Sag surface in OpticStudio."""
+
     _TYPE = "ZernikeStandardSag"
 
     def __init__(
-            self,
-            comment: str,
-            *,
-            radius: float = float("inf"),
-            thickness: float = 0.0,
-            semi_diameter: float | None = None,
-            conic: float = 0.0,
-            material: MaterialModel | str | None = None,
-            is_stop: bool | None = None,
-            extrapolate: int = 0,
-            zernike_decenter_x: float = 0.0,
-            zernike_decenter_y: float = 0.0,
-            number_of_terms: int = 0,
-            norm_radius: float = 100,
-            zernike_coefficients: ZernikeCoefficients | None = None,
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+        extrapolate: int = 0,
+        zernike_decenter_x: float = 0.0,
+        zernike_decenter_y: float = 0.0,
+        number_of_terms: int = 0,
+        norm_radius: float = 100,
+        zernike_coefficients: ZernikeCoefficients | None = None,
     ):
         super().__init__(
             comment=comment,
@@ -412,23 +413,24 @@ class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
 
 class OpticStudioZernikeStandardPhaseSurface(BaseOpticStudioZernikeSurface):
     """Zernike Standard Phase surface in OpticStudio."""
+
     _TYPE = "ZernikeStandardPhase"
 
     def __init__(
-            self,
-            comment: str,
-            *,
-            radius: float = float("inf"),
-            thickness: float = 0.0,
-            semi_diameter: float | None = None,
-            conic: float = 0.0,
-            material: MaterialModel | str | None = None,
-            is_stop: bool | None = None,
-            extrapolate: int = 0,
-            diffract_order: float = 0.0,
-            number_of_terms: int = 0,
-            norm_radius: float = 100,
-            zernike_coefficients: ZernikeCoefficients | None = None,
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+        extrapolate: int = 0,
+        diffract_order: float = 0.0,
+        number_of_terms: int = 0,
+        norm_radius: float = 100,
+        zernike_coefficients: ZernikeCoefficients | None = None,
     ):
         super().__init__(
             comment=comment,
@@ -495,9 +497,9 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
 
 @make_surface.register
 def _make_surface(
-        surface: StandardSurface,
-        material: Union[str, MaterialModel],  # noqa: UP007
-        comment: str = "",
+    surface: StandardSurface,
+    material: Union[str, MaterialModel],  # noqa: UP007
+    comment: str = "",
 ) -> OpticStudioSurface:
     return OpticStudioSurface(
         comment=comment,
@@ -511,9 +513,10 @@ def _make_surface(
 
 @make_surface.register
 def _make_surface(
-        surface: Stop,
-        material: Union[str, MaterialModel] = "",  # noqa: UP007
-        comment: str = "") -> OpticStudioSurface:
+    surface: Stop,
+    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    comment: str = "",
+) -> OpticStudioSurface:
     return OpticStudioSurface(
         comment=comment,
         thickness=surface.thickness,
@@ -525,9 +528,9 @@ def _make_surface(
 
 @make_surface.register
 def _make_surface(
-        surface: ZernikeStandardSagSurface,
-        material: Union[str, MaterialModel] = "",  # noqa: UP007
-        comment: str = ""
+    surface: ZernikeStandardSagSurface,
+    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    comment: str = "",
 ) -> OpticStudioZernikeStandardSagSurface:
     return OpticStudioZernikeStandardSagSurface(
         comment=comment,
@@ -547,9 +550,9 @@ def _make_surface(
 
 @make_surface.register
 def _make_surface(
-        surface: ZernikeStandardPhaseSurface,
-        material: Union[str, MaterialModel] = "",  # noqa: UP007
-        comment: str = ""
+    surface: ZernikeStandardPhaseSurface,
+    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    comment: str = "",
 ) -> OpticStudioZernikeStandardPhaseSurface:
     return OpticStudioZernikeStandardPhaseSurface(
         comment=comment,

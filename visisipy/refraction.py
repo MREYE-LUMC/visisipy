@@ -57,12 +57,12 @@ class FourierPowerVectorRefraction:
         """
         return PolarPowerVectorRefraction(
             M=self.M,
-            J=np.sqrt(self.J0 ** 2 + self.J45 ** 2),
+            J=np.sqrt(self.J0**2 + self.J45**2),
             axis=np.rad2deg(np.arctan2(self.J45, self.J0) / 2),
         )
 
     def to_sphero_cylindrical(
-            self, cylinder_form: Literal["positive", "negative"] = "negative"
+        self, cylinder_form: Literal["positive", "negative"] = "negative"
     ) -> SpheroCylindricalRefraction:
         """Converts the refraction to sphero-cylindrical form.
 
@@ -80,8 +80,8 @@ class FourierPowerVectorRefraction:
             raise ValueError("cylinder_form must be either 'positive' or 'negative'.")
 
         sphero_cylinder = SpheroCylindricalRefraction(
-            sphere=self.M + np.sqrt(self.J0 ** 2 + self.J45 ** 2),
-            cylinder=-2 * np.sqrt(self.J0 ** 2 + self.J45 ** 2),
+            sphere=self.M + np.sqrt(self.J0**2 + self.J45**2),
+            cylinder=-2 * np.sqrt(self.J0**2 + self.J45**2),
             axis=np.rad2deg(np.arctan2(self.J45, self.J0) / 2),
         )
 

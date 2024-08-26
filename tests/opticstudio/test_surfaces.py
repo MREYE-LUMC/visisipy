@@ -254,6 +254,7 @@ class TestBaseOpticStudioZernikeSurface:
 
         This class is necessary because BaseOpticStudioZernikeSurface cannot be instantiated directly.
         """
+
         _TYPE = "ZernikeStandardSag"
 
         def __init__(self, *args, **kwargs):
@@ -281,13 +282,19 @@ class TestBaseOpticStudioZernikeSurface:
             )
 
     @pytest.mark.parametrize(
-        "n,value,maximum_term,expectation", [
+        "n,value,maximum_term,expectation",
+        [
             (0, 1.234, 1, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
             (1, 1.234, 2, does_not_raise()),
             (2, 1.234, 2, does_not_raise()),
-            (2, 1.234, 1,
-             pytest.raises(ValueError, match="Zernike coefficient must be smaller than the maximum term 1")),
-        ])
+            (
+                2,
+                1.234,
+                1,
+                pytest.raises(ValueError, match="Zernike coefficient must be smaller than the maximum term 1"),
+            ),
+        ],
+    )
     def test_set_zernike_coefficient(self, new_oss, n: int, value: float, maximum_term: int, expectation):
         surface = self.MockOpticStudioZernikeSurface(
             comment="Test",
@@ -301,13 +308,16 @@ class TestBaseOpticStudioZernikeSurface:
             assert surface.surface.SurfaceData.GetNthZernikeCoefficient(n) == value
 
     @pytest.mark.parametrize(
-        "n,coefficients,expectation", [
+        "n,coefficients,expectation",
+        [
             (2, {1: 1.234, 2: 3.456}, does_not_raise()),
-            (4, {1: 1.234, 2: 3.456}, pytest.raises(
-                ValueError, match="Zernike coefficient must be smaller than the "
-                                  "maximum term 3")),
+            (
+                4,
+                {1: 1.234, 2: 3.456},
+                pytest.raises(ValueError, match="Zernike coefficient must be smaller than the " "maximum term 3"),
+            ),
             (0, {1: 1.234, 2: 3.456}, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
-        ]
+        ],
     )
     def test_get_zernike_coefficient(self, new_oss, n, coefficients, expectation):
         surface = OpticStudioZernikeStandardSagSurface(
@@ -324,13 +334,15 @@ class TestBaseOpticStudioZernikeSurface:
 
 class TestOpticStudioZernikeStandardSagSurface:
     @pytest.mark.parametrize(
-        "maximum_term,coefficients,extrapolate,decenter_x,decenter_y", [
+        "maximum_term,coefficients,extrapolate,decenter_x,decenter_y",
+        [
             (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1, 0.0, 0.0),
             (3, {1: 1.0, 2: 2.0, 3: 3.0}, 0, -1.0, 1.0),
             (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1, 1.0, -1.0),
             (231, {}, 0, 0.0, 0.0),
             (231, None, 1, 0.0, 0.0),
-        ])
+        ],
+    )
     def test_build(self, new_oss, maximum_term, coefficients, extrapolate, decenter_x, decenter_y):
         surface = OpticStudioZernikeStandardSagSurface(
             comment="Test comment",
@@ -397,13 +409,15 @@ class TestOpticStudioZernikeStandardSagSurface:
 
 class TestOpticStudioZernikeStandardPhaseSurface:
     @pytest.mark.parametrize(
-        "maximum_term,coefficients,extrapolate,diffract_order", [
+        "maximum_term,coefficients,extrapolate,diffract_order",
+        [
             (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1, 1),
             (3, {1: 1.0, 2: 2.0, 3: 3.0}, 0, 2.3),
             (3, {1: 1.0, 2: 2.0, 3: 3.0}, 1, 3.4),
             (231, {}, 0, 4.5),
             (231, None, 1, 5.6),
-        ])
+        ],
+    )
     def test_build(self, new_oss, maximum_term, coefficients, extrapolate, diffract_order):
         surface = OpticStudioZernikeStandardPhaseSurface(
             comment="Test comment",
@@ -467,11 +481,11 @@ class TestMakeSurface:
         [
             (1, 2, 3, 4, "BK7"),
             (
-                    5,
-                    6,
-                    7,
-                    8,
-                    MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
+                5,
+                6,
+                7,
+                8,
+                MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
             ),
         ],
     )
@@ -496,9 +510,9 @@ class TestMakeSurface:
         [
             (1, 2, "BK7"),
             (
-                    3,
-                    4,
-                    MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
+                3,
+                4,
+                MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
             ),
         ],
     )

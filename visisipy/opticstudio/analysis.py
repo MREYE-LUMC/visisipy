@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
@@ -81,11 +81,11 @@ def _get_zernike_coefficient(zernike_result: zp.analyses.base.AttrDict, coeffici
 
 
 def _zernike_data_to_refraction(
-        zernike_data: zp.analyses.base.AttrDict,
-        pupil_data: zp.functions.lde.PupilData,
-        wavelength: float,
-        *,
-        use_higher_order_aberrations: bool = True,
+    zernike_data: zp.analyses.base.AttrDict,
+    pupil_data: zp.functions.lde.PupilData,
+    wavelength: float,
+    *,
+    use_higher_order_aberrations: bool = True,
 ) -> FourierPowerVectorRefraction:
     z4 = _get_zernike_coefficient(zernike_data, 4) * wavelength * 4 * np.sqrt(3)
     z11 = _get_zernike_coefficient(zernike_data, 11) * wavelength * 12 * np.sqrt(5)
@@ -106,15 +106,15 @@ def _zernike_data_to_refraction(
 
     if use_higher_order_aberrations:
         return FourierPowerVectorRefraction(
-            M=(-z4 + z11 - z22 + z37) / (exit_pupil_radius ** 2),
-            J0=(-z6 + z12 - z24 + z38) / (exit_pupil_radius ** 2),
-            J45=(-z5 + z13 - z23 + z39) / (exit_pupil_radius ** 2),
+            M=(-z4 + z11 - z22 + z37) / (exit_pupil_radius**2),
+            J0=(-z6 + z12 - z24 + z38) / (exit_pupil_radius**2),
+            J45=(-z5 + z13 - z23 + z39) / (exit_pupil_radius**2),
         )
 
     return FourierPowerVectorRefraction(
-        M=(-z4) / (exit_pupil_radius ** 2),
-        J0=(-z6) / (exit_pupil_radius ** 2),
-        J45=(-z5) / (exit_pupil_radius ** 2),
+        M=(-z4) / (exit_pupil_radius**2),
+        J0=(-z6) / (exit_pupil_radius**2),
+        J45=(-z5) / (exit_pupil_radius**2),
     )
 
 
@@ -127,8 +127,9 @@ class OpticStudioAnalysis(BaseAnalysis):
         self._backend = backend
         self._oss = backend.oss
 
-    def cardinal_points(self, surface_1: int | None = None, surface_2: int | None = None) -> tuple[
-        CardinalPointsResult, zp.analyses.base.AnalysisResult]:
+    def cardinal_points(
+        self, surface_1: int | None = None, surface_2: int | None = None
+    ) -> tuple[CardinalPointsResult, zp.analyses.base.AnalysisResult]:
         """
         Get the cardinal points of the system between `surface_1` and `surface_2`.
 
@@ -170,11 +171,11 @@ class OpticStudioAnalysis(BaseAnalysis):
         return _build_cardinal_points_result(cardinal_points_result), cardinal_points_result
 
     def raytrace(
-            self,
-            coordinates: Iterable[tuple[float, float]],
-            wavelengths: Iterable[float] = (0.543,),
-            field_type: Literal["angle", "object_height"] = "angle",
-            pupil: tuple[float, float] = (0, 0),
+        self,
+        coordinates: Iterable[tuple[float, float]],
+        wavelengths: Iterable[float] = (0.543,),
+        field_type: Literal["angle", "object_height"] = "angle",
+        pupil: tuple[float, float] = (0, 0),
     ) -> tuple[DataFrame, list[zp.analyses.base.AnalysisResult]]:
         """
         Perform a ray trace analysis using the given parameters.
@@ -235,12 +236,12 @@ class OpticStudioAnalysis(BaseAnalysis):
         return _build_raytrace_result(raytrace_results), raytrace_results
 
     def zernike_standard_coefficients(
-            self,
-            field_coordinate: tuple[float, float] | None = None,
-            wavelength: float | None = None,
-            field_type: Literal["angle", "object_height"] = "angle",
-            sampling: str = "512x512",
-            maximum_term: int = 45,
+        self,
+        field_coordinate: tuple[float, float] | None = None,
+        wavelength: float | None = None,
+        field_type: Literal["angle", "object_height"] = "angle",
+        sampling: str = "512x512",
+        maximum_term: int = 45,
     ) -> tuple[zp.analyses.base.AttrDict, zp.analyses.base.AnalysisResult]:
         """
         Calculates the Zernike standard coefficients at the retina surface.
@@ -291,13 +292,13 @@ class OpticStudioAnalysis(BaseAnalysis):
         return zernike_result.Data, zernike_result
 
     def refraction(
-            self,
-            field_coordinate: tuple[float, float] | None = None,
-            wavelength: float | None = None,
-            pupil_diameter: float | None = None,
-            field_type: Literal["angle", "object_height"] = "angle",
-            *,
-            use_higher_order_aberrations: bool = True,
+        self,
+        field_coordinate: tuple[float, float] | None = None,
+        wavelength: float | None = None,
+        pupil_diameter: float | None = None,
+        field_type: Literal["angle", "object_height"] = "angle",
+        *,
+        use_higher_order_aberrations: bool = True,
     ) -> tuple[FourierPowerVectorRefraction, zp.analyses.base.AnalysisResult]:
         """Calculates the ocular refraction.
 
