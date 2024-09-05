@@ -39,13 +39,13 @@ def raytrace(
 
 @analysis
 def raytrace(
-        model: EyeModel | None,  # noqa: ARG001
-        coordinates: Iterable[tuple[float, float]],
-        wavelengths: Iterable[float] = (0.543,),
-        field_type: Literal["angle", "object"] = "angle",
-        pupil: tuple[float, float] = (0, 0),
-        *,
-        return_raw_result: bool = False,  # noqa: ARG001
+    model: EyeModel | None,  # noqa: ARG001
+    coordinates: Iterable[tuple[float, float]],
+    wavelengths: Iterable[float] = (0.543,),
+    field_type: Literal["angle", "object"] = "angle",
+    pupil: tuple[float, float] = (0, 0),
+    *,
+    return_raw_result: bool = False,  # noqa: ARG001
 ) -> DataFrame | tuple[DataFrame, Any]:
     """
     Performs a ray trace analysis using the given parameters.
