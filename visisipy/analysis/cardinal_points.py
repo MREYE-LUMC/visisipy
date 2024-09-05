@@ -73,7 +73,7 @@ def cardinal_points(
 
 @analysis
 def cardinal_points(
-    model: EyeModel | None,  # noqa: ARG001
+    # model: EyeModel | None,  # noqa: ARG001
     surface_1: int | None = None,
     surface_2: int | None = None,
     *,
