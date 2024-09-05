@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, TypeVar
 
 from visisipy.backend import get_backend
 
@@ -65,7 +65,10 @@ def _build_model(model: EyeModel) -> None:
         backend.build_model(model)
 
 
-def analysis(function: Callable[..., tuple[Any, Any]]) -> Callable:
+T1 = TypeVar("T1")
+T2 = TypeVar("T2")
+
+def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
     """
     Decorator for analysis functions.
 
@@ -90,7 +93,7 @@ def analysis(function: Callable[..., tuple[Any, Any]]) -> Callable:
         *args: Any,
         return_raw_result: bool = False,
         **kwargs: Any,
-    ) -> tuple[Any, Any]:
+    ) -> T1 | tuple[T1, T2]:
         if model is not None:
             _build_model(model)
 

@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
+    from visisipy.analysis.cardinal_points import CardinalPointsResult
 
 _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Backend | str = "opticstudio"
@@ -26,7 +27,13 @@ class _classproperty(property):  # noqa: N801
 
 
 class BaseAnalysis(ABC):
-    @staticmethod
+    @abstractmethod
+    def cardinal_points(
+        self,
+        surface_1: int | None = None,
+        surface_2: int | None = None,
+    ) -> CardinalPointsResult: ...
+
     @abstractmethod
     def raytrace(
         self,
@@ -35,7 +42,6 @@ class BaseAnalysis(ABC):
         pupil: tuple[float, float] = (0, 0),
     ) -> DataFrame: ...
 
-    @staticmethod
     @abstractmethod
     def refraction(
         self,
