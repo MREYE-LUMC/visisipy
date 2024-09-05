@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal, TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from visisipy.analysis.base import analysis
 from visisipy.backend import get_backend
@@ -15,37 +15,37 @@ if TYPE_CHECKING:
 
 @overload
 def raytrace(
-        model: EyeModel | None = ...,
-        coordinates: Iterable[tuple[float, float]] = ...,
-        wavelengths: Iterable[float] = ...,
-        field_type: Literal["angle", "object"] = ...,
-        pupil: tuple[float, float] = ...,
-        *,
-        return_raw_result: Literal[False],
+    model: EyeModel | None = ...,
+    coordinates: Iterable[tuple[float, float]] = ...,
+    wavelengths: Iterable[float] = ...,
+    field_type: Literal["angle", "object"] = ...,
+    pupil: tuple[float, float] = ...,
+    *,
+    return_raw_result: Literal[False],
 ) -> DataFrame: ...
 
 
 @overload
 def raytrace(
-        model: EyeModel | None = ...,
-        coordinates: Iterable[tuple[float, float]] = ...,
-        wavelengths: Iterable[float] = ...,
-        field_type: Literal["angle", "object"] = ...,
-        pupil: tuple[float, float] = ...,
-        *,
-        return_raw_result: Literal[True],
+    model: EyeModel | None = ...,
+    coordinates: Iterable[tuple[float, float]] = ...,
+    wavelengths: Iterable[float] = ...,
+    field_type: Literal["angle", "object"] = ...,
+    pupil: tuple[float, float] = ...,
+    *,
+    return_raw_result: Literal[True],
 ) -> tuple[DataFrame, Any]: ...
 
 
 @analysis
 def raytrace(
-        model: EyeModel | None,  # noqa: ARG001
-        coordinates: Iterable[tuple[float, float]],
-        wavelengths: Iterable[float] = (0.543,),
-        field_type: Literal["angle", "object"] = "angle",
-        pupil: tuple[float, float] = (0, 0),
-        *,
-        return_raw_result: bool = False,  # noqa: ARG001
+    model: EyeModel | None,  # noqa: ARG001
+    coordinates: Iterable[tuple[float, float]],
+    wavelengths: Iterable[float] = (0.543,),
+    field_type: Literal["angle", "object"] = "angle",
+    pupil: tuple[float, float] = (0, 0),
+    *,
+    return_raw_result: bool = False,  # noqa: ARG001
 ) -> DataFrame | tuple[DataFrame, Any]:
     """
     Performs a ray trace analysis using the given parameters.

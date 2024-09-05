@@ -68,6 +68,7 @@ def _build_model(model: EyeModel) -> None:
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 
+
 def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
     """
     Decorator for analysis functions.

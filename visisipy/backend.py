@@ -13,9 +13,9 @@ if TYPE_CHECKING:
     from pandas import DataFrame
     from zospy.zpcore import OpticStudioSystem
 
+    from visisipy.analysis.cardinal_points import CardinalPointsResult
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
-    from visisipy.analysis.cardinal_points import CardinalPointsResult
 
 _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Backend | str = "opticstudio"
