@@ -50,6 +50,11 @@ jobs:
         with:
           name: zospy_dist
           path: dist
+      - name: Set up uv
+        id: setup-uv
+        uses: astral-sh/setup-uv@v3
+      - name: Publish package
+        run: uvx hatch publish --repo https://test.pypi.org/legacy/
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@v1.8.11
         with:
