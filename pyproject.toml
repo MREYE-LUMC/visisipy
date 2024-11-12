@@ -6,10 +6,13 @@ build-backend = "hatchling.build"
 name = "visisipy"
 description = "Accessible vision simulations in Python."
 authors = [
-    { name = "Corné Haasjes", email = "c.haasjes@lumc.nl" },
-    { name = "Jan-Willem Beenakker", email = "j.w.m.beenakker@lumc.nl" },
+    { name = "Corné Haasjes" },
+    { name = "Jan-Willem Beenakker" },
 ]
-version = "0.0.1"
+maintainers = [
+    { name = "MReye research group", email = "zospy@mreye.nl" }
+]
+version = "dynamic"
 dependencies = [
     "zospy==1.2.1",
     "matplotlib",
@@ -18,8 +21,11 @@ dependencies = [
 ]
 requires-python = ">=3.9, <3.14"
 
+[tool.hatch.version]
+path = "zospy/__init__.py"
+
 [tool.hatch.envs.default]
-python = "3.11"
+python = "3.12"
 
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "ruff_defaults.toml"
@@ -54,9 +60,9 @@ extend-ignore = [
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"examples/*" = [ "INP001" ]
-"tests/*" = [ "ARG001", "ARG002" ]
-"tests/opticstudio/*" = [ "SLF001" ]
+"examples/*" = ["INP001"]
+"tests/*" = ["ARG001", "ARG002"]
+"tests/opticstudio/*" = ["SLF001"]
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
