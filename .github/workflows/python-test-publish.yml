@@ -54,14 +54,7 @@ jobs:
         id: setup-uv
         uses: astral-sh/setup-uv@v3
       - name: Publish package
-        run: uvx hatch publish --repo https://test.pypi.org/legacy/
-      - name: Publish package
-        uses: pypa/gh-action-pypi-publish@v1.8.11
-        with:
-          user: __token__
-          repository-url: https://test.pypi.org/legacy/
-          # If the release is already present, overwrite it
-          skip-existing: true
+        run: uv publish --publish-url https://test.pypi.org/legacy/
 
   publish_to_github:
     runs-on: ubuntu-latest
