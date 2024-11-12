@@ -16,13 +16,10 @@ dependencies = [
     "numpy",
     "scipy"
 ]
-requires-python = ">=3.9, <3.13"
+requires-python = ">=3.9, <3.14"
 
 [tool.hatch.envs.default]
 python = "3.11"
-
-[tool.hatch.envs.py39]
-python = "3.9"
 
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "ruff_defaults.toml"
