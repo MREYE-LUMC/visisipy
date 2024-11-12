@@ -28,7 +28,7 @@ jobs:
         id: setup-uv
         uses: astral-sh/setup-uv@v3
       - name: Build package
-        run: uvx hatch build
+        run: uv build
       - name: Upload dist
         uses: actions/upload-artifact@v4
         with:
