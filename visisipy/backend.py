@@ -3,10 +3,8 @@ from __future__ import annotations
 import importlib
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Literal, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 from warnings import warn
-
-from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -18,6 +16,7 @@ if TYPE_CHECKING:
     from visisipy.analysis.cardinal_points import CardinalPointsResult
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
+    from visisipy.wavefront import ZernikeCoefficients
 
 _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Backend | str = "opticstudio"
@@ -31,34 +30,34 @@ class _classproperty(property):  # noqa: N801
 class BaseAnalysis(ABC):
     @abstractmethod
     def cardinal_points(
-            self,
-            surface_1: int | None = None,
-            surface_2: int | None = None,
+        self,
+        surface_1: int | None = None,
+        surface_2: int | None = None,
     ) -> CardinalPointsResult: ...
 
     @abstractmethod
     def raytrace(
-            self,
-            coordinates: Iterable[tuple[float, float]],
-            field_type: Literal["angle", "object"] = "angle",
-            pupil: tuple[float, float] = (0, 0),
+        self,
+        coordinates: Iterable[tuple[float, float]],
+        field_type: Literal["angle", "object"] = "angle",
+        pupil: tuple[float, float] = (0, 0),
     ) -> DataFrame: ...
 
     @abstractmethod
     def refraction(
-            self,
-            field_coordinate: tuple[float, float] | None = None,
-            wavelength: float | None = None,
+        self,
+        field_coordinate: tuple[float, float] | None = None,
+        wavelength: float | None = None,
     ) -> FourierPowerVectorRefraction: ...
 
     @abstractmethod
     def zernike_standard_coefficients(
-            self,
-            field_coordinate: tuple[float, float] | None = None,
-            wavelength: float | None = None,
-            field_type: Literal["angle", "object_height"] = "angle",
-            sampling: str = "512x512",
-            maximum_term: int = 45,
+        self,
+        field_coordinate: tuple[float, float] | None = None,
+        wavelength: float | None = None,
+        field_type: Literal["angle", "object_height"] = "angle",
+        sampling: str = "512x512",
+        maximum_term: int = 45,
     ) -> ZernikeCoefficients: ...
 
 
@@ -141,7 +140,7 @@ def get_oss() -> OpticStudioSystem | None:
     """
     os_backend = importlib.import_module("visisipy.opticstudio.backend")
 
-    if _BACKEND is os_backend.OpicStudioBackend:
+    if _BACKEND is os_backend.OpticStudioBackend:
         return os_backend._oss  # noqa: SLF001
 
     return None
