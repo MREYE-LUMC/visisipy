@@ -4,7 +4,7 @@ import inspect
 from functools import wraps
 from typing import TYPE_CHECKING, Any, Callable, TypeVar
 
-from visisipy.backend import get_backend
+from visisipy.backend import BaseBackend, get_backend
 
 if TYPE_CHECKING:
     from visisipy.models import EyeModel
@@ -50,7 +50,7 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
         )
 
 
-def _build_model(model: EyeModel) -> None:
+def _build_model(model: EyeModel, backend: type[BaseBackend]) -> None:
     """
     Build the model in OpticStudio if it is not already built.
 
@@ -59,8 +59,6 @@ def _build_model(model: EyeModel) -> None:
     model : Any
         The model to build.
     """
-    backend = get_backend()
-
     if backend.model is None or backend.model.eye_model is not model:
         backend.build_model(model)
 
@@ -93,12 +91,16 @@ def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
         model: EyeModel | None = None,
         *args: Any,
         return_raw_result: bool = False,
+        backend: type[BaseBackend] | None = None,
         **kwargs: Any,
     ) -> T1 | tuple[T1, T2]:
-        if model is not None:
-            _build_model(model)
+        if backend is None:
+            backend = get_backend()
 
-        result, raw_result = function(model, *args, return_raw_result=return_raw_result, **kwargs)
+        if model is not None:
+            _build_model(model, backend)
+
+        result, raw_result = function(model, *args, return_raw_result=return_raw_result, backend=backend, **kwargs)
 
         if return_raw_result:
             return result, raw_result
