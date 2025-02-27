@@ -25,3 +25,5 @@ __all__ = (
     "refraction",
     "wavefront",
 )
+
+__version__ = "0.0.1"

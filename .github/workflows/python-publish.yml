@@ -1,0 +1,88 @@
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Publish to PyPI
+
+on:
+  # Allow manual triggering
+  workflow_dispatch:
+    
+  release:
+    types: [ released, prereleased ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up uv
+        id: setup-uv
+        uses: astral-sh/setup-uv@v3
+      - name: Build package
+        run: uv build
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: zospy_dist
+          path: "dist/"
+
+  publish_to_pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment: PyPI
+
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: zospy_dist
+          path: dist
+      - name: Set up uv
+        id: setup-uv
+        uses: astral-sh/setup-uv@v3
+      - name: Publish package
+        run: uv publish
+
+  upload_to_github:
+    name: Upload to GitHub
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    needs: build
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: zospy_dist
+          path: dist
+      - name: Upload wheels to GitHub release
+        uses: svenstaro/upload-release-action@2.7.0
+        with:
+          tag: ${{ github.ref }}
+          file: "dist/*.whl"
+          file_glob: true
+      - name: Upload dist to GitHub release
+        uses: svenstaro/upload-release-action@2.7.0
+        with:
+          tag: ${{ github.ref }}
+          file: "dist/*.tar.gz"
+          file_glob: true

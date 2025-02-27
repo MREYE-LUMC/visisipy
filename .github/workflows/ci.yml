@@ -9,33 +9,24 @@ jobs:
     name: "Format and lint"
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-    - name: Install hatch
-      run: |
-        pipx install hatch
+      - uses: actions/checkout@v4
+      - name: Set up uv
+        id: setup-uv
+        uses: astral-sh/setup-uv@v3
+      - name: Format and lint
+        run: uvx hatch fmt --check
 
-    - name: Format and lint
-      run: hatch fmt --check
-    
   test:
     name: "Test"
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        pip install --editable .
-        pip install pytest
-
-    - name: Run tests
-      run: pytest ./tests --no-opticstudio
+      - uses: actions/checkout@v4
+      - name: Set up uv
+        id: setup-uv
+        uses: astral-sh/setup-uv@v3
+      - name: Run tests
+        run: uvx hatch test --python ${{ matrix.python-version }} ./tests --no-opticstudio
