@@ -42,8 +42,8 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
 
     if "backend" not in parameter_names:
         raise ValueError(
-            "The analysis function must have a keyword-only 'backend' parameter of type 'type["
-            "BaseBackend]'.")
+            "The analysis function must have a keyword-only 'backend' parameter of type 'type[BaseBackend]'."
+        )
 
     if signature.parameters["backend"].kind.name != "KEYWORD_ONLY":
         raise ValueError("The 'backend' parameter of an analysis function must be keyword-only.")
@@ -55,8 +55,7 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
         )
 
     if "return_raw_result" not in parameter_names:
-        raise ValueError(
-            "The analysis function must have a keyword-only 'return_raw_result' parameter of type 'bool'.")
+        raise ValueError("The analysis function must have a keyword-only 'return_raw_result' parameter of type 'bool'.")
 
     if signature.parameters["return_raw_result"].kind.name != "KEYWORD_ONLY":
         raise ValueError("The 'return_raw_result' parameter of an analysis function must be keyword-only.")
@@ -106,11 +105,11 @@ def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
 
     @wraps(function)
     def analysis_wrapper(
-            model: EyeModel | None = None,
-            *args: Any,
-            return_raw_result: bool = False,
-            backend: type[BaseBackend] | None = None,
-            **kwargs: Any,
+        model: EyeModel | None = None,
+        *args: Any,
+        return_raw_result: bool = False,
+        backend: type[BaseBackend] | None = None,
+        **kwargs: Any,
     ) -> T1 | tuple[T1, T2]:
         if backend is None:
             backend = get_backend()
