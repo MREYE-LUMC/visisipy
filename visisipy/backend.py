@@ -13,8 +13,10 @@ if TYPE_CHECKING:
     from pandas import DataFrame
     from zospy.zpcore import OpticStudioSystem
 
+    from visisipy.analysis.cardinal_points import CardinalPointsResult
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
+    from visisipy.wavefront import ZernikeCoefficients
 
 _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Backend | str = "opticstudio"
@@ -26,7 +28,13 @@ class _classproperty(property):  # noqa: N801
 
 
 class BaseAnalysis(ABC):
-    @staticmethod
+    @abstractmethod
+    def cardinal_points(
+        self,
+        surface_1: int | None = None,
+        surface_2: int | None = None,
+    ) -> CardinalPointsResult: ...
+
     @abstractmethod
     def raytrace(
         self,
@@ -35,13 +43,22 @@ class BaseAnalysis(ABC):
         pupil: tuple[float, float] = (0, 0),
     ) -> DataFrame: ...
 
-    @staticmethod
     @abstractmethod
     def refraction(
         self,
         field_coordinate: tuple[float, float] | None = None,
         wavelength: float | None = None,
     ) -> FourierPowerVectorRefraction: ...
+
+    @abstractmethod
+    def zernike_standard_coefficients(
+        self,
+        field_coordinate: tuple[float, float] | None = None,
+        wavelength: float | None = None,
+        field_type: Literal["angle", "object_height"] = "angle",
+        sampling: str = "512x512",
+        maximum_term: int = 45,
+    ) -> ZernikeCoefficients: ...
 
 
 class BaseBackend(ABC):
@@ -123,7 +140,7 @@ def get_oss() -> OpticStudioSystem | None:
     """
     os_backend = importlib.import_module("visisipy.opticstudio.backend")
 
-    if _BACKEND is os_backend.OpicStudioBackend:
+    if _BACKEND is os_backend.OpticStudioBackend:
         return os_backend._oss  # noqa: SLF001
 
     return None

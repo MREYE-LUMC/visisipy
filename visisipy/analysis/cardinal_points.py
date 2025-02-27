@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, overload
 
 from visisipy.analysis.base import analysis
 from visisipy.backend import get_backend
@@ -51,6 +51,26 @@ class CardinalPointsResult:
     anti_nodal_points: CardinalPoints
 
 
+@overload
+def cardinal_points(
+    model: EyeModel | None = None,
+    surface_1: int | None = None,
+    surface_2: int | None = None,
+    *,
+    return_raw_result: Literal[False],
+) -> CardinalPointsResult: ...
+
+
+@overload
+def cardinal_points(
+    model: EyeModel | None = None,
+    surface_1: int | None = None,
+    surface_2: int | None = None,
+    *,
+    return_raw_result: Literal[True],
+) -> tuple[CardinalPointsResult, Any]: ...
+
+
 @analysis
 def cardinal_points(
     model: EyeModel | None,  # noqa: ARG001
@@ -58,7 +78,7 @@ def cardinal_points(
     surface_2: int | None = None,
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-) -> CardinalPointsResult | tuple[CardinalPointsResult, Any]:
+) -> tuple[CardinalPointsResult, Any]:
     """
     Get the cardinal points of the system between `surface_1` and `surface_2`.
 

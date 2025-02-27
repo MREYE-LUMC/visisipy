@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from visisipy.analysis.base import analysis
 from visisipy.backend import get_backend
@@ -11,6 +11,30 @@ if TYPE_CHECKING:
     from pandas import DataFrame
 
     from visisipy import EyeModel
+
+
+@overload
+def raytrace(
+    model: EyeModel | None = ...,
+    coordinates: Iterable[tuple[float, float]] = ...,
+    wavelengths: Iterable[float] = ...,
+    field_type: Literal["angle", "object"] = ...,
+    pupil: tuple[float, float] = ...,
+    *,
+    return_raw_result: Literal[False],
+) -> DataFrame: ...
+
+
+@overload
+def raytrace(
+    model: EyeModel | None = ...,
+    coordinates: Iterable[tuple[float, float]] = ...,
+    wavelengths: Iterable[float] = ...,
+    field_type: Literal["angle", "object"] = ...,
+    pupil: tuple[float, float] = ...,
+    *,
+    return_raw_result: Literal[True],
+) -> tuple[DataFrame, Any]: ...
 
 
 @analysis

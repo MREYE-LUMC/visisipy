@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from visisipy.analysis.base import analysis
 from visisipy.backend import get_backend
@@ -11,6 +11,32 @@ if TYPE_CHECKING:
 
 
 __all__ = ("refraction",)
+
+
+@overload
+def refraction(
+    model: EyeModel | None = ...,
+    field_coordinate: tuple[float, float] | None = ...,
+    wavelength: float | None = ...,
+    pupil_diameter: float | None = ...,
+    field_type: Literal["angle", "object_height"] = ...,
+    *,
+    use_higher_order_aberrations: bool = ...,
+    return_raw_result: Literal[False],
+) -> FourierPowerVectorRefraction: ...
+
+
+@overload
+def refraction(
+    model: EyeModel | None = ...,
+    field_coordinate: tuple[float, float] | None = ...,
+    wavelength: float | None = ...,
+    pupil_diameter: float | None = ...,
+    field_type: Literal["angle", "object_height"] = ...,
+    *,
+    use_higher_order_aberrations: bool = ...,
+    return_raw_result: Literal[True],
+) -> tuple[FourierPowerVectorRefraction, Any]: ...
 
 
 @analysis

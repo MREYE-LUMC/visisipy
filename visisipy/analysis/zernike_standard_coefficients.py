@@ -1,12 +1,39 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from visisipy.analysis.base import analysis
 from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from visisipy.models import EyeModel
+    from visisipy.wavefront import ZernikeCoefficients
+
+
+@overload
+def zernike_standard_coefficients(
+    model: EyeModel | None = ...,
+    field_coordinate: tuple[float, float] | None = ...,
+    wavelength: float | None = ...,
+    field_type: Literal["angle", "object_height"] = ...,
+    sampling: str = ...,
+    maximum_term: int = ...,
+    *,
+    return_raw_result: Literal[False],
+) -> ZernikeCoefficients: ...
+
+
+@overload
+def zernike_standard_coefficients(
+    model: EyeModel | None = ...,
+    field_coordinate: tuple[float, float] | None = ...,
+    wavelength: float | None = ...,
+    field_type: Literal["angle", "object_height"] = ...,
+    sampling: str = ...,
+    maximum_term: int = ...,
+    *,
+    return_raw_result: Literal[True],
+) -> tuple[ZernikeCoefficients, Any]: ...
 
 
 @analysis
@@ -19,7 +46,7 @@ def zernike_standard_coefficients(
     maximum_term: int = 45,
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-) -> tuple[dict, Any]:
+) -> tuple[ZernikeCoefficients, Any]:
     """
     Calculates the Zernike standard coefficients at the retina surface.
 
