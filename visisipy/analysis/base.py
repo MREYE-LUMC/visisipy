@@ -29,23 +29,41 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
     """
 
     signature = inspect.signature(function)
-    first_parameter, *_, last_parameter = signature.parameters
+    parameter_names = list(signature.parameters)
 
-    if first_parameter != "model":
+    if parameter_names[0] != "model":
         raise ValueError("The first parameter of an analysis function must be 'model'.")
 
     if signature.parameters["model"].annotation != "EyeModel | None":
         raise ValueError(
-            f"The first parameter of an analysis function must have type 'EyeModel | None', "
+            f"The 'model' parameter of an analysis function must have type 'EyeModel | None', "
             f"got '{signature.parameters['model'].annotation}'"
         )
 
-    if last_parameter != "return_raw_result":
-        raise ValueError("The last parameter of an analysis function must be 'return_raw_result'.")
+    if "backend" not in parameter_names:
+        raise ValueError(
+            "The analysis function must have a keyword-only 'backend' parameter of type 'type["
+            "BaseBackend]'.")
+
+    if signature.parameters["backend"].kind.name != "KEYWORD_ONLY":
+        raise ValueError("The 'backend' parameter of an analysis function must be keyword-only.")
+
+    if signature.parameters["backend"].annotation != "type[BaseBackend]":
+        raise ValueError(
+            f"The 'backend' parameter of an analysis function must have type 'type[BaseBackend]', "
+            f"got '{signature.parameters['backend'].annotation}'"
+        )
+
+    if "return_raw_result" not in parameter_names:
+        raise ValueError(
+            "The analysis function must have a keyword-only 'return_raw_result' parameter of type 'bool'.")
+
+    if signature.parameters["return_raw_result"].kind.name != "KEYWORD_ONLY":
+        raise ValueError("The 'return_raw_result' parameter of an analysis function must be keyword-only.")
 
     if signature.parameters["return_raw_result"].annotation != "bool":
         raise ValueError(
-            f"The last parameter of an analysis function must have type 'bool', "
+            f"The 'return_raw_result' parameter of an analysis function must have type 'bool', "
             f"got '{signature.parameters['return_raw_result'].annotation}'"
         )
 
@@ -88,11 +106,11 @@ def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
 
     @wraps(function)
     def analysis_wrapper(
-        model: EyeModel | None = None,
-        *args: Any,
-        return_raw_result: bool = False,
-        backend: type[BaseBackend] | None = None,
-        **kwargs: Any,
+            model: EyeModel | None = None,
+            *args: Any,
+            return_raw_result: bool = False,
+            backend: type[BaseBackend] | None = None,
+            **kwargs: Any,
     ) -> T1 | tuple[T1, T2]:
         if backend is None:
             backend = get_backend()
