@@ -3,8 +3,10 @@ from __future__ import annotations
 import importlib
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TYPE_CHECKING, Literal
+from typing import Literal, TYPE_CHECKING
 from warnings import warn
+
+from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -29,25 +31,35 @@ class _classproperty(property):  # noqa: N801
 class BaseAnalysis(ABC):
     @abstractmethod
     def cardinal_points(
-        self,
-        surface_1: int | None = None,
-        surface_2: int | None = None,
+            self,
+            surface_1: int | None = None,
+            surface_2: int | None = None,
     ) -> CardinalPointsResult: ...
 
     @abstractmethod
     def raytrace(
-        self,
-        coordinates: Iterable[tuple[float, float]],
-        field_type: Literal["angle", "object"] = "angle",
-        pupil: tuple[float, float] = (0, 0),
+            self,
+            coordinates: Iterable[tuple[float, float]],
+            field_type: Literal["angle", "object"] = "angle",
+            pupil: tuple[float, float] = (0, 0),
     ) -> DataFrame: ...
 
     @abstractmethod
     def refraction(
-        self,
-        field_coordinate: tuple[float, float] | None = None,
-        wavelength: float | None = None,
+            self,
+            field_coordinate: tuple[float, float] | None = None,
+            wavelength: float | None = None,
     ) -> FourierPowerVectorRefraction: ...
+
+    @abstractmethod
+    def zernike_standard_coefficients(
+            self,
+            field_coordinate: tuple[float, float] | None = None,
+            wavelength: float | None = None,
+            field_type: Literal["angle", "object_height"] = "angle",
+            sampling: str = "512x512",
+            maximum_term: int = 45,
+    ) -> ZernikeCoefficients: ...
 
 
 class BaseBackend(ABC):
