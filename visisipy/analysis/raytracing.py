@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal, overload
 
 from visisipy.analysis.base import analysis
-from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -11,29 +10,32 @@ if TYPE_CHECKING:
     from pandas import DataFrame
 
     from visisipy import EyeModel
+    from visisipy.backend import BaseBackend
 
 
 @overload
 def raytrace(
-    model: EyeModel | None = ...,
-    coordinates: Iterable[tuple[float, float]] = ...,
-    wavelengths: Iterable[float] = ...,
-    field_type: Literal["angle", "object"] = ...,
-    pupil: tuple[float, float] = ...,
+    model: EyeModel | None,
+    coordinates: Iterable[tuple[float, float]],
+    wavelengths: Iterable[float],
+    field_type: Literal["angle", "object"],
+    pupil: tuple[float, float],
     *,
     return_raw_result: Literal[False],
+    backend: type[BaseBackend],
 ) -> DataFrame: ...
 
 
 @overload
 def raytrace(
-    model: EyeModel | None = ...,
-    coordinates: Iterable[tuple[float, float]] = ...,
-    wavelengths: Iterable[float] = ...,
-    field_type: Literal["angle", "object"] = ...,
-    pupil: tuple[float, float] = ...,
+    model: EyeModel | None,
+    coordinates: Iterable[tuple[float, float]],
+    wavelengths: Iterable[float],
+    field_type: Literal["angle", "object"],
+    pupil: tuple[float, float],
     *,
     return_raw_result: Literal[True],
+    backend: type[BaseBackend],
 ) -> tuple[DataFrame, Any]: ...
 
 
@@ -46,6 +48,7 @@ def raytrace(
     pupil: tuple[float, float] = (0, 0),
     *,
     return_raw_result: bool = False,  # noqa: ARG001
+    backend: type[BaseBackend],
 ) -> DataFrame | tuple[DataFrame, Any]:
     """
     Performs a ray trace analysis using the given parameters.
@@ -76,6 +79,8 @@ def raytrace(
         A tuple representing the pupil coordinates for the ray trace. Defaults to (0, 0).
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
+    backend : type[BaseBackend]
+        The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns
     -------
@@ -84,7 +89,7 @@ def raytrace(
     Any
         The raw analysis result from the backend.
     """
-    return get_backend().analysis.raytrace(
+    return backend.analysis.raytrace(
         coordinates=coordinates,
         wavelengths=wavelengths,
         field_type=field_type,

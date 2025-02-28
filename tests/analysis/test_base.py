@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
 
 from visisipy import EyeModel
 from visisipy.analysis import base
+
+if TYPE_CHECKING:
+    from visisipy.backend import BaseBackend
 
 
 @pytest.fixture
@@ -30,7 +34,7 @@ def mock_backend(monkeypatch):
 def example_analysis():
     """Example analysis function to test the analysis decorator."""
 
-    def example_analysis(model: EyeModel | None, x: int, *, return_raw_result: bool):
+    def example_analysis(model: EyeModel | None, x: int, *, return_raw_result: bool, backend: type[BaseBackend]):
         return x, x
 
     return example_analysis
@@ -53,7 +57,7 @@ class TestAnalysisDecorator:
         assert mock_backend.model.eye_model == model
 
     def test_no_model_raises_valueerror(self):
-        def example_analysis(x, *, return_raw_result: bool = False):
+        def example_analysis(x, *, return_raw_result: bool = False, backend: type[BaseBackend]):
             return x, x
 
         with pytest.raises(
@@ -63,31 +67,78 @@ class TestAnalysisDecorator:
             base.analysis(example_analysis)
 
     def test_invalid_model_annotation_raises_valueerror(self):
-        def example_analysis(model: str, x, *, return_raw_result: bool = False):
+        def example_analysis(model: str, x, *, return_raw_result: bool = False, backend: type[BaseBackend]):
             return x, x
 
         with pytest.raises(
             ValueError,
-            match="The first parameter of an analysis function must have type 'EyeModel | None', got 'str'",
+            match="The 'model' parameter of an analysis function must have type 'EyeModel | None', got 'str'",
         ):
             base.analysis(example_analysis)
 
     def test_no_return_raw_result_raises_valueerror(self):
-        def example_analysis(model: EyeModel | None, x):
+        def example_analysis(model: EyeModel | None, x, *, backend: type[BaseBackend]):
             return x, x
 
         with pytest.raises(
             ValueError,
-            match="The last parameter of an analysis function must be 'return_raw_result'",
+            match="The analysis function must have a keyword-only 'return_raw_result' parameter of type 'bool'",
+        ):
+            base.analysis(example_analysis)
+
+    def test_no_keyword_only_return_raw_result_raises_valueerror(self):
+        def example_analysis(
+            model: EyeModel | None,
+            x,
+            return_raw_result: bool,  # noqa: FBT001
+            *,
+            backend: type[BaseBackend],
+        ):
+            return x, x
+
+        with pytest.raises(
+            ValueError,
+            match="The 'return_raw_result' parameter of an analysis function must be keyword-only",
         ):
             base.analysis(example_analysis)
 
     def test_invalid_return_raw_result_annotation_raises_valueerror(self):
-        def example_analysis(model: EyeModel | None, x, return_raw_result: str):
+        def example_analysis(model: EyeModel | None, x, *, return_raw_result: str, backend: type[BaseBackend]):
             return x, x
 
         with pytest.raises(
             ValueError,
-            match="The last parameter of an analysis function must have type 'bool', got 'str'",
+            match="The 'return_raw_result' parameter of an analysis function must have type 'bool', got 'str'",
+        ):
+            base.analysis(example_analysis)
+
+    def test_no_backend_raises_valueerror(self):
+        def example_analysis(model: EyeModel | None, x, *, return_raw_result: bool):
+            return x, x
+
+        with pytest.raises(
+            ValueError,
+            match=r"The analysis function must have a keyword-only 'backend' parameter of type 'type\[BaseBackend\]'",
+        ):
+            base.analysis(example_analysis)
+
+    def test_no_keyword_only_backend_raises_valueerror(self):
+        def example_analysis(model: EyeModel | None, x, backend: type[BaseBackend], *, return_raw_result: bool):
+            return x, x
+
+        with pytest.raises(
+            ValueError,
+            match=r"The 'backend' parameter of an analysis function must be keyword-only",
+        ):
+            base.analysis(example_analysis)
+
+    def test_invalid_backend_annotation_raises_valueerror(self):
+        def example_analysis(model: EyeModel | None, x, *, return_raw_result: bool, backend: str):
+            return x, x
+
+        with pytest.raises(
+            ValueError,
+            match=r"The 'backend' parameter of an analysis function must have type 'type\[BaseBackend\]', "
+            r"got 'str'",
         ):
             base.analysis(example_analysis)

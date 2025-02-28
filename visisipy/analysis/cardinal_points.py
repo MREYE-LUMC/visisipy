@@ -4,11 +4,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal, NamedTuple, overload
 
 from visisipy.analysis.base import analysis
-from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from visisipy import EyeModel
-
+    from visisipy.backend import BaseBackend
 
 __all__ = ("cardinal_points", "CardinalPoints", "CardinalPointsResult")
 
@@ -53,21 +52,23 @@ class CardinalPointsResult:
 
 @overload
 def cardinal_points(
-    model: EyeModel | None = None,
-    surface_1: int | None = None,
-    surface_2: int | None = None,
+    model: EyeModel | None,
+    surface_1: int | None,
+    surface_2: int | None,
     *,
     return_raw_result: Literal[False],
+    backend: type[BaseBackend],
 ) -> CardinalPointsResult: ...
 
 
 @overload
 def cardinal_points(
-    model: EyeModel | None = None,
-    surface_1: int | None = None,
-    surface_2: int | None = None,
+    model: EyeModel | None,
+    surface_1: int | None,
+    surface_2: int | None,
     *,
     return_raw_result: Literal[True],
+    backend: type[BaseBackend],
 ) -> tuple[CardinalPointsResult, Any]: ...
 
 
@@ -78,6 +79,7 @@ def cardinal_points(
     surface_2: int | None = None,
     *,
     return_raw_result: bool = False,  # noqa: ARG001
+    backend: type[BaseBackend],
 ) -> tuple[CardinalPointsResult, Any]:
     """
     Get the cardinal points of the system between `surface_1` and `surface_2`.
@@ -94,6 +96,8 @@ def cardinal_points(
         Defaults to `None`.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
+    backend : type[BaseBackend]
+        The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns
     -------
@@ -102,7 +106,7 @@ def cardinal_points(
     Any
         The raw analysis result from the backend.
     """
-    return get_backend().analysis.cardinal_points(
+    return backend.analysis.cardinal_points(
         surface_1=surface_1,
         surface_2=surface_2,
     )

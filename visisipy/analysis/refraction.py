@@ -3,39 +3,40 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal, overload
 
 from visisipy.analysis.base import analysis
-from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
     from visisipy import EyeModel
+    from visisipy.backend import BaseBackend
     from visisipy.refraction import FourierPowerVectorRefraction
-
 
 __all__ = ("refraction",)
 
 
 @overload
 def refraction(
-    model: EyeModel | None = ...,
-    field_coordinate: tuple[float, float] | None = ...,
-    wavelength: float | None = ...,
-    pupil_diameter: float | None = ...,
-    field_type: Literal["angle", "object_height"] = ...,
+    model: EyeModel | None,
+    field_coordinate: tuple[float, float] | None,
+    wavelength: float | None,
+    pupil_diameter: float | None,
+    field_type: Literal["angle", "object_height"],
     *,
-    use_higher_order_aberrations: bool = ...,
+    use_higher_order_aberrations: bool,
     return_raw_result: Literal[False],
+    backend: type[BaseBackend],
 ) -> FourierPowerVectorRefraction: ...
 
 
 @overload
 def refraction(
-    model: EyeModel | None = ...,
-    field_coordinate: tuple[float, float] | None = ...,
-    wavelength: float | None = ...,
-    pupil_diameter: float | None = ...,
-    field_type: Literal["angle", "object_height"] = ...,
+    model: EyeModel | None,
+    field_coordinate: tuple[float, float] | None,
+    wavelength: float | None,
+    pupil_diameter: float | None,
+    field_type: Literal["angle", "object_height"],
     *,
-    use_higher_order_aberrations: bool = ...,
+    use_higher_order_aberrations: bool,
     return_raw_result: Literal[True],
+    backend: type[BaseBackend],
 ) -> tuple[FourierPowerVectorRefraction, Any]: ...
 
 
@@ -49,6 +50,7 @@ def refraction(
     *,
     use_higher_order_aberrations: bool = True,
     return_raw_result: bool = False,  # noqa: ARG001
+    backend: type[BaseBackend],
 ) -> FourierPowerVectorRefraction | tuple[FourierPowerVectorRefraction, Any]:
     """Calculates the ocular refraction.
 
@@ -75,6 +77,8 @@ def refraction(
         model.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
+    backend : type[BaseBackend]
+        The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns
     -------
@@ -83,7 +87,7 @@ def refraction(
     Any
         The raw analysis result from the backend.
     """
-    return get_backend().analysis.refraction(
+    return backend.analysis.refraction(
         use_higher_order_aberrations=use_higher_order_aberrations,
         field_coordinate=field_coordinate,
         wavelength=wavelength,

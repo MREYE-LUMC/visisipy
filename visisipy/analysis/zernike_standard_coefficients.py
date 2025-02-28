@@ -3,36 +3,38 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Literal, overload
 
 from visisipy.analysis.base import analysis
-from visisipy.backend import get_backend
 
 if TYPE_CHECKING:
+    from visisipy.backend import BaseBackend
     from visisipy.models import EyeModel
     from visisipy.wavefront import ZernikeCoefficients
 
 
 @overload
 def zernike_standard_coefficients(
-    model: EyeModel | None = ...,
-    field_coordinate: tuple[float, float] | None = ...,
-    wavelength: float | None = ...,
-    field_type: Literal["angle", "object_height"] = ...,
-    sampling: str = ...,
-    maximum_term: int = ...,
+    model: EyeModel | None,
+    field_coordinate: tuple[float, float] | None,
+    wavelength: float | None,
+    field_type: Literal["angle", "object_height"],
+    sampling: str,
+    maximum_term: int,
     *,
     return_raw_result: Literal[False],
+    backend: type[BaseBackend],
 ) -> ZernikeCoefficients: ...
 
 
 @overload
 def zernike_standard_coefficients(
-    model: EyeModel | None = ...,
-    field_coordinate: tuple[float, float] | None = ...,
-    wavelength: float | None = ...,
-    field_type: Literal["angle", "object_height"] = ...,
-    sampling: str = ...,
-    maximum_term: int = ...,
+    model: EyeModel | None,
+    field_coordinate: tuple[float, float] | None,
+    wavelength: float | None,
+    field_type: Literal["angle", "object_height"],
+    sampling: str,
+    maximum_term: int,
     *,
     return_raw_result: Literal[True],
+    backend: type[BaseBackend],
 ) -> tuple[ZernikeCoefficients, Any]: ...
 
 
@@ -46,6 +48,7 @@ def zernike_standard_coefficients(
     maximum_term: int = 45,
     *,
     return_raw_result: bool = False,  # noqa: ARG001
+    backend: type[BaseBackend],
 ) -> tuple[ZernikeCoefficients, Any]:
     """
     Calculates the Zernike standard coefficients at the retina surface.
@@ -69,13 +72,15 @@ def zernike_standard_coefficients(
         The maximum term for the Zernike calculation. Defaults to 45.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
+    backend : type[BaseBackend]
+        The backend to be used for the analysis. If not provided, the current backend is used.
 
     Returns
     -------
     AttrDict
         ZOSPy Zernike standard coefficients analysis output.
     """
-    return get_backend().analysis.zernike_standard_coefficients(
+    return backend.analysis.zernike_standard_coefficients(
         field_coordinate=field_coordinate,
         wavelength=wavelength,
         field_type=field_type,
