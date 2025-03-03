@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import importlib
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from enum import Enum
-from typing import TYPE_CHECKING, Literal
+from types import MethodType
+from typing import TYPE_CHECKING, Generic, Literal, TypeVar, overload
 from warnings import warn
 
 if TYPE_CHECKING:
@@ -22,12 +24,41 @@ _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Backend | str = "opticstudio"
 
 
+_Analysis = TypeVar("_Analysis", bound=Callable)
+
+
+class _AnalysisMethod(Generic[_Analysis]):
+    def __init__(self, analysis) -> None:
+        self._analysis = analysis
+
+    @overload
+    def __get__(self, instance: None, owner: type[BaseAnalysisRegistry]) -> _AnalysisMethod[_Analysis]: ...
+
+    @overload
+    def __get__(self, instance: BaseAnalysisRegistry, owner: type[BaseAnalysisRegistry]) -> _Analysis: ...
+
+    def __get__(
+        self, instance: BaseAnalysisRegistry | None, owner: type[BaseAnalysisRegistry]
+    ) -> _AnalysisMethod | _Analysis:
+        if instance is None:
+            return self
+
+        return MethodType(self._analysis, instance.backend)
+
+
 class _classproperty(property):  # noqa: N801
     def __get__(self, instance, owner=None):
         return self.fget(owner)
 
 
-class BaseAnalysis(ABC):
+class BaseAnalysisRegistry(ABC):
+    def __init__(self, backend: BaseBackend) -> None:
+        self._backend = backend
+
+    @property
+    def backend(self) -> BaseBackend:
+        return self._backend
+
     @abstractmethod
     def cardinal_points(
         self,
@@ -65,7 +96,7 @@ class BaseBackend(ABC):
     model: BaseEye | None
 
     @_classproperty
-    def analysis(self) -> BaseAnalysis: ...
+    def analysis(self) -> BaseAnalysisRegistry: ...
 
     @classmethod
     @abstractmethod

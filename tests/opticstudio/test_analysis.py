@@ -120,7 +120,7 @@ class TestRefractionAnalysis:
         pupil_diameter,
         monkeypatch,
     ):
-        monkeypatch.setattr(opticstudio_analysis._backend, "model", MockOpticstudioModel())
+        monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
 
         assert opticstudio_analysis.refraction(
             use_higher_order_aberrations=use_higher_order_aberrations,
@@ -136,11 +136,11 @@ class TestRefractionAnalysis:
         ],
     )
     def test_refraction_change_pupil(self, opticstudio_analysis, pupil_diameter, changed_pupil_diameter, monkeypatch):
-        monkeypatch.setattr(opticstudio_analysis._backend, "model", MockOpticstudioModel())
+        monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
 
-        assert not opticstudio_analysis._backend.model.pupil.changed_semi_diameter
+        assert not opticstudio_analysis.backend.model.pupil.changed_semi_diameter
 
         opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)
 
-        assert opticstudio_analysis._backend.model.pupil.changed_semi_diameter == changed_pupil_diameter
-        assert opticstudio_analysis._backend.model.pupil.semi_diameter == 1.0
+        assert opticstudio_analysis.backend.model.pupil.changed_semi_diameter == changed_pupil_diameter
+        assert opticstudio_analysis.backend.model.pupil.semi_diameter == 1.0
