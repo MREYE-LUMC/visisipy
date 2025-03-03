@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import zospy as zp
 
@@ -9,9 +9,10 @@ from visisipy.opticstudio.analysis import OpticStudioAnalysis
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Generator, Iterable
     from os import PathLike
 
+    from zospy.api import _ZOSAPI
     from zospy.zpcore import ZOS, OpticStudioSystem
 
     from visisipy import EyeModel
@@ -60,6 +61,7 @@ class OpticStudioBackend(BaseBackend):
     zos: ZOS | None = None
     oss: OpticStudioSystem | None = None
     model: BaseOpticStudioEye | None = None
+    _analysis: OpticStudioAnalysis | None = None
 
     @_classproperty
     def analysis(cls) -> OpticStudioAnalysis:  # noqa: N805
@@ -81,8 +83,10 @@ class OpticStudioBackend(BaseBackend):
         """
         if cls.oss is None:
             raise RuntimeError("The opticstudio backend has not been initialized.")
+        if cls._analysis is None:
+            cls._analysis = OpticStudioAnalysis(cls)
 
-        return OpticStudioAnalysis(cls)
+        return cls._analysis
 
     @classmethod
     def initialize(
@@ -276,3 +280,17 @@ class OpticStudioBackend(BaseBackend):
                 return i + 1
 
         return None
+
+    @classmethod
+    def iter_fields(cls) -> Generator[tuple[int, _ZOSAPI.SystemData.IField], Any, None]:
+        """Iterate over the fields in the optical system."""
+        for i in range(cls.oss.SystemData.Fields.NumberOfFields):
+            field = cls.oss.SystemData.Fields.GetField(i + 1)
+
+            yield field.FieldNumber, field
+
+    @classmethod
+    def iter_wavelengths(cls) -> Generator[tuple[int, float], Any, None]:
+        """Iterate over the wavelengths in the optical system."""
+        for i in range(cls.oss.SystemData.Wavelengths.NumberOfWavelengths):
+            yield i + 1, cls.oss.SystemData.Wavelengths.GetWavelength(i + 1)
