@@ -57,7 +57,7 @@ def new_oss(oss):
 
 @pytest.fixture
 def opticstudio_backend(zos, monkeypatch):
-    OpticStudioBackend.initialize(OpticStudioSettings(mode="standalone"))
+    OpticStudioBackend.initialize(settings=OpticStudioSettings(mode="standalone"))
 
     yield OpticStudioBackend
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, NotRequired
 from warnings import warn
 
 import zospy as zp
@@ -19,14 +19,26 @@ if TYPE_CHECKING:
     from visisipy import EyeModel
 
 
+__all__ = ("OpticStudioSettings", "OpticStudioBackend")
+
+
 RayAimingType = Literal["off", "paraxial", "real"]
 
 
-class OpticStudioSettings(BackendSettings):
+class OpticStudioSettings(BackendSettings, total=False):
+    """Backend settings that are specific to the OpticStudio backend."""
+
     mode: Literal["standalone", "extension"]
-    zosapi_nethelper: str | None
-    opticstudio_directory: str | None
+    """ZOSPy connection mode. Must be one of 'standalone' or 'extension'."""
+
+    zosapi_nethelper: NotRequired[str]
+    """Path to the ZOSAPI_NetHelper.dll file. If not provided, the path is automatically determined."""
+
+    opticstudio_directory: NotRequired[str]
+    """Path to the OpticStudio installation directory. If not provided, the path is automatically determined."""
+
     ray_aiming: RayAimingType
+    """The ray aiming method to be used in the optical system. Must be one of 'off', 'paraxial', or 'real'."""
 
 
 OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
@@ -35,8 +47,6 @@ OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
     "wavelengths": [0.543],
     "aperture_type": "float_by_stop_size",
     "mode": "standalone",
-    "zosapi_nethelper": None,
-    "opticstudio_directory": None,
     "ray_aiming": "off",
 }
 
@@ -94,8 +104,8 @@ class OpticStudioBackend(BaseBackend):
 
         if cls.zos is None:
             cls.zos = zp.ZOS(
-                zosapi_nethelper=cls.settings["zosapi_nethelper"],
-                opticstudio_directory=cls.settings["opticstudio_directory"],
+                zosapi_nethelper=cls.settings.get("zosapi_nethelper"),
+                opticstudio_directory=cls.settings.get("opticstudio_directory"),
             )
         else:
             warn(
@@ -124,8 +134,9 @@ class OpticStudioBackend(BaseBackend):
                 "Settings will be applied when the backend is initialized."
             )
         else:
-            cls._set_ray_aiming(cls.oss, cls.settings["ray_aiming"])
+            cls.set_aperture()
             cls.set_fields(cls.settings["fields"], field_type=cls.settings["field_type"])
+            cls.set_ray_aiming(cls.oss, cls.settings["ray_aiming"])
             cls.set_wavelengths(cls.settings["wavelengths"])
 
     @classmethod
@@ -284,8 +295,8 @@ class OpticStudioBackend(BaseBackend):
             The type of field to be used in the optical system. Can be either "angle" or "object_height".
             Defaults to "angle".
         """
-        cls._set_field_type(field_type)
-        cls._set_fields(coordinates)
+        cls._set_field_type(cls.oss, field_type)
+        cls._set_fields(cls.oss, coordinates)
 
     @staticmethod
     def _remove_wavelenghts(oss: OpticStudioSystem) -> None:
@@ -333,7 +344,7 @@ class OpticStudioBackend(BaseBackend):
         return None
 
     @staticmethod
-    def _set_ray_aiming(oss: OpticStudioSystem, ray_aiming: RayAimingType) -> None:
+    def set_ray_aiming(oss: OpticStudioSystem, ray_aiming: RayAimingType) -> None:
         if ray_aiming == "off":
             oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Off
         elif ray_aiming == "paraxial":

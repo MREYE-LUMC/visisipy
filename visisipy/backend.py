@@ -97,26 +97,26 @@ FieldType = Literal["angle", "object_height"]
 FieldCoordinate = tuple[float, float]
 
 
-class BackendSettings(TypedDict):
+class BackendSettings(TypedDict, total=False):
     """A dictionary containing the settings for the backend."""
 
-    """The field type to use in the optical system. Must be one of 'angle' or 'object_height'."""
     field_type: FieldType
+    """The field type to use in the optical system. Must be one of 'angle' or 'object_height'."""
 
-    """List of field coordinates to use in the optical system."""
     fields: list[FieldCoordinate]
+    """List of field coordinates to use in the optical system."""
 
-    """List of wavelengths to use in the optical system."""
     wavelengths: list[float]
+    """List of wavelengths to use in the optical system."""
 
+    aperture_type: ApertureType
     """
     The aperture type to use in the optical system. Must be one of 'float_by_stop_size', 'entrance_pupil_diameter',
     'image_f_number', or 'object_numeric_aperture'.
     """
-    aperture_type: ApertureType
 
-    """The aperture value to use in the optical system. Not required for 'float_by_stop_size'."""
     aperture_value: NotRequired[float]
+    """The aperture value to use in the optical system. Not required for 'float_by_stop_size'."""
 
 
 class BaseBackend(ABC):
