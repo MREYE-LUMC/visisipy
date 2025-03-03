@@ -37,7 +37,9 @@ class _AnalysisMethod(Generic[_Analysis]):
     @overload
     def __get__(self, instance: BaseAnalysisRegistry, owner: type[BaseAnalysisRegistry]) -> _Analysis: ...
 
-    def __get__(self, instance: BaseAnalysisRegistry | None, owner: type[BaseAnalysisRegistry]) -> _AnalysisMethod | _Analysis:
+    def __get__(
+        self, instance: BaseAnalysisRegistry | None, owner: type[BaseAnalysisRegistry]
+    ) -> _AnalysisMethod | _Analysis:
         if instance is None:
             return self
 
