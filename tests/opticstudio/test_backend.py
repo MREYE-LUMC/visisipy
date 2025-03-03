@@ -1,10 +1,13 @@
 from contextlib import nullcontext as does_not_raise
+from typing import TYPE_CHECKING
 
 import pytest
 import zospy as zp
 
 from visisipy import EyeModel
-from visisipy.opticstudio.backend import OpticStudioSettings
+
+if TYPE_CHECKING:
+    from visisipy.opticstudio.backend import OpticStudioSettings
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -16,9 +19,7 @@ class TestOpticStudioBackend:
 
     def test_new_model(self, opticstudio_backend):
         # Change a setting and add a new surface
-        opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(
-            1
-        ).Wavelength = 0.640
+        opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength = 0.640
         opticstudio_backend.oss.LDE.InsertNewSurfaceAt(2)
 
         assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 4
@@ -106,38 +107,25 @@ class TestOpticStudioBackend:
             ),
         ],
     )
-    def test_set_fields(
-        self, opticstudio_backend, coordinates, field_type, field_constant, expectation
-    ):
+    def test_set_fields(self, opticstudio_backend, coordinates, field_type, field_constant, expectation):
         with expectation:
             opticstudio_backend.set_fields(coordinates, field_type)
 
-            assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(
-                coordinates
-            )
+            assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(coordinates)
             for i in range(len(coordinates)):
                 field = opticstudio_backend.oss.SystemData.Fields.GetField(i + 1)
                 assert coordinates[i] == (field.X, field.Y)
 
-            assert (
-                opticstudio_backend.oss.SystemData.Fields.GetFieldType()
-                == zp.constants.process_constant(
-                    zp.constants.SystemData.FieldType, field_constant
-                )
+            assert opticstudio_backend.oss.SystemData.Fields.GetFieldType() == zp.constants.process_constant(
+                zp.constants.SystemData.FieldType, field_constant
             )
 
     def test_set_wavelengths(self, opticstudio_backend):
         opticstudio_backend.set_wavelengths([0.543, 0.650])
 
         assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == 2
-        assert (
-            opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength
-            == 0.543
-        )
-        assert (
-            opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(2).Wavelength
-            == 0.650
-        )
+        assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength == 0.543
+        assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(2).Wavelength == 0.650
 
     def test_get_wavelength_number(self, opticstudio_backend):
         opticstudio_backend.set_wavelengths([0.543, 0.650])
@@ -170,20 +158,15 @@ class TestOpticStudioBackendSettings:
         ],
     )
     def test_field(self, field_type, fields, expected_field_type, opticstudio_backend):
-        opticstudio_backend.update_settings(
-            {"field_type": field_type, "fields": fields}
-        )
+        opticstudio_backend.update_settings({"field_type": field_type, "fields": fields})
 
         assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(fields)
         for i in range(len(fields)):
             field = opticstudio_backend.oss.SystemData.Fields.GetField(i + 1)
             assert fields[i] == (field.X, field.Y)
 
-        assert (
-            opticstudio_backend.oss.SystemData.Fields.GetFieldType()
-            == zp.constants.process_constant(
-                zp.constants.SystemData.FieldType, expected_field_type
-            )
+        assert opticstudio_backend.oss.SystemData.Fields.GetFieldType() == zp.constants.process_constant(
+            zp.constants.SystemData.FieldType, expected_field_type
         )
 
     @pytest.mark.parametrize(
@@ -193,17 +176,9 @@ class TestOpticStudioBackendSettings:
     def test_wavelength(self, wavelengths, opticstudio_backend):
         opticstudio_backend.update_settings({"wavelengths": wavelengths})
 
-        assert (
-            opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths
-            == len(wavelengths)
-        )
+        assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == len(wavelengths)
         for i, wavelength in enumerate(wavelengths):
-            assert (
-                opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(
-                    i + 1
-                ).Wavelength
-                == wavelength
-            )
+            assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(i + 1).Wavelength == wavelength
 
     @pytest.mark.parametrize(
         "aperture_type, aperture_value, expected_aperture_type",
@@ -214,25 +189,15 @@ class TestOpticStudioBackendSettings:
             ("object_numeric_aperture", 0.1, "ObjectSpaceNA"),
         ],
     )
-    def test_aperture(
-        self, aperture_type, aperture_value, expected_aperture_type, opticstudio_backend
-    ):
-        opticstudio_backend.update_settings(
-            {"aperture_type": aperture_type, "aperture_value": aperture_value}
-        )
+    def test_aperture(self, aperture_type, aperture_value, expected_aperture_type, opticstudio_backend):
+        opticstudio_backend.update_settings({"aperture_type": aperture_type, "aperture_value": aperture_value})
 
-        assert (
-            opticstudio_backend.oss.SystemData.Aperture.ApertureType
-            == zp.constants.process_constant(
-                zp.constants.SystemData.ZemaxApertureType, expected_aperture_type
-            )
+        assert opticstudio_backend.oss.SystemData.Aperture.ApertureType == zp.constants.process_constant(
+            zp.constants.SystemData.ZemaxApertureType, expected_aperture_type
         )
 
         if aperture_type != "float_by_stop_size":
-            assert (
-                opticstudio_backend.oss.SystemData.Aperture.ApertureValue
-                == aperture_value
-            )
+            assert opticstudio_backend.oss.SystemData.Aperture.ApertureValue == aperture_value
 
     @pytest.mark.parametrize(
         "ray_aiming,expected",
@@ -245,9 +210,6 @@ class TestOpticStudioBackendSettings:
     def test_ray_aiming(self, ray_aiming, expected, opticstudio_backend):
         opticstudio_backend.update_settings({"ray_aiming": ray_aiming})
 
-        assert (
-            opticstudio_backend.oss.SystemData.RayAiming.RayAiming
-            == zp.constants.process_constant(
-                zp.constants.SystemData.RayAimingMethod, expected
-            )
+        assert opticstudio_backend.oss.SystemData.RayAiming.RayAiming == zp.constants.process_constant(
+            zp.constants.SystemData.RayAimingMethod, expected
         )

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from enum import Enum
 from types import MethodType
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar, overload, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Generic, Literal, NotRequired, TypedDict, TypeVar, overload
 from warnings import warn
 
 if TYPE_CHECKING:
