@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Literal
 import zospy as zp
 
 from visisipy.backend import BaseBackend, _classproperty
-from visisipy.opticstudio.analysis import OpticStudioAnalysis
+from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
 if TYPE_CHECKING:
@@ -61,10 +61,10 @@ class OpticStudioBackend(BaseBackend):
     zos: ZOS | None = None
     oss: OpticStudioSystem | None = None
     model: BaseOpticStudioEye | None = None
-    _analysis: OpticStudioAnalysis | None = None
+    _analysis: OpticStudioAnalysisRegistry | None = None
 
     @_classproperty
-    def analysis(cls) -> OpticStudioAnalysis:  # noqa: N805
+    def analysis(cls) -> OpticStudioAnalysisRegistry:  # noqa: N805
         """
         Provides access to the `OpticStudioAnalysis` instance.
 
@@ -78,13 +78,13 @@ class OpticStudioBackend(BaseBackend):
 
         Returns
         -------
-        OpticStudioAnalysis
+        OpticStudioAnalysisRegistry
             The `OpticStudioAnalysis` instance.
         """
         if cls.oss is None:
             raise RuntimeError("The opticstudio backend has not been initialized.")
         if cls._analysis is None:
-            cls._analysis = OpticStudioAnalysis(cls)
+            cls._analysis = OpticStudioAnalysisRegistry(cls)
 
         return cls._analysis
 

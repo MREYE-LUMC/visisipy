@@ -32,12 +32,12 @@ class _AnalysisMethod(Generic[_Analysis]):
         self._analysis = analysis
 
     @overload
-    def __get__(self, instance: None, owner: type[BaseAnalysis]) -> _AnalysisMethod[_Analysis]: ...
+    def __get__(self, instance: None, owner: type[BaseAnalysisRegistry]) -> _AnalysisMethod[_Analysis]: ...
 
     @overload
-    def __get__(self, instance: BaseAnalysis, owner: type[BaseAnalysis]) -> _Analysis: ...
+    def __get__(self, instance: BaseAnalysisRegistry, owner: type[BaseAnalysisRegistry]) -> _Analysis: ...
 
-    def __get__(self, instance: BaseAnalysis | None, owner: type[BaseAnalysis]) -> _AnalysisMethod | _Analysis:
+    def __get__(self, instance: BaseAnalysisRegistry | None, owner: type[BaseAnalysisRegistry]) -> _AnalysisMethod | _Analysis:
         if instance is None:
             return self
 
@@ -49,7 +49,7 @@ class _classproperty(property):  # noqa: N801
         return self.fget(owner)
 
 
-class BaseAnalysis(ABC):
+class BaseAnalysisRegistry(ABC):
     def __init__(self, backend: BaseBackend) -> None:
         self._backend = backend
 
@@ -94,7 +94,7 @@ class BaseBackend(ABC):
     model: BaseEye | None
 
     @_classproperty
-    def analysis(self) -> BaseAnalysis: ...
+    def analysis(self) -> BaseAnalysisRegistry: ...
 
     @classmethod
     @abstractmethod

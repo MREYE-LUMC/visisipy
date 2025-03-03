@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from visisipy.backend import BaseAnalysis, _AnalysisMethod
+from visisipy.backend import BaseAnalysisRegistry, _AnalysisMethod
 from visisipy.opticstudio.analysis.cardinal_points import cardinal_points
 from visisipy.opticstudio.analysis.raytrace import raytrace
 from visisipy.opticstudio.analysis.refraction import refraction
@@ -11,10 +11,10 @@ from visisipy.opticstudio.analysis.zernike_coefficients import (
 if TYPE_CHECKING:
     from visisipy.opticstudio.backend import OpticStudioBackend
 
-__all__ = ("OpticStudioAnalysis",)
+__all__ = ("OpticStudioAnalysisRegistry",)
 
 
-class OpticStudioAnalysis(BaseAnalysis):
+class OpticStudioAnalysisRegistry(BaseAnalysisRegistry):
     """
     Analyses for the OpticStudio backend.
     """
