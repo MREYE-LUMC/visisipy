@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from enum import Enum
 from types import MethodType
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar, overload
+from typing import TYPE_CHECKING, Generic, Literal, TypeVar, overload, NotRequired, TypedDict
 from warnings import warn
 
 if TYPE_CHECKING:
@@ -92,11 +92,43 @@ class BaseAnalysisRegistry(ABC):
     ) -> ZernikeCoefficients: ...
 
 
+ApertureType = Literal["float_by_stop_size", "entrance_pupil_diameter", "image_f_number", "object_numeric_aperture"]
+FieldType = Literal["angle", "object_height"]
+FieldCoordinate = tuple[float, float]
+
+
+class BackendSettings(TypedDict):
+    """A dictionary containing the settings for the backend."""
+
+    """The field type to use in the optical system. Must be one of 'angle' or 'object_height'."""
+    field_type: FieldType
+
+    """List of field coordinates to use in the optical system."""
+    fields: list[FieldCoordinate]
+
+    """List of wavelengths to use in the optical system."""
+    wavelengths: list[float]
+
+    """
+    The aperture type to use in the optical system. Must be one of 'float_by_stop_size', 'entrance_pupil_diameter',
+    'image_f_number', or 'object_numeric_aperture'.
+    """
+    aperture_type: ApertureType
+
+    """The aperture value to use in the optical system. Not required for 'float_by_stop_size'."""
+    aperture_value: NotRequired[float]
+
+
 class BaseBackend(ABC):
     model: BaseEye | None
+    settings: BackendSettings
 
     @_classproperty
     def analysis(self) -> BaseAnalysisRegistry: ...
+
+    @classmethod
+    @abstractmethod
+    def update_settings(cls, settings: BackendSettings | None = None) -> None: ...
 
     @classmethod
     @abstractmethod

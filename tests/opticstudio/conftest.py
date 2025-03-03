@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import zospy as zp
 
-from visisipy.opticstudio.backend import OpticStudioBackend
+from visisipy.opticstudio.backend import OpticStudioBackend, OpticStudioSettings
 
 
 @pytest.fixture(scope="session")
@@ -57,7 +57,7 @@ def new_oss(oss):
 
 @pytest.fixture
 def opticstudio_backend(zos, monkeypatch):
-    OpticStudioBackend.initialize(mode="standalone")
+    OpticStudioBackend.initialize(OpticStudioSettings(mode="standalone"))
 
     yield OpticStudioBackend
 

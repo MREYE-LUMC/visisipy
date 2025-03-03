@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal
+from warnings import warn
 
 import zospy as zp
 
-from visisipy.backend import BaseBackend, _classproperty
+from visisipy.backend import BackendSettings, BaseBackend, _classproperty
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
@@ -18,49 +19,33 @@ if TYPE_CHECKING:
     from visisipy import EyeModel
 
 
-def initialize_opticstudio(
-    mode: Literal["standalone", "extension"] = "standalone",
-    zosapi_nethelper: str | None = None,
-    opticstudio_directory: str | None = None,
-) -> tuple[ZOS, OpticStudioSystem]:
-    zos = zp.ZOS(zosapi_nethelper=zosapi_nethelper, opticstudio_directory=opticstudio_directory)
-    oss = zos.connect(mode)
-
-    return zos, oss
+RayAimingType = Literal["off", "paraxial", "real"]
 
 
-def _set_field_type(oss: OpticStudioSystem, field_type: str) -> None:
-    if field_type == "angle":
-        oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
-    elif field_type == "object_height":
-        oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.ObjectHeight)
-    else:
-        raise ValueError("field_type must be either 'angle' or 'object_height'.")
+class OpticStudioSettings(BackendSettings):
+    mode: Literal["standalone", "extension"]
+    zosapi_nethelper: str | None
+    opticstudio_directory: str | None
+    ray_aiming: RayAimingType
 
 
-def _set_fields(
-    oss: OpticStudioSystem,
-    coordinates: Iterable[tuple[float, float]],
-) -> None:
-    oss.SystemData.Fields.DeleteAllFields()
-
-    for i, c in enumerate(coordinates):
-        if i == 0:
-            field = oss.SystemData.Fields.GetField(1)
-            field.X, field.Y, field.Weight = c[0], c[1], 1
-        else:
-            oss.SystemData.Fields.AddField(c[0], c[1], 1)
-
-
-def _remove_wavelenghts(oss: OpticStudioSystem) -> None:
-    while oss.SystemData.Wavelengths.NumberOfWavelengths > 0:
-        oss.SystemData.Wavelengths.RemoveWavelength(1)
+OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
+    "field_type": "angle",
+    "fields": [(0, 0)],
+    "wavelengths": [0.543],
+    "aperture_type": "float_by_stop_size",
+    "mode": "standalone",
+    "zosapi_nethelper": None,
+    "opticstudio_directory": None,
+    "ray_aiming": "off",
+}
 
 
 class OpticStudioBackend(BaseBackend):
     zos: ZOS | None = None
     oss: OpticStudioSystem | None = None
     model: BaseOpticStudioEye | None = None
+    settings: OpticStudioSettings = OpticStudioSettings(OPTICSTUDIO_DEFAULT_SETTINGS)
     _analysis: OpticStudioAnalysisRegistry | None = None
 
     @_classproperty
@@ -91,10 +76,8 @@ class OpticStudioBackend(BaseBackend):
     @classmethod
     def initialize(
         cls,
-        mode: Literal["standalone", "extension"] = "standalone",
-        zosapi_nethelper: str | None = None,
-        opticstudio_directory: str | None = None,
-        ray_aiming: Literal["off", "paraxial", "real"] = "off",
+        *,
+        settings: OpticStudioSettings | None = None,
     ) -> None:
         """
         Initializes the OpticStudio backend.
@@ -103,30 +86,53 @@ class OpticStudioBackend(BaseBackend):
 
         Parameters
         ----------
-        mode : Literal["standalone", "extension"], optional
-            The mode to use when connecting to the OpticStudio backend. Can be either "standalone" or "extension".
-            Defaults to "standalone".
-        zosapi_nethelper : str | None, optional
-            The path to the ZOS-API NetHelper DLL. If None, the path is determined automatically.
-        opticstudio_directory : str | None, optional
-            The path to the OpticStudio installation directory. If None, the path is determined automatically.
-        ray_aiming : Literal["off", "paraxial", "real"], optional
-            The ray aiming method to use. Can be either "off", "paraxial", or "real". Defaults to "off".
+        settings : OpticStudioSettings | None, optional
+            The settings to be used for the OpticStudio backend. If None, the default settings are used.
         """
-        cls.zos, cls.oss = initialize_opticstudio(
-            mode=mode,
-            zosapi_nethelper=zosapi_nethelper,
-            opticstudio_directory=opticstudio_directory,
-        )
+        if settings is not None:
+            cls.settings.update(settings)
 
-        cls.new_model(ray_aiming=ray_aiming)
+        if cls.zos is None:
+            cls.zos = zp.ZOS(
+                zosapi_nethelper=cls.settings["zosapi_nethelper"],
+                opticstudio_directory=cls.settings["opticstudio_directory"],
+            )
+        else:
+            warn(
+                "The OpticStudio backend has already been initialized. "
+                "Reinitializing the backend is not necessary and may cause issues."
+            )
+
+        if cls.oss is None:
+            cls.oss = cls.zos.connect(cls.settings["mode"])
+
+        cls.new_model()
+
+    @classmethod
+    def update_settings(cls, settings: OpticStudioSettings | None = None) -> None:
+        """
+        Applies the provided settings to the OpticStudio backend.
+
+        This method applies the provided settings to the OpticStudio backend.
+        """
+        if settings is not None:
+            cls.settings.update(settings)
+
+        if cls.oss is None:
+            warn(
+                "The OpticStudio backend settings can only be applied after initialization. "
+                "Settings will be applied when the backend is initialized."
+            )
+        else:
+            cls._set_ray_aiming(cls.oss, cls.settings["ray_aiming"])
+            cls.set_fields(cls.settings["fields"], field_type=cls.settings["field_type"])
+            cls.set_wavelengths(cls.settings["wavelengths"])
 
     @classmethod
     def new_model(
         cls,
         *,
         save_old_model: bool = False,
-        ray_aiming: Literal["off", "paraxial", "real"] = "off",
     ) -> None:
         """
         Initializes a new optical system model.
@@ -135,16 +141,9 @@ class OpticStudioBackend(BaseBackend):
         """
         cls.oss.new(saveifneeded=save_old_model)
 
-        if ray_aiming == "off":
-            cls.oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Off
-        elif ray_aiming == "paraxial":
-            cls.oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Paraxial
-        elif ray_aiming == "real":
-            cls.oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Real
-        else:
-            raise ValueError("ray_aiming must be either 'off', 'paraxial', or 'real'.")
-
         cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
+
+        cls.update_settings()
 
     @classmethod
     def build_model(cls, model: EyeModel, *, replace_existing: bool = False, **kwargs) -> OpticStudioEye:
@@ -220,6 +219,53 @@ class OpticStudioBackend(BaseBackend):
         cls.zos = None
 
     @classmethod
+    def _set_aperture_value(cls) -> None:
+        if cls.settings.get("aperture_value") is not None:
+            cls.oss.SystemData.Aperture.ApertureValue = cls.settings["aperture_value"]
+
+    @classmethod
+    def set_aperture(cls):
+        if cls.settings["aperture_type"] == "float_by_stop_size":
+            cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
+        elif cls.settings["aperture_type"] == "entrance_pupil_diameter":
+            cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.EntrancePupilDiameter
+            cls._set_aperture_value()
+        elif cls.settings["aperture_type"] == "image_f_number":
+            cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.ImageSpaceFNum
+            cls._set_aperture_value()
+        elif cls.settings["aperture_type"] == "object_numeric_aperture":
+            cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.ObjectSpaceNA
+            cls._set_aperture_value()
+        else:
+            raise ValueError(
+                "aperture_type must be one of 'float_by_stop_size', 'entrance_pupil_diameter', "
+                "'image_f_number', or 'object_numeric_aperture'."
+            )
+
+    @staticmethod
+    def _set_field_type(oss: OpticStudioSystem, field_type: Literal["angle", "object_height"]) -> None:
+        if field_type == "angle":
+            oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
+        elif field_type == "object_height":
+            oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.ObjectHeight)
+        else:
+            raise ValueError("field_type must be either 'angle' or 'object_height'.")
+
+    @staticmethod
+    def _set_fields(
+        oss: OpticStudioSystem,
+        coordinates: Iterable[tuple[float, float]],
+    ) -> None:
+        oss.SystemData.Fields.DeleteAllFields()
+
+        for i, c in enumerate(coordinates):
+            if i == 0:
+                field = oss.SystemData.Fields.GetField(1)
+                field.X, field.Y, field.Weight = c[0], c[1], 1
+            else:
+                oss.SystemData.Fields.AddField(c[0], c[1], 1)
+
+    @classmethod
     def set_fields(
         cls,
         coordinates: Iterable[tuple[float, float]],
@@ -238,8 +284,13 @@ class OpticStudioBackend(BaseBackend):
             The type of field to be used in the optical system. Can be either "angle" or "object_height".
             Defaults to "angle".
         """
-        _set_field_type(cls.oss, field_type)
-        _set_fields(cls.oss, coordinates)
+        cls._set_field_type(field_type)
+        cls._set_fields(coordinates)
+
+    @staticmethod
+    def _remove_wavelenghts(oss: OpticStudioSystem) -> None:
+        while oss.SystemData.Wavelengths.NumberOfWavelengths > 0:
+            oss.SystemData.Wavelengths.RemoveWavelength(1)
 
     @classmethod
     def set_wavelengths(cls, wavelengths: Iterable[float]) -> None:
@@ -254,7 +305,7 @@ class OpticStudioBackend(BaseBackend):
         wavelengths : Iterable[float]
             An iterable of wavelengths to be set for the optical system.
         """
-        _remove_wavelenghts(cls.oss)
+        cls._remove_wavelenghts(cls.oss)
 
         for w in wavelengths:
             cls.oss.SystemData.Wavelengths.AddWavelength(Wavelength=w, Weight=1.0)
@@ -280,6 +331,17 @@ class OpticStudioBackend(BaseBackend):
                 return i + 1
 
         return None
+
+    @staticmethod
+    def _set_ray_aiming(oss: OpticStudioSystem, ray_aiming: RayAimingType) -> None:
+        if ray_aiming == "off":
+            oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Off
+        elif ray_aiming == "paraxial":
+            oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Paraxial
+        elif ray_aiming == "real":
+            oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Real
+        else:
+            raise ValueError("ray_aiming must be either 'off', 'paraxial', or 'real'.")
 
     @classmethod
     def iter_fields(cls) -> Generator[tuple[int, _ZOSAPI.SystemData.IField], Any, None]:
