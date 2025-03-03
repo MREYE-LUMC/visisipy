@@ -4,7 +4,7 @@ import pytest
 import zospy as zp
 
 from visisipy import EyeModel
-from visisipy.opticstudio.backend import OpticStudioBackend, OpticStudioSettings
+from visisipy.opticstudio.backend import OpticStudioSettings
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -14,35 +14,22 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.zos is not None
         assert opticstudio_backend.oss is not None
 
-    @pytest.mark.parametrize(
-        "ray_aiming,ray_aiming_constant,expectation",
-        [
-            ("off", "Off", does_not_raise()),
-            ("paraxial", "Paraxial", does_not_raise()),
-            ("real", "Real", does_not_raise()),
-            (
-                "invalid",
-                None,
-                pytest.raises(
-                    ValueError,
-                    match="ray_aiming must be either 'off', 'paraxial', or 'real'",
-                ),
-            ),
-        ],
-    )
-    def test_new_model(
-        self, opticstudio_backend, ray_aiming, ray_aiming_constant, expectation
-    ):
-        with expectation:
-            OpticStudioBackend.new_model(save_old_model=False, ray_aiming=ray_aiming)
+    def test_new_model(self, opticstudio_backend):
+        # Change a setting and add a new surface
+        opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(
+            1
+        ).Wavelength = 0.640
+        opticstudio_backend.oss.LDE.InsertNewSurfaceAt(2)
 
-            assert (
-                opticstudio_backend.oss.SystemData.RayAiming.RayAiming
-                == zp.constants.process_constant(
-                    zp.constants.SystemData.RayAimingMethod, ray_aiming_constant
-                )
-            )
-            assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
+        assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 4
+
+        opticstudio_backend.new_model(save_old_model=False)
+
+        assert (
+            opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength
+            == opticstudio_backend.settings["wavelengths"][0]
+        )
+        assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
 
     def test_build_model(self, opticstudio_backend):
         model = EyeModel()
@@ -243,7 +230,8 @@ class TestOpticStudioBackendSettings:
 
         if aperture_type != "float_by_stop_size":
             assert (
-                opticstudio_backend.oss.SystemData.Aperture.ApertureValue == aperture_value
+                opticstudio_backend.oss.SystemData.Aperture.ApertureValue
+                == aperture_value
             )
 
     @pytest.mark.parametrize(
