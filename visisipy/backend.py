@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from enum import Enum
@@ -147,21 +146,23 @@ class Backend(str, Enum):
     OPTICSTUDIO = "opticstudio"
 
 
-def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, **kwargs) -> None:
+def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, *, settings: BackendSettings | None = None) -> None:
     """Set the backend to use for optical simulations.
 
     Parameters
     ----------
     backend : Backend | str
         The backend to use. Must be one of the values in the `Backend` enum. Defaults to `Backend.OPTICSTUDIO`.
-    kwargs
-        Additional keyword arguments to pass to the backend's `initialize` method.
+    settings : BackendSettings, optional
+        Dictionary with settings for the backend. Defaults to `None`.
 
     Raises
     ------
     ValueError
         If an invalid backend is specified.
     """
+    settings = settings or {}
+
     global _BACKEND  # noqa: PLW0603
 
     if _BACKEND is not None:
@@ -171,9 +172,10 @@ def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, **kwargs) -> None:
         )
 
     if backend == Backend.OPTICSTUDIO:
-        os_backend = importlib.import_module("visisipy.opticstudio.backend")
-        _BACKEND = os_backend.OpticStudioBackend
-        _BACKEND.initialize(**kwargs)
+        from visisipy.opticstudio import OpticStudioBackend
+
+        _BACKEND = OpticStudioBackend
+        _BACKEND.initialize(settings=settings)
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
@@ -201,9 +203,9 @@ def get_oss() -> OpticStudioSystem | None:
     OpticStudioSystem | None
         The OpticStudioSystem instance if the current backend is the OpticStudio backend, otherwise `None`.
     """
-    os_backend = importlib.import_module("visisipy.opticstudio.backend")
+    from visisipy.opticstudio import OpticStudioBackend
 
-    if _BACKEND is os_backend.OpticStudioBackend:
-        return os_backend._oss  # noqa: SLF001
+    if _BACKEND is OpticStudioBackend:
+        return OpticStudioBackend.oss
 
     return None
