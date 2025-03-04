@@ -1,3 +1,5 @@
+from typing import Literal
+
 import pytest
 
 
@@ -7,6 +9,18 @@ def pytest_addoption(parser):
         action="store_true",
         help="Skip tests that require OpticStudio.",
     )
+    parser.addoption(
+        "--os-extension",
+        action="store_true",
+        help="Connect to OpticStudio in extension mode.",
+    )
+    parser.addoption(
+        "--os-standalone",
+        action="store_false",
+        dest="os_extension",
+        help="Connect to OpticStudio in standalone mode.",
+    )
+    parser.addoption("--os-update-ui", action="store_true", help="Show updates in the OpticStudio UI.")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -36,6 +50,11 @@ def detect_opticstudio() -> bool:
 
     del zp
     return opticstudio_available
+
+
+@pytest.fixture(scope="session")
+def opticstudio_connection_mode(request) -> Literal["extension", "standalone"]:
+    return "extension" if request.config.getoption("--os-extension") else "standalone"
 
 
 @pytest.fixture(scope="session")
