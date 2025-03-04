@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, NotRequired
+from typing import TYPE_CHECKING, Any, Literal
 from warnings import warn
 
 import zospy as zp
 
-from visisipy.backend import BackendSettings, BaseBackend, _classproperty
+from visisipy.backend import BackendSettings, BaseBackend, NotRequired, _classproperty
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 

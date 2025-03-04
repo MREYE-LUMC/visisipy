@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import sys
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from enum import Enum
 from types import MethodType
-from typing import TYPE_CHECKING, Generic, Literal, NotRequired, TypedDict, TypeVar, overload
+from typing import TYPE_CHECKING, Generic, Literal, TypeVar, overload
 from warnings import warn
+
+if sys.version_info <= (3, 11):
+    from typing_extensions import NotRequired, TypedDict
+else:
+    from typing import NotRequired, TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -18,6 +24,9 @@ if TYPE_CHECKING:
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
     from visisipy.wavefront import ZernikeCoefficients
+
+__all__ = ("Backend", "set_backend", "get_backend", "get_oss")
+
 
 _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Backend | str = "opticstudio"
