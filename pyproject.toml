@@ -16,7 +16,8 @@ dependencies = [
     "zospy==1.2.1",
     "matplotlib",
     "numpy",
-    "scipy"
+    "scipy",
+    "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
 ]
 requires-python = ">=3.9, <3.14"
 dynamic = ["version"]

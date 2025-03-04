@@ -1,12 +1,17 @@
 from __future__ import annotations
 
-import importlib
+import sys
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from enum import Enum
 from types import MethodType
 from typing import TYPE_CHECKING, Generic, Literal, TypeVar, overload
 from warnings import warn
+
+if sys.version_info <= (3, 11):
+    from typing_extensions import NotRequired, TypedDict
+else:
+    from typing import NotRequired, TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -19,6 +24,9 @@ if TYPE_CHECKING:
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
     from visisipy.wavefront import ZernikeCoefficients
+
+__all__ = ("Backend", "set_backend", "get_backend", "get_oss")
+
 
 _BACKEND: BaseBackend | None = None
 _DEFAULT_BACKEND: Backend | str = "opticstudio"
@@ -92,11 +100,43 @@ class BaseAnalysisRegistry(ABC):
     ) -> ZernikeCoefficients: ...
 
 
+ApertureType = Literal["float_by_stop_size", "entrance_pupil_diameter", "image_f_number", "object_numeric_aperture"]
+FieldType = Literal["angle", "object_height"]
+FieldCoordinate = tuple[float, float]
+
+
+class BackendSettings(TypedDict, total=False):
+    """A dictionary containing the settings for the backend."""
+
+    field_type: FieldType
+    """The field type to use in the optical system. Must be one of 'angle' or 'object_height'."""
+
+    fields: list[FieldCoordinate]
+    """List of field coordinates to use in the optical system."""
+
+    wavelengths: list[float]
+    """List of wavelengths to use in the optical system."""
+
+    aperture_type: ApertureType
+    """
+    The aperture type to use in the optical system. Must be one of 'float_by_stop_size', 'entrance_pupil_diameter',
+    'image_f_number', or 'object_numeric_aperture'.
+    """
+
+    aperture_value: NotRequired[float]
+    """The aperture value to use in the optical system. Not required for 'float_by_stop_size'."""
+
+
 class BaseBackend(ABC):
     model: BaseEye | None
+    settings: BackendSettings
 
     @_classproperty
     def analysis(self) -> BaseAnalysisRegistry: ...
+
+    @classmethod
+    @abstractmethod
+    def update_settings(cls, settings: BackendSettings | None = None) -> None: ...
 
     @classmethod
     @abstractmethod
@@ -115,21 +155,23 @@ class Backend(str, Enum):
     OPTICSTUDIO = "opticstudio"
 
 
-def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, **kwargs) -> None:
+def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, *, settings: BackendSettings | None = None) -> None:
     """Set the backend to use for optical simulations.
 
     Parameters
     ----------
     backend : Backend | str
         The backend to use. Must be one of the values in the `Backend` enum. Defaults to `Backend.OPTICSTUDIO`.
-    kwargs
-        Additional keyword arguments to pass to the backend's `initialize` method.
+    settings : BackendSettings, optional
+        Dictionary with settings for the backend. Defaults to `None`.
 
     Raises
     ------
     ValueError
         If an invalid backend is specified.
     """
+    settings = settings or {}
+
     global _BACKEND  # noqa: PLW0603
 
     if _BACKEND is not None:
@@ -139,9 +181,10 @@ def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, **kwargs) -> None:
         )
 
     if backend == Backend.OPTICSTUDIO:
-        os_backend = importlib.import_module("visisipy.opticstudio.backend")
-        _BACKEND = os_backend.OpticStudioBackend
-        _BACKEND.initialize(**kwargs)
+        from visisipy.opticstudio import OpticStudioBackend
+
+        _BACKEND = OpticStudioBackend
+        _BACKEND.initialize(settings=settings)
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
@@ -169,9 +212,9 @@ def get_oss() -> OpticStudioSystem | None:
     OpticStudioSystem | None
         The OpticStudioSystem instance if the current backend is the OpticStudio backend, otherwise `None`.
     """
-    os_backend = importlib.import_module("visisipy.opticstudio.backend")
+    from visisipy.opticstudio import OpticStudioBackend
 
-    if _BACKEND is os_backend.OpticStudioBackend:
-        return os_backend._oss  # noqa: SLF001
+    if _BACKEND is OpticStudioBackend:
+        return OpticStudioBackend.oss
 
     return None

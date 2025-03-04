@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 import zospy as zp
 
-from visisipy.opticstudio.backend import OpticStudioBackend
+from visisipy.opticstudio.backend import OpticStudioBackend, OpticStudioSettings
 
 
 @pytest.fixture(scope="session")
@@ -40,8 +40,12 @@ def zos(monkeypatch_session):
 
 
 @pytest.fixture(scope="session")
-def oss(zos):
-    oss = zos.connect(mode="standalone")
+def oss(zos, opticstudio_connection_mode, request):
+    oss = zos.connect(mode=opticstudio_connection_mode)
+
+    if opticstudio_connection_mode == "extension":
+        # Disable UI updates using command line option, making the tests run faster
+        zos.Application.ShowChangesInUI = request.config.getoption("--os-update-ui")
 
     yield oss
 
@@ -56,8 +60,12 @@ def new_oss(oss):
 
 
 @pytest.fixture
-def opticstudio_backend(zos, monkeypatch):
-    OpticStudioBackend.initialize(mode="standalone")
+def opticstudio_backend(zos, monkeypatch, opticstudio_connection_mode, request):
+    OpticStudioBackend.initialize(settings=OpticStudioSettings(mode=opticstudio_connection_mode))
+
+    if opticstudio_connection_mode == "extension":
+        # Disable UI updates using command line option, making the tests run faster
+        zos.Application.ShowChangesInUI = request.config.getoption("--os-update-ui")
 
     yield OpticStudioBackend
 
