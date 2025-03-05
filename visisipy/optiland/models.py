@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
-from optiland.optic import Optic
 from optiland.surfaces import ImageSurface
 
-from visisipy import EyeModel
 from visisipy.models import BaseEye
 from visisipy.optiland.surfaces import OptilandSurface, make_surface
+
+if TYPE_CHECKING:
+    from optiland.optic import Optic
+
+    from visisipy import EyeModel
 
 
 class OptilandEye(BaseEye):
@@ -13,7 +20,7 @@ class OptilandEye(BaseEye):
 
         self._cornea_front = make_surface(eye_model.geometry.cornea_front, eye_model.materials.cornea, "cornea front")
         self._cornea_back = make_surface(
-            eye_model.geometry.cornea_back, eye_model.materials.cornea, "cornea back / aqueous"
+            eye_model.geometry.cornea_back, eye_model.materials.aqueous, "cornea back / aqueous"
         )
         self._pupil = make_surface(eye_model.geometry.pupil, eye_model.materials.aqueous, "pupil")
         self._lens_front = make_surface(eye_model.geometry.lens_front, eye_model.materials.lens, "lens front")
@@ -76,6 +83,6 @@ class OptilandEye(BaseEye):
             message = "The pupil is not located at the stop position."
             raise ValueError(message)
 
-        if not isinstance(self.retina.surface, ImageSurface):
+        if not optic.surface_group.surfaces[-1] == self.retina.surface:
             message = "The retina is not located at the image position."
             raise ValueError(message)  # noqa: TRY004

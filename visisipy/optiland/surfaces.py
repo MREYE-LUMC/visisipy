@@ -15,12 +15,12 @@ from visisipy.models.geometry import (
     ZernikeStandardPhaseSurface,
     ZernikeStandardSagSurface,
 )
+from visisipy.models.materials import MaterialModel  # noqa: TCH001
 
 if TYPE_CHECKING:
     import optiland.surfaces
     from optiland.optic import Optic
 
-    from visisipy.models.materials import MaterialModel
 
 PropertyType = TypeVar("PropertyType")
 
@@ -160,8 +160,8 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
 @make_surface.register
 def _make_surface(
     surface: StandardSurface,
-    material: Union[str, MaterialModel],
-    comment: str = "",  # noqa: UP007
+    material: Union[str, MaterialModel],  # noqa: UP007
+    comment: str = "",
 ) -> OptilandSurface:
     return OptilandSurface(
         comment=comment,

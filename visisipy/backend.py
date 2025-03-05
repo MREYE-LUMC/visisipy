@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from enum import Enum
 from types import MethodType
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar, overload
+from typing import Generic, Literal, TYPE_CHECKING, TypeVar, overload
 from warnings import warn
 
 if sys.version_info <= (3, 11):
@@ -41,10 +41,14 @@ class _AnalysisMethod(Generic[_Analysis]):
         self._analysis = analysis
 
     @overload
-    def __get__(self, instance: None, owner: type[BaseAnalysisRegistry]) -> _AnalysisMethod[_Analysis]: ...
+    def __get__(
+        self, instance: None, owner: type[BaseAnalysisRegistry]
+    ) -> _AnalysisMethod[_Analysis]: ...
 
     @overload
-    def __get__(self, instance: BaseAnalysisRegistry, owner: type[BaseAnalysisRegistry]) -> _Analysis: ...
+    def __get__(
+        self, instance: BaseAnalysisRegistry, owner: type[BaseAnalysisRegistry]
+    ) -> _Analysis: ...
 
     def __get__(
         self, instance: BaseAnalysisRegistry | None, owner: type[BaseAnalysisRegistry]
@@ -101,7 +105,12 @@ class BaseAnalysisRegistry(ABC):
     ) -> ZernikeCoefficients: ...
 
 
-ApertureType = Literal["float_by_stop_size", "entrance_pupil_diameter", "image_f_number", "object_numeric_aperture"]
+ApertureType = Literal[
+    "float_by_stop_size",
+    "entrance_pupil_diameter",
+    "image_f_number",
+    "object_numeric_aperture",
+]
 FieldType = Literal["angle", "object_height"]
 FieldCoordinate = tuple[float, float]
 
@@ -157,7 +166,11 @@ class Backend(str, Enum):
     OPTILAND = "optiland"
 
 
-def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, *, settings: BackendSettings | None = None) -> None:
+def set_backend(
+    backend: Backend | Literal["opticstudio", "optiland"] = Backend.OPTICSTUDIO,
+    *,
+    settings: BackendSettings | None = None,
+) -> None:
     """Set the backend to use for optical simulations.
 
     Parameters

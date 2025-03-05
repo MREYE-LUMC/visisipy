@@ -6,8 +6,8 @@ from optiland.fileio import save_optiland_file
 from optiland.optic import Optic
 
 from visisipy.backend import BackendSettings, BaseBackend, _classproperty
-from visisipy.optiland import OptilandEye
 from visisipy.optiland.analysis import OptilandAnalysisRegistry
+from visisipy.optiland.models import OptilandEye
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -21,6 +21,7 @@ OPTILAND_DEFAULT_SETTINGS: BackendSettings = {
     "fields": [(0, 0)],
     "wavelengths": [0.543],
     "aperture_type": "entrance_pupil_diameter",
+    "aperture_value": 1,
 }
 
 
@@ -42,8 +43,10 @@ class OptilandBackend(BaseBackend):
         if settings is not None:
             cls.settings.update(settings)
 
+        cls.new_model()
+
     @classmethod
-    def update_settings(cls, *, settings: BackendSettings | None = None) -> None:
+    def update_settings(cls, settings: BackendSettings | None = None) -> None:
         if settings is not None:
             cls.settings.update(settings)
 
