@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from visisipy import analysis, models, opticstudio, plots, refraction, wavefront
+from visisipy import analysis, models, opticstudio, optiland, plots, refraction, wavefront
 from visisipy.backend import get_backend, set_backend
 from visisipy.models import (
     EyeGeometry,
@@ -19,6 +19,7 @@ __all__ = (
     "NavarroMaterials",
     "analysis",
     "opticstudio",
+    "optiland",
     "get_backend",
     "set_backend",
     "plots",

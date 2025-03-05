@@ -55,7 +55,7 @@ class OpticStudioBackend(BaseBackend):
     zos: ZOS | None = None
     oss: OpticStudioSystem | None = None
     model: BaseOpticStudioEye | None = None
-    settings: OpticStudioSettings = OpticStudioSettings(OPTICSTUDIO_DEFAULT_SETTINGS)
+    settings: OpticStudioSettings = OpticStudioSettings(**OPTICSTUDIO_DEFAULT_SETTINGS)
     _analysis: OpticStudioAnalysisRegistry | None = None
 
     @_classproperty
@@ -151,8 +151,6 @@ class OpticStudioBackend(BaseBackend):
         This method initializes a new optical system model.
         """
         cls.oss.new(saveifneeded=save_old_model)
-
-        cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
 
         cls.update_settings()
 

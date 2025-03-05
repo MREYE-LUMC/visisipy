@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from os import PathLike
 
+    from optiland.optic import Optic
     from pandas import DataFrame
     from zospy.zpcore import OpticStudioSystem
 
@@ -153,6 +154,7 @@ class BaseBackend(ABC):
 
 class Backend(str, Enum):
     OPTICSTUDIO = "opticstudio"
+    OPTILAND = "optiland"
 
 
 def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, *, settings: BackendSettings | None = None) -> None:
@@ -185,6 +187,11 @@ def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, *, settings: Backe
 
         _BACKEND = OpticStudioBackend
         _BACKEND.initialize(settings=settings)
+    elif backend == Backend.OPTILAND:
+        from visisipy.optiland import OptilandBackend
+
+        _BACKEND = OptilandBackend
+        _BACKEND.initialize(settings=settings)
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
@@ -216,5 +223,22 @@ def get_oss() -> OpticStudioSystem | None:
 
     if _BACKEND is OpticStudioBackend:
         return OpticStudioBackend.oss
+
+    return None
+
+
+def get_optic() -> Optic | None:
+    """
+    Get the Optic instance from the current backend.
+
+    Returns
+    -------
+    Optic
+        The Optic instance if the current backend is the Optiland backend, otherwise `None`.
+    """
+    from visisipy.optiland import OptilandBackend
+
+    if _BACKEND is OptilandBackend:
+        return OptilandBackend.optic
 
     return None

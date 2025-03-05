@@ -15,7 +15,9 @@ maintainers = [
 dependencies = [
     "zospy==1.2.1",
     "matplotlib",
+    "numba>=0.60.0",  # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
+    "optiland>=0.3.0",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
 ]
