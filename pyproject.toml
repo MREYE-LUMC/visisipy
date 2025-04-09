@@ -15,7 +15,7 @@ maintainers = [
 dependencies = [
     "zospy==1.2.1",
     "matplotlib",
-    "numba>=0.60.0",  # Required for Optiland. Maximum version still supporting Python 3.9.
+    "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
     "optiland>=0.3.0",
     "scipy",
@@ -70,3 +70,6 @@ extend-ignore = [
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
+
+[tool.uv.sources]
+optiland = { git = "https://github.com/HarrisonKramer/optiland", rev = "master" }
