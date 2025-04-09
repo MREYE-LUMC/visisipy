@@ -2,12 +2,22 @@ from __future__ import annotations
 
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
 
 from visisipy.backend import BaseBackend, get_backend
 
 if TYPE_CHECKING:
     from visisipy.models import EyeModel
+
+
+_AUTOMATIC_BACKEND = cast(type[BaseBackend], object())
+"""Default sentinel value for the backend parameter in analysis functions.
+
+The `backend` parameter in analysis functions is not optional, but does not need to be specified if the default
+backend is used. However, not specifying a default argument causes IDEs to warn about missing arguments. To avoid this,
+a sentinel value is used to indicate that the default backend should be used. Although this value keeps the type
+checker happy, it is not a valid backend value and is only intended for internal use.
+"""
 
 
 def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> None:
@@ -46,7 +56,9 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
         )
 
     if signature.parameters["backend"].kind.name != "KEYWORD_ONLY":
-        raise ValueError("The 'backend' parameter of an analysis function must be keyword-only.")
+        raise ValueError(
+            "The 'backend' parameter of an analysis function must be keyword-only."
+        )
 
     if signature.parameters["backend"].annotation != "type[BaseBackend]":
         raise ValueError(
@@ -55,10 +67,14 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
         )
 
     if "return_raw_result" not in parameter_names:
-        raise ValueError("The analysis function must have a keyword-only 'return_raw_result' parameter of type 'bool'.")
+        raise ValueError(
+            "The analysis function must have a keyword-only 'return_raw_result' parameter of type 'bool'."
+        )
 
     if signature.parameters["return_raw_result"].kind.name != "KEYWORD_ONLY":
-        raise ValueError("The 'return_raw_result' parameter of an analysis function must be keyword-only.")
+        raise ValueError(
+            "The 'return_raw_result' parameter of an analysis function must be keyword-only."
+        )
 
     if signature.parameters["return_raw_result"].annotation != "bool":
         raise ValueError(
@@ -108,16 +124,24 @@ def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
         model: EyeModel | None = None,
         *args: Any,
         return_raw_result: bool = False,
-        backend: type[BaseBackend] | None = None,
+        backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
         **kwargs: Any,
     ) -> T1 | tuple[T1, T2]:
-        if backend is None:
+        if backend is None or backend is _AUTOMATIC_BACKEND:
             backend = get_backend()
 
         if model is not None:
             _build_model(model, backend)
+        elif backend.model is None:
+            message = (
+                "No model was provided and no model is currently built in the backend."
+                " Please provide a model or first build one using `EyeModel.build`."
+            )
+            raise ValueError(message)
 
-        result, raw_result = function(model, *args, return_raw_result=return_raw_result, backend=backend, **kwargs)
+        result, raw_result = function(
+            model, *args, return_raw_result=return_raw_result, backend=backend, **kwargs
+        )
 
         if return_raw_result:
             return result, raw_result
