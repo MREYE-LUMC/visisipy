@@ -56,7 +56,9 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
         )
 
     if signature.parameters["backend"].kind.name != "KEYWORD_ONLY":
-        raise ValueError("The 'backend' parameter of an analysis function must be keyword-only.")
+        raise ValueError(
+            "The 'backend' parameter of an analysis function must be keyword-only."
+        )
 
     if signature.parameters["backend"].annotation != "type[BaseBackend]":
         raise ValueError(
@@ -65,10 +67,14 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
         )
 
     if "return_raw_result" not in parameter_names:
-        raise ValueError("The analysis function must have a keyword-only 'return_raw_result' parameter of type 'bool'.")
+        raise ValueError(
+            "The analysis function must have a keyword-only 'return_raw_result' parameter of type 'bool'."
+        )
 
     if signature.parameters["return_raw_result"].kind.name != "KEYWORD_ONLY":
-        raise ValueError("The 'return_raw_result' parameter of an analysis function must be keyword-only.")
+        raise ValueError(
+            "The 'return_raw_result' parameter of an analysis function must be keyword-only."
+        )
 
     if signature.parameters["return_raw_result"].annotation != "bool":
         raise ValueError(
@@ -133,7 +139,9 @@ def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
             )
             raise ValueError(message)
 
-        result, raw_result = function(model, *args, return_raw_result=return_raw_result, backend=backend, **kwargs)
+        result, raw_result = function(
+            model, *args, return_raw_result=return_raw_result, backend=backend, **kwargs
+        )
 
         if return_raw_result:
             return result, raw_result
