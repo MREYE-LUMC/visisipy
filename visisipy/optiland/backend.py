@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from optiland.fileio import save_optiland_file
 from optiland.optic import Optic
@@ -10,7 +10,7 @@ from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Generator, Iterable
     from os import PathLike
 
     from visisipy import EyeModel
@@ -52,7 +52,10 @@ class OptilandBackend(BaseBackend):
 
         if cls.optic is not None:
             cls.set_aperture()
-            cls.set_fields(field_type=cls.settings["field_type"], coordinates=cls.settings["fields"])
+            cls.set_fields(
+                field_type=cls.settings["field_type"],
+                coordinates=cls.settings["fields"],
+            )
             cls.set_wavelengths(cls.settings["wavelengths"])
 
     @classmethod
@@ -70,12 +73,14 @@ class OptilandBackend(BaseBackend):
         cls.update_settings()
 
     @classmethod
-    def build_model(cls, model: EyeModel, *, replace_existing: bool = False, **kwargs) -> NotImplemented:
+    def build_model(
+        cls, model: EyeModel, *, replace_existing: bool = False, **kwargs
+    ) -> OptilandEye:
         if not replace_existing and cls.model is not None:
             cls.new_model()
 
         optiland_eye = OptilandEye(model)
-        optiland_eye.build(cls.optic, replace_existing=replace_existing, **kwargs)
+        optiland_eye.build(cls.get_optic(), replace_existing=replace_existing, **kwargs)
 
         cls.model = optiland_eye
         return optiland_eye
@@ -95,16 +100,46 @@ class OptilandBackend(BaseBackend):
         save_optiland_file(cls.optic, filename)
 
     @classmethod
+    def get_optic(cls) -> Optic:
+        """Get the optic object.
+
+        Returns
+        -------
+        Optic
+            The optic object.
+
+        Raises
+        ------
+        RuntimeError
+            If the optic object is not initialized.
+        """
+        if cls.optic is None:
+            raise RuntimeError("No optic object initialized. Please initialize the backend first.")
+
+        return cast(Optic,  cls.optic)
+
+    @classmethod
     def set_aperture(cls):
         optiland_apertures = {
             "float_by_stop_size": NotImplemented,
             "entrance_pupil_diameter": "EPD",
         }
 
-        cls.optic.set_aperture(
+        cls.get_optic().set_aperture(
             aperture_type=optiland_apertures[cls.settings["aperture_type"]],
             value=cls.settings["aperture_value"],
         )
+
+    @classmethod
+    def get_fields(cls) -> list[tuple[float, float]]:
+        """Get the fields in the optical system.
+
+        Returns
+        -------
+        list[tuple[float, float]]
+            List of field coordinates.
+        """
+        return [(f.x, f.y) for f in cls.get_optic().fields.fields]
 
     @classmethod
     def set_fields(
@@ -113,25 +148,56 @@ class OptilandBackend(BaseBackend):
         field_type: Literal["angle", "object_height"] = "angle",
     ):
         # Remove all fields
-        cls.optic.fields.fields.clear()
+        cls.get_optic().fields.fields.clear()
 
-        cls.optic.set_field_type(field_type)
+        cls.get_optic().set_field_type(field_type)
 
         for field in coordinates:
-            cls.optic.add_field(y=field[1], x=field[0])
+            cls.get_optic().add_field(y=field[1], x=field[0])
+
+    @classmethod
+    def get_wavelengths(cls) -> list[float]:
+        """Get the wavelengths in the optical system.
+
+        Returns
+        -------
+        list[float]
+            List of wavelengths.
+        """
+        return [w.value for w in cls.get_optic().wavelengths.wavelengths]
 
     @classmethod
     def set_wavelengths(cls, wavelengths: Iterable[float]):
         # Remove all wavelengths
-        cls.optic.wavelengths.wavelengths.clear()
+        cls.get_optic().wavelengths.wavelengths.clear()
 
         for wavelength in wavelengths:
-            cls.optic.add_wavelength(wavelength)
+            cls.get_optic().add_wavelength(wavelength)
 
     @classmethod
-    def iter_fields(cls):
-        return NotImplemented
+    def iter_fields(cls) -> Generator[tuple[int, tuple[float, float]], Any, None]:
+        """Iterate over the fields in the optical system.
+
+        Yields
+        ------
+        int
+            Field index.
+        tuple[float, float]
+            Field X and Y coordinates.
+        """
+        for i, f in enumerate(cls.get_optic().fields.fields):
+            yield i, (f.x, f.y)
 
     @classmethod
-    def iter_wavelengths(cls):
-        return NotImplemented
+    def iter_wavelengths(cls) -> Generator[tuple[int, float], Any, None]:
+        """Iterate over the wavelengths in the optical system.
+
+        Yields
+        ------
+        int
+            Wavelength index.
+        float
+            Wavelength value.
+        """
+        for i, w in enumerate(cls.get_optic().wavelengths.wavelengths):
+            yield i, w.value

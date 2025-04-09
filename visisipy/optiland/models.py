@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from optiland.surfaces import ImageSurface
 
 from visisipy.models import BaseEye
 from visisipy.optiland.surfaces import OptilandSurface, make_surface
@@ -83,6 +82,6 @@ class OptilandEye(BaseEye):
             message = "The pupil is not located at the stop position."
             raise ValueError(message)
 
-        if not optic.surface_group.surfaces[-1] == self.retina.surface:
+        if optic.image_surface != self.retina.surface:
             message = "The retina is not located at the image position."
-            raise ValueError(message)  # noqa: TRY004
+            raise ValueError(message)

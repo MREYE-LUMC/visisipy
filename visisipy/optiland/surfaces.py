@@ -124,7 +124,8 @@ class OptilandSurface(BaseSurface):
             thickness=self._thickness,
             conic=self._conic,
             material=self._convert_material(self._material),
-            is_stop=self._is_stop,
+            is_stop=bool(self._is_stop),
+            comment=self._comment,
         )
 
         if replace_existing:
