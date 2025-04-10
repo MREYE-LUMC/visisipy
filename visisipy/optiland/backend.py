@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 from optiland.fileio import save_optiland_file
 from optiland.optic import Optic
 
-from visisipy.backend import BackendSettings, BaseBackend, _classproperty
+from visisipy.backend import BackendSettings, BaseBackend, Unpack, _classproperty
 from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
 
@@ -24,6 +24,13 @@ OPTILAND_DEFAULT_SETTINGS: BackendSettings = {
     "aperture_value": 1,
 }
 
+OPTILAND_APERTURES = {
+    "float_by_stop_size": NotImplemented,
+    "entrance_pupil_diameter": "EPD",
+    "image_f_number": "imageFNO",
+    "object_numeric_aperture": "objectNA",
+}
+
 
 class OptilandBackend(BaseBackend):
     optic: Optic | None = None
@@ -39,15 +46,15 @@ class OptilandBackend(BaseBackend):
         return cls._analysis
 
     @classmethod
-    def initialize(cls, *, settings: BackendSettings | None = None) -> None:
-        if settings is not None:
+    def initialize(cls, **settings: Unpack[BackendSettings]) -> None:
+        if len(settings) > 0:
             cls.settings.update(settings)
 
         cls.new_model()
 
     @classmethod
-    def update_settings(cls, settings: BackendSettings | None = None) -> None:
-        if settings is not None:
+    def update_settings(cls, **settings: Unpack[BackendSettings]) -> None:
+        if len(settings) > 0:
             cls.settings.update(settings)
 
         if cls.optic is not None:
@@ -114,19 +121,30 @@ class OptilandBackend(BaseBackend):
             If the optic object is not initialized.
         """
         if cls.optic is None:
-            raise RuntimeError("No optic object initialized. Please initialize the backend first.")
+            raise RuntimeError(
+                "No optic object initialized. Please initialize the backend first."
+            )
 
-        return cast(Optic,  cls.optic)
+        return cast(Optic, cls.optic)
 
     @classmethod
     def set_aperture(cls):
-        optiland_apertures = {
-            "float_by_stop_size": NotImplemented,
-            "entrance_pupil_diameter": "EPD",
-        }
+        from warnings import warn
+
+        warn(cls.settings["aperture_type"])
+
+        if cls.settings["aperture_type"] not in OPTILAND_APERTURES:
+            raise ValueError(
+                f"Invalid aperture type '{cls.settings['aperture_type']}'. "
+                f"Must be one of {list(OPTILAND_APERTURES.keys())}."
+            )
+        elif OPTILAND_APERTURES[cls.settings["aperture_type"]] is NotImplemented:
+            raise NotImplementedError(
+                f"Aperture type '{cls.settings['aperture_type']}' is not implemented in Optiland."
+            )
 
         cls.get_optic().set_aperture(
-            aperture_type=optiland_apertures[cls.settings["aperture_type"]],
+            aperture_type=OPTILAND_APERTURES[cls.settings["aperture_type"]],
             value=cls.settings["aperture_value"],
         )
 
