@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import weakref
 from functools import reduce, singledispatch
 from operator import attrgetter
 from typing import TYPE_CHECKING, Generic, TypeVar, Union
@@ -52,8 +53,26 @@ class OptilandSurfaceProperty(Generic[PropertyType]):
             )
 
 
+class _built_only_property(property):
+    def __get__(self, obj: OptilandSurface, objtype=None):
+        if not obj._is_built:
+            return None
+
+        return super().__get__(obj, objtype)
+
+    def __set__(self, obj: OptilandSurface, value) -> None:
+        if not obj._is_built:
+            message = "Cannot set attribute of non-built surface."
+            raise AttributeError(message)
+
+        super().__set__(obj, value)
+
+
 class OptilandSurface(BaseSurface):
-    """Sequential surface in Optiland."""
+    """Sequential surface in Optiland.
+
+    Note that, unlike OpticStudio surfaces, it is not possible to update surfaces after they have been built.
+    """
 
     _TYPE: str = "Standard"
 
@@ -76,8 +95,10 @@ class OptilandSurface(BaseSurface):
         self._material = material
         self._is_stop = is_stop
 
-        self._surface = None
-        self._is_built = False
+        self._surface: optiland.surfaces.Surface | None = None
+        self._optic: Optic | None = None
+        self._index: int | None = None
+        self._is_built: bool  = False
 
     @property
     def surface(self) -> optiland.surfaces.Surface | None:
@@ -86,6 +107,80 @@ class OptilandSurface(BaseSurface):
         This property only has a value if the surface has been built.
         """
         return self._surface
+
+    @_built_only_property
+    def comment(self) -> str:
+        """Comment for the surface."""
+        return self.surface.comment # type: ignore
+
+    @comment.setter
+    def comment(self, value: str) -> None:
+        """Set the comment for the surface."""
+        self.surface.comment = value # type: ignore
+
+    @_built_only_property
+    def radius(self) -> float:
+        """Radius of the surface."""
+        return self._optic.surface_group.radii[self._index] # type: ignore
+
+    # @radius.setter
+    # def radius(self, value: float) -> None:
+    #     if hasattr(self.surface.geometry, "radius"): # type: ignore
+    #         self.surface.geometry.radius = value # type: ignore
+
+    #     else:
+    #         raise AttributeError(
+    #             "Cannot set radius for this surface type."
+    #         )
+
+    @_built_only_property
+    def thickness(self) -> float:
+        """Thickness of the surface."""
+        return self._optic.surface_group.get_thickness(self._index) # type: ignore
+
+    @_built_only_property
+    def semi_diameter(self) -> float | None:
+        """Semi-diameter of the surface."""
+        return self.surface.semi_aperture # type: ignore
+
+    @_built_only_property
+    def conic(self) -> float:
+        """Conic constant of the surface."""
+        return self._optic.surface_group.conic[self._index] # type: ignore
+
+    @_built_only_property
+    def material(self) -> MaterialModel | str | None:
+        """Material of the surface."""
+        return self._get_material()
+
+    @_built_only_property
+    def is_stop(self) -> bool:
+        """Flag indicating if the surface is a stop."""
+        return self.surface.is_stop # type: ignore
+
+    def _get_material(self) -> MaterialModel | str | None:
+        """Get the material of the surface."""
+        if not self._is_built:
+            return None
+
+        if isinstance(self.surface.material_post, str): # type: ignore
+            return self.surface.material_post # type: ignore
+
+        if isinstance(self.surface.material_post, IdealMaterial): # type: ignore
+            return MaterialModel(
+                refractive_index=self.surface.material_post.n, # type: ignore
+                abbe_number=0.0,
+                partial_dispersion=0.0,
+            )
+
+        if isinstance(self.surface.material_post, AbbeMaterial): # type: ignore
+            return MaterialModel(
+                refractive_index=self.surface.material_post.n, # type: ignore
+                abbe_number=self.surface.material_post.abbe, # type: ignore
+                partial_dispersion=0.0,
+            )
+
+        return None
 
     @staticmethod
     def _convert_material(
@@ -133,11 +228,15 @@ class OptilandSurface(BaseSurface):
 
         self._surface = optic.surface_group.surfaces[position]
 
+        self._optic = weakref.proxy(optic)
+        self._index = position
         self._is_built = True
 
 
 @singledispatch
-def make_surface(surface: Surface, material: str | MaterialModel, comment: str = "") -> OptilandSurface:
+def make_surface(
+    surface: Surface, material: str | MaterialModel, comment: str = ""
+) -> OptilandSurface:
     """Create an `OptilandSurface` instance from a given `Surface` instance.
 
     Parameters
@@ -155,7 +254,9 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
     OptilandSurface
         The created OptilandSurface instance.
     """
-    return OptilandSurface(comment=comment, thickness=surface.thickness, material=material)
+    return OptilandSurface(
+        comment=comment, thickness=surface.thickness, material=material
+    )
 
 
 @make_surface.register
@@ -204,4 +305,6 @@ def _make_surface(
     material: Union[str, MaterialModel] = "",  # noqa: UP007, ARG001
     comment: str = "",  # noqa: ARG001
 ) -> OptilandSurface:
-    raise NotImplementedError("ZernikeStandardPhaseSurface is not supported in Optiland.")
+    raise NotImplementedError(
+        "ZernikeStandardPhaseSurface is not supported in Optiland."
+    )
