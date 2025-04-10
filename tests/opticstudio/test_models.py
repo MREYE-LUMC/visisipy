@@ -1,33 +1,10 @@
+from __future__ import annotations
+
 import pytest
 
-from visisipy import EyeGeometry, EyeMaterials, EyeModel
-from visisipy.models.geometry import StandardSurface, Stop
-from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio import OpticStudioEye
 
 pytestmark = [pytest.mark.needs_opticstudio]
-
-
-@pytest.fixture
-def eye_model():
-    geometry = EyeGeometry(
-        cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
-        cornea_back=StandardSurface(radius=6.50, asphericity=0, thickness=3.05),
-        pupil=Stop(semi_diameter=1.348),
-        lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
-        lens_back=StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
-        retina=StandardSurface(radius=-12.0, asphericity=0),
-    )
-
-    materials = EyeMaterials(
-        cornea=MaterialModel(refractive_index=1.3777, abbe_number=0, partial_dispersion=0),
-        aqueous=MaterialModel(refractive_index=1.3391, abbe_number=0, partial_dispersion=0),
-        lens=MaterialModel(refractive_index=1.4222, abbe_number=0, partial_dispersion=0),
-        vitreous=MaterialModel(refractive_index=1.3377, abbe_number=0, partial_dispersion=0),
-    )
-
-    return EyeModel(geometry=geometry, materials=materials)
-
 
 class TestOpticStudioEye:
     def test_init(self, new_oss, eye_model):
@@ -177,7 +154,7 @@ class TestOpticStudioEye:
         opticstudio_eye = OpticStudioEye(eye_model)
         opticstudio_eye.build(new_oss)
 
-        opticstudio_eye.update_surfaces("comment", "new comment", surfaces=["cornea_front", "lens_back"])
+        opticstudio_eye.update_surfaces("comment", "new comment", surface_names=["cornea_front", "lens_back"])
 
         assert opticstudio_eye.cornea_front.comment == "new comment"
         assert opticstudio_eye.cornea_back.comment == "cornea back / aqueous"
