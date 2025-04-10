@@ -5,7 +5,13 @@ from warnings import warn
 
 import zospy as zp
 
-from visisipy.backend import BackendSettings, BaseBackend, NotRequired, _classproperty
+from visisipy.backend import (
+    BackendSettings,
+    BaseBackend,
+    NotRequired,
+    Unpack,
+    _classproperty,
+)
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
@@ -86,8 +92,7 @@ class OpticStudioBackend(BaseBackend):
     @classmethod
     def initialize(
         cls,
-        *,
-        settings: OpticStudioSettings | None = None,
+        **settings: Unpack[OpticStudioSettings],
     ) -> None:
         """
         Initializes the OpticStudio backend.
@@ -99,7 +104,7 @@ class OpticStudioBackend(BaseBackend):
         settings : OpticStudioSettings | None, optional
             The settings to be used for the OpticStudio backend. If None, the default settings are used.
         """
-        if settings is not None:
+        if len(settings) > 0:
             cls.settings.update(settings)
 
         if cls.zos is None:
@@ -119,13 +124,13 @@ class OpticStudioBackend(BaseBackend):
         cls.new_model()
 
     @classmethod
-    def update_settings(cls, settings: OpticStudioSettings | None = None) -> None:
+    def update_settings(cls, **settings: Unpack[OpticStudioSettings]) -> None:
         """
         Applies the provided settings to the OpticStudio backend.
 
         This method applies the provided settings to the OpticStudio backend.
         """
-        if settings is not None:
+        if len(settings) > 0:
             cls.settings.update(settings)
 
         if cls.oss is None:

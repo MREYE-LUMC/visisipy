@@ -20,9 +20,9 @@ from typing import (
 from warnings import warn
 
 if sys.version_info <= (3, 11):
-    from typing_extensions import NotRequired, TypedDict
+    from typing_extensions import NotRequired, TypedDict, Unpack
 else:
-    from typing import NotRequired, TypedDict
+    from typing import NotRequired, TypedDict, Unpack
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from visisipy.types import SampleSize
     from visisipy.wavefront import ZernikeCoefficients
 
-__all__ = ("Backend", "set_backend", "get_backend", "get_oss")
+__all__ = ("Backend", "set_backend", "get_backend", "get_oss", "TypedDict", "Unpack")
 
 
 _BACKEND: type[BaseBackend] | None = None
@@ -163,7 +163,7 @@ class BaseBackend(ABC):
 
     @classmethod
     @abstractmethod
-    def update_settings(cls, settings: BackendSettings | None = None) -> None: ...
+    def update_settings(cls, **settings: Unpack[BackendSettings]) -> None: ...
 
     @classmethod
     @abstractmethod
