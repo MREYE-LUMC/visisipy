@@ -6,7 +6,7 @@ from operator import attrgetter
 from typing import TYPE_CHECKING, Generic, TypeVar, Union
 
 import optiland.materials
-from optiland.materials import AbbeMaterial, IdealMaterial
+from optiland.materials import AbbeMaterial, IdealMaterial, Material
 
 from visisipy.models import BaseSurface
 from visisipy.models.geometry import (
@@ -54,6 +54,8 @@ class OptilandSurfaceProperty(Generic[PropertyType]):
 
 
 class _built_only_property(property):
+    """Property that can only be accessed after the surface has been built."""
+
     def __get__(self, obj: OptilandSurface, objtype=None):
         if not obj._is_built:
             return None
@@ -98,7 +100,7 @@ class OptilandSurface(BaseSurface):
         self._surface: optiland.surfaces.Surface | None = None
         self._optic: Optic | None = None
         self._index: int | None = None
-        self._is_built: bool  = False
+        self._is_built: bool = False
 
     @property
     def surface(self) -> optiland.surfaces.Surface | None:
@@ -111,17 +113,17 @@ class OptilandSurface(BaseSurface):
     @_built_only_property
     def comment(self) -> str:
         """Comment for the surface."""
-        return self.surface.comment # type: ignore
+        return self.surface.comment  # type: ignore
 
     @comment.setter
     def comment(self, value: str) -> None:
         """Set the comment for the surface."""
-        self.surface.comment = value # type: ignore
+        self.surface.comment = value  # type: ignore
 
     @_built_only_property
     def radius(self) -> float:
         """Radius of the surface."""
-        return self._optic.surface_group.radii[self._index] # type: ignore
+        return self._optic.surface_group.radii[self._index]  # type: ignore
 
     # @radius.setter
     # def radius(self, value: float) -> None:
@@ -136,17 +138,21 @@ class OptilandSurface(BaseSurface):
     @_built_only_property
     def thickness(self) -> float:
         """Thickness of the surface."""
-        return self._optic.surface_group.get_thickness(self._index) # type: ignore
+        if self._index == self._optic.surface_group.num_surfaces - 1:
+            # Last surface in the system, return 0.0
+            return 0.0
+
+        return self._optic.surface_group.get_thickness(self._index)[0]  # type: ignore
 
     @_built_only_property
     def semi_diameter(self) -> float | None:
         """Semi-diameter of the surface."""
-        return self.surface.semi_aperture # type: ignore
+        return self.surface.semi_aperture  # type: ignore
 
     @_built_only_property
     def conic(self) -> float:
         """Conic constant of the surface."""
-        return self._optic.surface_group.conic[self._index] # type: ignore
+        return self._optic.surface_group.conic[self._index]  # type: ignore
 
     @_built_only_property
     def material(self) -> MaterialModel | str | None:
@@ -156,31 +162,33 @@ class OptilandSurface(BaseSurface):
     @_built_only_property
     def is_stop(self) -> bool:
         """Flag indicating if the surface is a stop."""
-        return self.surface.is_stop # type: ignore
+        return self.surface.is_stop  # type: ignore
 
     def _get_material(self) -> MaterialModel | str | None:
         """Get the material of the surface."""
         if not self._is_built:
             return None
 
-        if isinstance(self.surface.material_post, str): # type: ignore
-            return self.surface.material_post # type: ignore
-
-        if isinstance(self.surface.material_post, IdealMaterial): # type: ignore
+        if isinstance(self.surface.material_post, IdealMaterial):  # type: ignore
             return MaterialModel(
-                refractive_index=self.surface.material_post.n, # type: ignore
+                refractive_index=self.surface.material_post.index,  # type: ignore
                 abbe_number=0.0,
                 partial_dispersion=0.0,
             )
 
-        if isinstance(self.surface.material_post, AbbeMaterial): # type: ignore
+        if isinstance(self.surface.material_post, AbbeMaterial):  # type: ignore
             return MaterialModel(
-                refractive_index=self.surface.material_post.n, # type: ignore
-                abbe_number=self.surface.material_post.abbe, # type: ignore
+                refractive_index=self.surface.material_post.index,  # type: ignore
+                abbe_number=self.surface.material_post.abbe,  # type: ignore
                 partial_dispersion=0.0,
             )
 
-        return None
+        if isinstance(self.surface.material_post, Material):  # type: ignore
+            return self.surface.material_post.name  # type: ignore
+
+        raise TypeError(
+            f"Unsupported material type: {type(self.surface.material_post)}"  # type: ignore
+        )
 
     @staticmethod
     def _convert_material(
@@ -192,10 +200,13 @@ class OptilandSurface(BaseSurface):
         if material is None:
             return "Air"
 
-        if material.abbe_number == 0:
-            return IdealMaterial(n=material.refractive_index, k=0.0)
+        if isinstance(material, MaterialModel):
+            if material.abbe_number == 0:
+                return IdealMaterial(n=material.refractive_index, k=0.0)
 
-        return AbbeMaterial(n=material.refractive_index, abbe=material.abbe_number)
+            return AbbeMaterial(n=material.refractive_index, abbe=material.abbe_number)
+
+        raise TypeError("'material' must be MaterialModel or str.")
 
     def build(self, optic: Optic, *, position: int, replace_existing: bool = False):
         """Create the surface in Optiland.
@@ -227,6 +238,9 @@ class OptilandSurface(BaseSurface):
             optic.surface_group.surfaces.pop(position + 1)
 
         self._surface = optic.surface_group.surfaces[position]
+
+        if self._semi_diameter is not None:
+            self.surface.set_semi_aperture(self._semi_diameter)  # type: ignore
 
         self._optic = weakref.proxy(optic)
         self._index = position
