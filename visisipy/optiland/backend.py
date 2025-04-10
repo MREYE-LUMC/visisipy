@@ -120,14 +120,15 @@ class OptilandBackend(BaseBackend):
             If the optic object is not initialized.
         """
         if cls.optic is None:
-            raise RuntimeError("No optic object initialized. Please initialize the backend first.")
+            raise RuntimeError(
+                "No optic object initialized. Please initialize the backend first."
+            )
 
         return cast(Optic, cls.optic)
 
     @classmethod
     def set_aperture(cls):
         # warn(cls.settings["aperture_type"])
-
         if cls.settings["aperture_type"] not in OPTILAND_APERTURES:
             raise ValueError(
                 f"Invalid aperture type '{cls.settings['aperture_type']}'. "
