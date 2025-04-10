@@ -92,7 +92,7 @@ class BaseEye(ABC):
         """Dictionary with surface names as keys and surfaces as values."""
         return {k.lstrip("_"): v for k, v in self.__dict__.items() if isinstance(v, BaseSurface)}
 
-    def update_surfaces(self, attribute: str, value: Any, surfaces: list[str] | None = None) -> None:
+    def update_surfaces(self, attribute: str, value: Any, surface_names: list[str] | None = None) -> None:
         """Batch update all surfaces.
 
         Set `attribute` to `value` for multiple surfaces. If `surfaces` is not specified, all surfaces of the eye
@@ -111,7 +111,7 @@ class BaseEye(ABC):
         -------
 
         """
-        surfaces = [self.surfaces[s] for s in surfaces] if surfaces is not None else self.surfaces.keys()
+        surfaces = [self.surfaces[s] for s in surface_names] if surface_names is not None else self.surfaces.values()
 
         for s in surfaces:
             setattr(s, attribute, value)
