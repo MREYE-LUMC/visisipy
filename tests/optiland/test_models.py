@@ -11,18 +11,6 @@ if TYPE_CHECKING:
     from visisipy import EyeModel
 
 
-@pytest.fixture
-def optic() -> Optic:
-    """Fixture to create an Optic instance for testing."""
-    system = Optic()
-
-    system.add_field(0, 0)
-    system.add_wavelength(0.543)
-    system.set_aperture("EPD", 1.0)
-
-    return system
-
-
 class TestOptilandEye:
     def test_init(self, eye_model):
         opticstudio_eye = OptilandEye(eye_model)

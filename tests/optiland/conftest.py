@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Generator
 
 import pytest
+from optiland.optic import Optic
 
 from visisipy.optiland.backend import OptilandBackend
 
@@ -21,3 +22,15 @@ def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
     yield OptilandBackend
 
     OptilandBackend.clear_model()
+
+
+@pytest.fixture
+def optic() -> Optic:
+    """Fixture to create an Optic instance for testing."""
+    system = Optic()
+
+    system.add_field(0, 0)
+    system.add_wavelength(0.543)
+    system.set_aperture("EPD", 1.0)
+
+    return system
