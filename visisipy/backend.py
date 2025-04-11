@@ -19,7 +19,7 @@ from typing import (
 )
 from warnings import warn
 
-if sys.version_info < (3, 12):
+if sys.version_info < (3, 11):
     from typing_extensions import NotRequired, TypedDict, Unpack
 else:
     from typing import NotRequired, TypedDict, Unpack
