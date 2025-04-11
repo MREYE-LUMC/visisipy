@@ -3,11 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from optiland.optic import Optic
 
 from visisipy.optiland import OptilandEye
 
 if TYPE_CHECKING:
+    from optiland.optic import Optic
+
     from visisipy import EyeModel
 
 

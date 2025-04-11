@@ -6,7 +6,7 @@ from visisipy.types import SampleSize
 
 
 class TestSampleSize:
-    @pytest.mark.parametrize("input,value,expectation", [
+    @pytest.mark.parametrize("input_,value,expectation", [
         (32, 32, does_not_raise()),
         ("64x64", 64, does_not_raise()),
         ("512X512", 512, does_not_raise()),
@@ -14,9 +14,9 @@ class TestSampleSize:
         ("123", 123, pytest.raises(ValueError, match="Invalid sample size format: 123")),
         ("123x456", 123, pytest.raises(ValueError, match="Invalid sample size format: 123x456")),
     ])
-    def test_samplesize(self, input, value, expectation):
+    def test_samplesize(self, input_, value, expectation):
         with expectation:
-            sampling = SampleSize(input)
+            sampling = SampleSize(input_)
             assert sampling.sampling == value
 
     def test_int_conversion(self):

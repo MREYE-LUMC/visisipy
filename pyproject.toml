@@ -65,8 +65,9 @@ extend-ignore = [
 
 [tool.ruff.lint.extend-per-file-ignores]
 "examples/*" = ["INP001"]
-"tests/*" = ["ARG001", "ARG002"]
+"tests/*" = ["ARG001", "ARG002", "FBT001"]
 "tests/opticstudio/*" = ["SLF001"]
+"tests/optiland/*" = ["SLF001"]
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"

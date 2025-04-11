@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Generator
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from optiland.optic import Optic
 
 from visisipy.optiland.backend import OptilandBackend
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
-@pytest.fixture()
+
+@pytest.fixture
 def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
     """Fixture to initialize the Optiland backend for testing.
 

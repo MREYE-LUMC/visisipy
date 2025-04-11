@@ -107,7 +107,7 @@ class TestAnalysisDecorator:
         def example_analysis(
             model: EyeModel | None,
             x,
-            return_raw_result: bool,  # noqa: FBT001
+            return_raw_result: bool,
             *,
             backend: type[BaseBackend],
         ):

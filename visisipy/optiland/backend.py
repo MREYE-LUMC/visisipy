@@ -137,7 +137,8 @@ class OptilandBackend(BaseBackend):
                 f"Invalid aperture type '{cls.settings['aperture_type']}'. "
                 f"Must be one of {list(OPTILAND_APERTURES.keys())}."
             )
-        elif OPTILAND_APERTURES[cls.settings["aperture_type"]] is NotImplemented:
+
+        if OPTILAND_APERTURES[cls.settings["aperture_type"]] is NotImplemented:
             raise NotImplementedError(
                 f"Aperture type '{cls.settings['aperture_type']}' is not implemented in Optiland."
             )

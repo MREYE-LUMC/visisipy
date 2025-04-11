@@ -16,7 +16,7 @@ from visisipy.models.geometry import (
     ZernikeStandardPhaseSurface,
     ZernikeStandardSagSurface,
 )
-from visisipy.models.materials import MaterialModel  # noqa: TCH001
+from visisipy.models.materials import MaterialModel
 
 if TYPE_CHECKING:
     import optiland.surfaces
@@ -53,17 +53,17 @@ class OptilandSurfaceProperty(Generic[PropertyType]):
             )
 
 
-class _built_only_property(property):
+class _built_only_property(property):  # noqa: N801
     """Property that can only be accessed after the surface has been built."""
 
     def __get__(self, obj: OptilandSurface, objtype=None):
-        if not obj._is_built:
+        if not obj._is_built:  # noqa: SLF001
             return None
 
         return super().__get__(obj, objtype)
 
     def __set__(self, obj: OptilandSurface, value) -> None:
-        if not obj._is_built:
+        if not obj._is_built:  # noqa: SLF001
             message = "Cannot set attribute of non-built surface."
             raise AttributeError(message)
 
