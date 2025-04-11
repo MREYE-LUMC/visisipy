@@ -94,7 +94,8 @@ class OptilandBackend(BaseBackend):
 
     @classmethod
     def clear_model(cls) -> NotImplemented:
-        return NotImplemented
+        cls.model = None
+        cls.optic = None
 
     @classmethod
     def save_model(cls, filename: str | PathLike | None = None) -> None:
