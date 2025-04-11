@@ -81,6 +81,9 @@ def raytrace(
     DataFrame
         A pandas DataFrame containing the results of the ray trace analysis.
     """
+    if abs(pupil[0]) > 1 or abs(pupil[1]) > 1:
+        raise ValueError("Pupil coordinates must be between -1 and 1.")
+
     if coordinates is not None:
         backend.set_fields(coordinates, field_type)
 

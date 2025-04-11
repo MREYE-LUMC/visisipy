@@ -5,8 +5,6 @@ import pytest
 from tests.helpers import build_args
 from visisipy.models import EyeModel
 
-pytestmark = [pytest.mark.needs_opticstudio]
-
 
 class TestRayTraceAnalysis:
     @pytest.mark.parametrize(
@@ -23,7 +21,7 @@ class TestRayTraceAnalysis:
                 (1, 0),
                 does_not_raise(),
                 marks=pytest.mark.xfail(
-                    reason="ZOSPy cannot parse ray trace results when field_type is object_height"
+                    reason="Finite object distances are not yet supported"
                 ),
             ),
             (
@@ -53,10 +51,10 @@ class TestRayTraceAnalysis:
         field_type,
         pupil,
         expectation,
-        opticstudio_backend,
-        opticstudio_analysis,
+        optiland_backend,
+        optiland_analysis,
     ):
-        opticstudio_backend.build_model(EyeModel())
+        optiland_backend.build_model(EyeModel())
 
         args = build_args(
             non_null_defaults={"field_type", "pupil"},
@@ -67,14 +65,14 @@ class TestRayTraceAnalysis:
         )
 
         with expectation:
-            assert opticstudio_analysis.raytrace(**args)
+            assert optiland_analysis.raytrace(**args)
 
-    def test_raytrace_dataframe_structure(self, opticstudio_backend, opticstudio_analysis):
-        opticstudio_backend.build_model(EyeModel())
+    def test_raytrace_dataframe_structure(self, optiland_backend, optiland_analysis):
+        optiland_backend.build_model(EyeModel())
 
         coordinates = [(0, 0), (1, 1)]
 
-        result, _ = opticstudio_analysis.raytrace(coordinates)
+        result, _ = optiland_analysis.raytrace(coordinates)
         expected_columns = {
             "index",
             "x",
