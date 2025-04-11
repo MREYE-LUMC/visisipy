@@ -11,19 +11,19 @@ from visisipy.models import (
 )
 
 __all__ = (
-    "models",
-    "EyeModel",
     "EyeGeometry",
     "EyeMaterials",
+    "EyeModel",
     "NavarroGeometry",
     "NavarroMaterials",
     "analysis",
+    "get_backend",
+    "models",
     "opticstudio",
     "optiland",
-    "get_backend",
-    "set_backend",
     "plots",
     "refraction",
+    "set_backend",
     "wavefront",
 )
 

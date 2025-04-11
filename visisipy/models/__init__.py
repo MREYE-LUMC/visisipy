@@ -12,14 +12,14 @@ if TYPE_CHECKING:
     from os import PathLike
 
 __all__ = (
-    "create_geometry",
-    "EyeModel",
-    "EyeGeometry",
-    "NavarroGeometry",
-    "EyeMaterials",
-    "NavarroMaterials",
     "BaseEye",
     "BaseSurface",
+    "EyeGeometry",
+    "EyeMaterials",
+    "EyeModel",
+    "NavarroGeometry",
+    "NavarroMaterials",
+    "create_geometry",
 )
 
 

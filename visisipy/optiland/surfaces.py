@@ -47,7 +47,7 @@ class OptilandSurfaceProperty(Generic[PropertyType]):
             setattr(obj.surface, self.name, value)
         else:
             setattr(
-                reduce(lambda o, a: getattr(o, a), name_split[:-1]),
+                reduce(getattr, name_split[:-1]),
                 name_split[-1],
                 value,
             )
@@ -306,18 +306,18 @@ def _make_surface(
 
 @make_surface.register
 def _make_surface(
-    surface: ZernikeStandardSagSurface,  # noqa: ARG001
-    material: Union[str, MaterialModel] = "",  # noqa: UP007, ARG001
-    comment: str = "",  # noqa: ARG001
+    surface: ZernikeStandardSagSurface,
+    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    comment: str = "",
 ) -> OptilandSurface:
     raise NotImplementedError("ZernikeStandardSagSurface is not supported in Optiland.")
 
 
 @make_surface.register
 def _make_surface(
-    surface: ZernikeStandardPhaseSurface,  # noqa: ARG001
-    material: Union[str, MaterialModel] = "",  # noqa: UP007, ARG001
-    comment: str = "",  # noqa: ARG001
+    surface: ZernikeStandardPhaseSurface,
+    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    comment: str = "",
 ) -> OptilandSurface:
     raise NotImplementedError(
         "ZernikeStandardPhaseSurface is not supported in Optiland."

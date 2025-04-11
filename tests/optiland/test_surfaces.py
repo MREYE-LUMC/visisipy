@@ -15,7 +15,7 @@ from visisipy.optiland.surfaces import (
 )
 
 if TYPE_CHECKING:
-    import optiland.surfaces  # noqa: TCH004
+    import optiland.surfaces  # noqa: TC004
     from optiland.optic import Optic
 
 

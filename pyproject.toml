@@ -33,6 +33,7 @@ python = "3.12"
 
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "ruff_defaults.toml"
+dependencies = ["ruff==0.11.5"]
 
 [[tool.hatch.envs.hatch-test.matrix]]
 python = ["3.9", "3.10", "3.11", "3.12"]
@@ -56,6 +57,7 @@ extend = "ruff_defaults.toml"
 line-length = 120
 
 [tool.ruff.lint]
+preview = true
 extend-ignore = [
     "B028",
     "TRY003", # Avoid specifying long messages outside the exception class
@@ -65,7 +67,7 @@ extend-ignore = [
 
 [tool.ruff.lint.extend-per-file-ignores]
 "examples/*" = ["INP001"]
-"tests/*" = ["ARG001", "ARG002", "FBT001"]
+"tests/*" = ["ARG001", "ARG002", "FBT001", "PLC2701"]
 "tests/opticstudio/*" = ["SLF001"]
 "tests/optiland/*" = ["SLF001"]
 

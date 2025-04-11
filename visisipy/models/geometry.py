@@ -10,11 +10,11 @@ import numpy as np
 from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
-    "Surface",
-    "StandardSurface",
-    "Stop",
     "EyeGeometry",
     "NavarroGeometry",
+    "StandardSurface",
+    "Stop",
+    "Surface",
     "create_geometry",
 )
 
@@ -450,12 +450,12 @@ def _calculate_vitreous_thickness(
     )
     _lens_thickness = geometry.lens_thickness if lens_thickness is None else lens_thickness
 
-    if None in (
+    if None in {
         _axial_length,
         _cornea_thickness,
         _anterior_chamber_depth,
         _lens_thickness,
-    ):
+    }:
         raise ValueError("Cannot calculate vitreous thickness from the supplied parameters.")
 
     return _axial_length - (_cornea_thickness + _anterior_chamber_depth + _lens_thickness)

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-__all__ = ("MaterialModel", "EyeMaterials", "NavarroMaterials")
+__all__ = ("EyeMaterials", "MaterialModel", "NavarroMaterials")
 
 from typing import Callable
 

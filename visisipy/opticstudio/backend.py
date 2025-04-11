@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from visisipy import EyeModel
 
 
-__all__ = ("OpticStudioSettings", "OpticStudioBackend")
+__all__ = ("OpticStudioBackend", "OpticStudioSettings")
 
 
 RayAimingType = Literal["off", "paraxial", "real"]

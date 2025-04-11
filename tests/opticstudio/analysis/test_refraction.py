@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from tests.helpers import build_args
@@ -37,7 +39,7 @@ class TestRefractionAnalysis:
             (None, None, None, None, None, None),
             ((0, 0), 0.543, None, None, None, None),
             ((1, 1), 0.632, 64, None, None, None),
-            ((3.14, 6.28), 0.543, "64x64", 0.5, None, None),
+            ((math.pi, math.tau), 0.543, "64x64", 0.5, None, None),
             ((0, 0), 0.543, "64x64", 0.5, "angle", None),
             pytest.param((1, 1), 0.632, SampleSize(32), 0.5, "object_height", None, marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height")),
             ((0, 0), 0.543, "32x32", 0.5, "angle", True),

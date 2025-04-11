@@ -19,7 +19,7 @@ from typing import (
 )
 from warnings import warn
 
-if sys.version_info <= (3, 11):
+if sys.version_info < (3, 12):
     from typing_extensions import NotRequired, TypedDict, Unpack
 else:
     from typing import NotRequired, TypedDict, Unpack
@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from visisipy.types import SampleSize
     from visisipy.wavefront import ZernikeCoefficients
 
-__all__ = ("Backend", "set_backend", "get_backend", "get_oss", "TypedDict", "Unpack")
+__all__ = ("Backend", "TypedDict", "Unpack", "get_backend", "get_oss", "set_backend")
 
 
 _BACKEND: type[BaseBackend] | None = None
@@ -182,7 +182,7 @@ class BaseBackend(ABC):
         if not str(filename).endswith(".json"):
             raise ValueError("Settings file must have a '.json' extension.")
 
-        Path(filename).write_text(json.dumps(cls.settings, indent=4, sort_keys=True))
+        Path(filename).write_text(json.dumps(cls.settings, indent=4, sort_keys=True), encoding="utf-8")
 
 
 class Backend(str, Enum):
@@ -220,12 +220,12 @@ def set_backend(
         )
 
     if backend == Backend.OPTICSTUDIO:
-        from visisipy.opticstudio import OpticStudioBackend
+        from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
         _BACKEND = OpticStudioBackend
         _BACKEND.initialize(settings=settings)
     elif backend == Backend.OPTILAND:
-        from visisipy.optiland import OptilandBackend
+        from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
         _BACKEND = OptilandBackend
         _BACKEND.initialize(settings=settings)
@@ -258,7 +258,7 @@ def get_oss() -> OpticStudioSystem | None:
     OpticStudioSystem | None
         The OpticStudioSystem instance if the current backend is the OpticStudio backend, otherwise `None`.
     """
-    from visisipy.opticstudio import OpticStudioBackend
+    from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
     if _BACKEND is OpticStudioBackend:
         return OpticStudioBackend.oss
@@ -275,7 +275,7 @@ def get_optic() -> Optic | None:
     Optic
         The Optic instance if the current backend is the Optiland backend, otherwise `None`.
     """
-    from visisipy.optiland import OptilandBackend
+    from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
     if _BACKEND is OptilandBackend:
         return OptilandBackend.optic

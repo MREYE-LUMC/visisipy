@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
@@ -71,7 +72,7 @@ class TestOptilandBackend:
                 does_not_raise(),
             ),
             (
-                [(3.14, 4.15), (-12, 1)],
+                [(math.pi, 4.15), (-12, 1)],
                 "object_height",
                 does_not_raise(),
             ),

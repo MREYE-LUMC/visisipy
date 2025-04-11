@@ -25,5 +25,3 @@ class OptilandAnalysisRegistry(BaseAnalysisRegistry):
     raytrace = _AnalysisMethod(raytrace)
     zernike_standard_coefficients = _AnalysisMethod(zernike_standard_coefficients)
     refraction = _AnalysisMethod(refraction)
-
-

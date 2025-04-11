@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from visisipy import EyeModel
     from visisipy.backend import BaseBackend
 
-__all__ = ("cardinal_points", "CardinalPoints", "CardinalPointsResult")
+__all__ = ("CardinalPoints", "CardinalPointsResult", "cardinal_points")
 
 
 class CardinalPoints(NamedTuple):

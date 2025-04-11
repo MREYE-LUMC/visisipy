@@ -35,7 +35,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 def detect_opticstudio() -> bool:
-    import zospy as zp
+    import zospy as zp  # noqa: PLC0415
 
     opticstudio_available: bool = False
 

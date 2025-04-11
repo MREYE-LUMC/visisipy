@@ -199,4 +199,3 @@ class TestOptilandEye:
         assert optiland_eye.lens_front.comment != "new comment"
         assert optiland_eye.lens_back.comment == "new comment"
         assert optiland_eye.retina.comment != "new comment"
-

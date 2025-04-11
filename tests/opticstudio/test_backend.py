@@ -1,3 +1,4 @@
+import math
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
@@ -91,7 +92,7 @@ class TestOpticStudioBackend:
                 does_not_raise(),
             ),
             (
-                [(3.14, 4.15), (-12, 1)],
+                [(math.pi, 4.15), (-12, 1)],
                 "object_height",
                 "ObjectHeight",
                 does_not_raise(),

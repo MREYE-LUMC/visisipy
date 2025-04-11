@@ -41,7 +41,7 @@ class TestOptilandCardinalPointsResult:
         )
 
         assert result.focal_lengths == CardinalPoints(0, 0)
-        assert result.focal_points  == CardinalPoints(0, 0)
+        assert result.focal_points == CardinalPoints(0, 0)
         assert result.principal_points == CardinalPoints(0, 0)
         assert result.nodal_points == CardinalPoints(0, 0)
         assert result.anti_principal_points is NotImplemented

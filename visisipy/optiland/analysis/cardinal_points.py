@@ -72,7 +72,7 @@ def cardinal_points(
         If `surface_1` or `surface_2` are not between 1 and the number of surfaces in the system, or if `surface_1`
         is greater than or equal to `surface_2`.
     """
-    if (surface_1 is not None and surface_1 not in (0, 1)) or (
+    if (surface_1 is not None and surface_1 not in {0, 1}) or (
         surface_2 is not None
         and surface_2 != backend.get_optic().surface_group.num_surfaces - 1
     ):

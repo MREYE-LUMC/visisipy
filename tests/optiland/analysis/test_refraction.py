@@ -1,3 +1,4 @@
+import math
 from types import MethodType, SimpleNamespace
 
 import pytest
@@ -50,7 +51,7 @@ class TestRefractionAnalysis:
             (None, None, None, None, None, None),
             ((0, 0), 0.543, None, None, None, None),
             ((1, 1), 0.632, 64, None, None, None),
-            ((3.14, 6.28), 0.543, "64x64", 0.5, None, None),
+            ((math.pi, math.tau), 0.543, "64x64", 0.5, None, None),
             ((0, 0), 0.543, "64x64", 0.5, "angle", None),
             pytest.param(
                 (1, 1),
