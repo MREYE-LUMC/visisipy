@@ -129,9 +129,8 @@ class OptilandBackend(BaseBackend):
 
     @classmethod
     def set_aperture(cls):
-        from warnings import warn
 
-        warn(cls.settings["aperture_type"])
+        # warn(cls.settings["aperture_type"])
 
         if cls.settings["aperture_type"] not in OPTILAND_APERTURES:
             raise ValueError(

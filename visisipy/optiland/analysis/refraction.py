@@ -31,7 +31,7 @@ def refraction(
     old_aperture = None
     if pupil_diameter is not None:
         old_aperture = backend.get_optic().aperture
-        backend.model.pupil.surface.semi_aperture = pupil_diameter / 2
+        backend.model.pupil.surface.set_semi_aperture(pupil_diameter / 2)
 
     zernike_coefficients, zernike_opd = zernike_standard_coefficients(
         backend=backend,
