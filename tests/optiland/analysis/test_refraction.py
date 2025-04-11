@@ -38,9 +38,7 @@ def patch_surface(surface: Surface, monkeypatch):
         self.changed_semi_aperture = True
         self.semi_aperture = a
 
-    monkeypatch.setattr(
-        surface, "set_semi_aperture", MethodType(set_semi_aperture, Surface)
-    )
+    monkeypatch.setattr(surface, "set_semi_aperture", MethodType(set_semi_aperture, Surface))
     monkeypatch.setattr(surface, "changed_semi_aperture", False, raising=False)
 
 
@@ -60,9 +58,7 @@ class TestRefractionAnalysis:
                 0.5,
                 "object_height",
                 None,
-                marks=pytest.mark.xfail(
-                    reason="Finite object distances are not yet supported"
-                ),
+                marks=pytest.mark.xfail(reason="Finite object distances are not yet supported"),
             ),
             ((0, 0), 0.543, "32x32", 0.5, "angle", True),
             pytest.param(
@@ -72,9 +68,7 @@ class TestRefractionAnalysis:
                 0.5,
                 "object_height",
                 False,
-                marks=pytest.mark.xfail(
-                    reason="Finite object distances are not yet supported"
-                ),
+                marks=pytest.mark.xfail(reason="Finite object distances are not yet supported"),
             ),
         ],
     )

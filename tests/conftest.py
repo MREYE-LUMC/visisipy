@@ -74,6 +74,7 @@ def skip_opticstudio(request, opticstudio_available):
     if request.node.get_closest_marker("needs_opticstudio") and not opticstudio_available:
         pytest.skip("OpticStudio is not available.")
 
+
 @pytest.fixture
 def eye_model():
     geometry = EyeGeometry(

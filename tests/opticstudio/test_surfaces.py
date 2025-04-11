@@ -315,7 +315,7 @@ class TestBaseOpticStudioZernikeSurface:
             (
                 4,
                 {1: 1.234, 2: 3.456},
-                pytest.raises(ValueError, match="Zernike coefficient must be smaller than the " "maximum term 3"),
+                pytest.raises(ValueError, match="Zernike coefficient must be smaller than the maximum term 3"),
             ),
             (0, {1: 1.234, 2: 3.456}, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
         ],

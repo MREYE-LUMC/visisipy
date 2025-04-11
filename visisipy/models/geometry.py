@@ -100,7 +100,7 @@ class StandardSurface(Surface):
             )
 
         raise NotImplementedError(
-            f"Half axes are only defined for ellipses (asphericity > -1), " f"got {self.asphericity=}"
+            f"Half axes are only defined for ellipses (asphericity > -1), got {self.asphericity=}"
         )
 
 

@@ -18,9 +18,7 @@ class TestZernikeStandardCoefficientsAnalysis:
                 "object_height",
                 64,
                 None,
-                marks=pytest.mark.xfail(
-                    reason="Finite object distances are not yet supported"
-                ),
+                marks=pytest.mark.xfail(reason="Finite object distances are not yet supported"),
             ),
             ((0, 0), 0.543, "angle", SampleSize(64), 45),
             ((1, 1), 0.632, "angle", "64x64", 100),
@@ -52,8 +50,6 @@ class TestZernikeStandardCoefficientsAnalysis:
     def test_zernike_standard_coefficients_maximum_term(self, optiland_backend, optiland_analysis):
         optiland_backend.build_model(EyeModel())
 
-        coefficients, _ = optiland_analysis.zernike_standard_coefficients(
-            maximum_term=20
-        )
+        coefficients, _ = optiland_analysis.zernike_standard_coefficients(maximum_term=20)
 
         assert coefficients[21] == 0

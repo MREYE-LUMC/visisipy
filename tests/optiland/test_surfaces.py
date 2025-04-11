@@ -104,9 +104,7 @@ class TestBuiltOnlyProperty:
         """Test setting a property before it is built."""
         mock_surface = self.MockOptilandSurface(self.MockSurface)
 
-        with pytest.raises(
-            AttributeError, match="Cannot set attribute of non-built surface"
-        ):
+        with pytest.raises(AttributeError, match="Cannot set attribute of non-built surface"):
             mock_surface.comment = "New comment"
 
 
@@ -162,9 +160,7 @@ class TestOptilandSurface:
         assert surface.is_stop == bool(is_stop)
 
     def test_build_ideal_material(self, optic: Optic):
-        material = MaterialModel(
-            refractive_index=1.5, abbe_number=0.0, partial_dispersion=0.0
-        )
+        material = MaterialModel(refractive_index=1.5, abbe_number=0.0, partial_dispersion=0.0)
         surface = OptilandSurface(
             comment="Test surface",
             radius=1.0,
@@ -178,16 +174,12 @@ class TestOptilandSurface:
         build_surface(optic, surface)
 
         assert surface.material == material
-        assert isinstance(
-            surface.surface.material_post, optiland.materials.IdealMaterial
-        )
+        assert isinstance(surface.surface.material_post, optiland.materials.IdealMaterial)
         assert surface.surface.material_post.index == material.refractive_index
         assert surface.surface.material_post.k(0.543) == 0
 
     def test_build_abbe_material(self, optic: Optic):
-        material = MaterialModel(
-            refractive_index=1.5, abbe_number=50.0, partial_dispersion=0.0
-        )
+        material = MaterialModel(refractive_index=1.5, abbe_number=50.0, partial_dispersion=0.0)
         surface = OptilandSurface(
             comment="Test surface",
             radius=1.0,
@@ -201,9 +193,7 @@ class TestOptilandSurface:
         build_surface(optic, surface)
 
         assert surface.material == material
-        assert isinstance(
-            surface.surface.material_post, optiland.materials.AbbeMaterial
-        )
+        assert isinstance(surface.surface.material_post, optiland.materials.AbbeMaterial)
         assert surface.surface.material_post.index == material.refractive_index
         assert surface.surface.material_post.abbe == material.abbe_number
 
@@ -226,14 +216,9 @@ class TestOptilandSurface:
         assert surface.surface.material_post.name == material
 
     def test_set_material_incorrect_type_raises_typeerror(self, optic: Optic):
-        surface = OptilandSurface(
-                    comment="Test surface",
-                    material=123
-                )
+        surface = OptilandSurface(comment="Test surface", material=123)
 
-        with pytest.raises(
-            TypeError, match="'material' must be MaterialModel or str"
-        ):
+        with pytest.raises(TypeError, match="'material' must be MaterialModel or str"):
             build_surface(optic, surface)
 
 

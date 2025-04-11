@@ -13,7 +13,13 @@ class TestCardinalPointsAnalysis:
         [
             (None, None, does_not_raise()),
             (1, 6, does_not_raise()),
-            (2, 4, pytest.raises(ValueError, match="Optiland only supports calculating cardinal points for the entire system")),
+            (
+                2,
+                4,
+                pytest.raises(
+                    ValueError, match="Optiland only supports calculating cardinal points for the entire system"
+                ),
+            ),
             (
                 -1,
                 7,

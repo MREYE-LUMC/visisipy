@@ -19,9 +19,7 @@ class TestZernikeStandardCoefficientsAnalysis:
                 "object_height",
                 64,
                 None,
-                marks=pytest.mark.xfail(
-                    reason="ZOSPy cannot parse Zernike results when field_type is object_height"
-                ),
+                marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
             ),
             ((0, 0), 0.543, "angle", SampleSize(64), 45),
             ((1, 1), 0.632, "angle", "64x64", 100),
@@ -48,8 +46,6 @@ class TestZernikeStandardCoefficientsAnalysis:
         assert opticstudio_analysis.zernike_standard_coefficients(**args)
 
     def test_zernike_standard_coefficients_maximum_term(self, opticstudio_analysis):
-        coefficients, _ = opticstudio_analysis.zernike_standard_coefficients(
-            maximum_term=20
-        )
+        coefficients, _ = opticstudio_analysis.zernike_standard_coefficients(maximum_term=20)
 
         assert coefficients[21] == 0

@@ -27,14 +27,16 @@ def _trace_single_ray(
     z = optic.surface_group.z
     surface_numbers = range(optic.surface_group.num_surfaces)
 
-    return pd.DataFrame({
-        "wavelength": [wavelength] * len(x),
-        "surface": surface_numbers,
-        "comment": [None] * len(x),
-        "x": x[:, 0],
-        "y": y[:, 0],
-        "z": z[:, 0],
-    })
+    return pd.DataFrame(
+        {
+            "wavelength": [wavelength] * len(x),
+            "surface": surface_numbers,
+            "comment": [None] * len(x),
+            "x": x[:, 0],
+            "y": y[:, 0],
+            "z": z[:, 0],
+        }
+    )
 
 
 def raytrace(
@@ -95,12 +97,8 @@ def raytrace(
     normalized_fields = backend.get_optic().fields.get_field_coords()
 
     for _, wavelength in backend.iter_wavelengths():
-        for (_, field), normalized_field in zip(
-            backend.iter_fields(), normalized_fields
-        ):
-            result = _trace_single_ray(
-                backend.get_optic(), normalized_field, pupil, wavelength
-            )
+        for (_, field), normalized_field in zip(backend.iter_fields(), normalized_fields):
+            result = _trace_single_ray(backend.get_optic(), normalized_field, pupil, wavelength)
             result.insert(0, "field", [field] * len(result))
             raytrace_results.append(result)
 

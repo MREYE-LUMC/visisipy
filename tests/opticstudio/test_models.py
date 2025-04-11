@@ -6,6 +6,7 @@ from visisipy.opticstudio import OpticStudioEye
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
+
 class TestOpticStudioEye:
     def test_init(self, new_oss, eye_model):
         opticstudio_eye = OpticStudioEye(eye_model)

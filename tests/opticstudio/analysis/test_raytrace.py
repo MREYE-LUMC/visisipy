@@ -22,27 +22,21 @@ class TestRayTraceAnalysis:
                 "object_height",
                 (1, 0),
                 does_not_raise(),
-                marks=pytest.mark.xfail(
-                    reason="ZOSPy cannot parse ray trace results when field_type is object_height"
-                ),
+                marks=pytest.mark.xfail(reason="ZOSPy cannot parse ray trace results when field_type is object_height"),
             ),
             (
                 [(0, 0), (1, 1)],
                 [0.543],
                 "angle",
                 (2, 0),
-                pytest.raises(
-                    ValueError, match="Pupil coordinates must be between -1 and 1"
-                ),
+                pytest.raises(ValueError, match="Pupil coordinates must be between -1 and 1"),
             ),
             (
                 [(0, 0), (1, 1)],
                 [0.543, 0.600],
                 "angle",
                 (0, 2),
-                pytest.raises(
-                    ValueError, match="Pupil coordinates must be between -1 and 1"
-                ),
+                pytest.raises(ValueError, match="Pupil coordinates must be between -1 and 1"),
             ),
         ],
     )

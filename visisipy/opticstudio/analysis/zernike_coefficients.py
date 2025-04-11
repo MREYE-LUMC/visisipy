@@ -12,16 +12,11 @@ if TYPE_CHECKING:
     from visisipy.opticstudio.backend import OpticStudioBackend
 
 
-def _get_zernike_coefficient(
-    zernike_result: zp.analyses.base.AttrDict, coefficient: int
-) -> float:
+def _get_zernike_coefficient(zernike_result: zp.analyses.base.AttrDict, coefficient: int) -> float:
     return zernike_result.Data.Coefficients.loc["Z" + str(coefficient)].Value
 
 
-def _build_zernike_result(
-    zernike_result: zp.analyses.base.AttrDict,
-    maximum_term: int
-) -> ZernikeCoefficients:
+def _build_zernike_result(zernike_result: zp.analyses.base.AttrDict, maximum_term: int) -> ZernikeCoefficients:
     return ZernikeCoefficients({i: _get_zernike_coefficient(zernike_result, i) for i in range(1, maximum_term + 1)})
 
 

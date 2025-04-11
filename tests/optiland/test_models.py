@@ -22,29 +22,17 @@ class TestOptilandEye:
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.build(optic)
 
-        assert optic.surface_group.get_thickness(1) == pytest.approx(
-            eye_model.geometry.cornea_front.thickness
-        )
-        assert optic.surface_group.radii[1] == pytest.approx(
-            eye_model.geometry.cornea_front.radius
-        )
-        assert optic.surface_group.conic[1] == pytest.approx(
-            eye_model.geometry.cornea_front.asphericity
-        )
+        assert optic.surface_group.get_thickness(1) == pytest.approx(eye_model.geometry.cornea_front.thickness)
+        assert optic.surface_group.radii[1] == pytest.approx(eye_model.geometry.cornea_front.radius)
+        assert optic.surface_group.conic[1] == pytest.approx(eye_model.geometry.cornea_front.asphericity)
 
     def test_build_cornea_back(self, optic: Optic, eye_model: EyeModel):
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.build(optic)
 
-        assert optic.surface_group.get_thickness(2) == pytest.approx(
-            eye_model.geometry.cornea_back.thickness
-        )
-        assert optic.surface_group.radii[2] == pytest.approx(
-            eye_model.geometry.cornea_back.radius
-        )
-        assert optic.surface_group.conic[2] == pytest.approx(
-            eye_model.geometry.cornea_back.asphericity
-        )
+        assert optic.surface_group.get_thickness(2) == pytest.approx(eye_model.geometry.cornea_back.thickness)
+        assert optic.surface_group.radii[2] == pytest.approx(eye_model.geometry.cornea_back.radius)
+        assert optic.surface_group.conic[2] == pytest.approx(eye_model.geometry.cornea_back.asphericity)
 
     def test_build_pupil(self, optic: Optic, eye_model: EyeModel):
         optiland_eye = OptilandEye(eye_model)
@@ -59,65 +47,41 @@ class TestOptilandEye:
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.build(optic)
 
-        assert optic.surface_group.get_thickness(4) == pytest.approx(
-            eye_model.geometry.lens_front.thickness
-        )
-        assert optic.surface_group.radii[4] == pytest.approx(
-            eye_model.geometry.lens_front.radius
-        )
-        assert optic.surface_group.conic[4] == pytest.approx(
-            eye_model.geometry.lens_front.asphericity
-        )
+        assert optic.surface_group.get_thickness(4) == pytest.approx(eye_model.geometry.lens_front.thickness)
+        assert optic.surface_group.radii[4] == pytest.approx(eye_model.geometry.lens_front.radius)
+        assert optic.surface_group.conic[4] == pytest.approx(eye_model.geometry.lens_front.asphericity)
 
     def test_build_lens_back(self, optic: Optic, eye_model: EyeModel):
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.build(optic)
 
-        assert optic.surface_group.get_thickness(5) == pytest.approx(
-            eye_model.geometry.lens_back.thickness
-        )
-        assert optic.surface_group.radii[5] == pytest.approx(
-            eye_model.geometry.lens_back.radius
-        )
-        assert optic.surface_group.conic[5] == pytest.approx(
-            eye_model.geometry.lens_back.asphericity
-        )
+        assert optic.surface_group.get_thickness(5) == pytest.approx(eye_model.geometry.lens_back.thickness)
+        assert optic.surface_group.radii[5] == pytest.approx(eye_model.geometry.lens_back.radius)
+        assert optic.surface_group.conic[5] == pytest.approx(eye_model.geometry.lens_back.asphericity)
 
     def test_build_retina(self, optic: Optic, eye_model: EyeModel):
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.build(optic)
 
-        assert optic.surface_group.radii[6] == pytest.approx(
-            eye_model.geometry.retina.radius
-        )
-        assert optic.surface_group.conic[6] == pytest.approx(
-            eye_model.geometry.retina.asphericity
-        )
+        assert optic.surface_group.radii[6] == pytest.approx(eye_model.geometry.retina.radius)
+        assert optic.surface_group.conic[6] == pytest.approx(eye_model.geometry.retina.asphericity)
         assert optic.image_surface == optiland_eye.retina.surface
 
-    def test_build_pupil_not_stop_raises_valueerror(
-        self, optic: Optic, eye_model: EyeModel
-    ):
+    def test_build_pupil_not_stop_raises_valueerror(self, optic: Optic, eye_model: EyeModel):
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.lens_front._is_stop = True
 
-        with pytest.raises(
-            ValueError, match="The pupil is not located at the stop position"
-        ):
+        with pytest.raises(ValueError, match="The pupil is not located at the stop position"):
             optiland_eye.build(optic)
 
-    def test_build_retina_not_image_raises_valueerror(
-        self, optic: Optic, eye_model: EyeModel
-    ):
+    def test_build_retina_not_image_raises_valueerror(self, optic: Optic, eye_model: EyeModel):
         optiland_eye = OptilandEye(eye_model)
 
         # Surfaces are inserted before an existing surface if a surface is already present at the specified index.
         optic.add_surface(index=0, comment="Dummy 1")
         optic.add_surface(index=0, comment="Dummy 2")
 
-        with pytest.raises(
-            ValueError, match="The retina is not located at the image position"
-        ):
+        with pytest.raises(ValueError, match="The retina is not located at the image position"):
             optiland_eye.build(optic)
 
     def test_get_cornea_front_comment(self, optic: Optic, eye_model: EyeModel):
@@ -189,9 +153,7 @@ class TestOptilandEye:
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.build(optic)
 
-        optiland_eye.update_surfaces(
-            "comment", "new comment", surface_names=["cornea_front", "lens_back"]
-        )
+        optiland_eye.update_surfaces("comment", "new comment", surface_names=["cornea_front", "lens_back"])
 
         assert optiland_eye.cornea_front.comment == "new comment"
         assert optiland_eye.cornea_back.comment != "new comment"

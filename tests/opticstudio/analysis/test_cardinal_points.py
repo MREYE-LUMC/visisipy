@@ -6,6 +6,7 @@ from visisipy.models import EyeModel
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
+
 class TestCardinalPointsAnalysis:
     @pytest.mark.parametrize(
         "surface_1,surface_2,expectation",

@@ -41,9 +41,25 @@ class TestRefractionAnalysis:
             ((1, 1), 0.632, 64, None, None, None),
             ((math.pi, math.tau), 0.543, "64x64", 0.5, None, None),
             ((0, 0), 0.543, "64x64", 0.5, "angle", None),
-            pytest.param((1, 1), 0.632, SampleSize(32), 0.5, "object_height", None, marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height")),
+            pytest.param(
+                (1, 1),
+                0.632,
+                SampleSize(32),
+                0.5,
+                "object_height",
+                None,
+                marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
+            ),
             ((0, 0), 0.543, "32x32", 0.5, "angle", True),
-            pytest.param((1, 1), 0.632, "64x64", 0.5, "object_height", False, marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height")),
+            pytest.param(
+                (1, 1),
+                0.632,
+                "64x64",
+                0.5,
+                "object_height",
+                False,
+                marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
+            ),
         ],
     )
     def test_refraction(
@@ -57,9 +73,7 @@ class TestRefractionAnalysis:
         opticstudio_analysis,
         monkeypatch,
     ):
-        monkeypatch.setattr(
-            opticstudio_analysis.backend, "model", MockOpticstudioModel()
-        )
+        monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -80,19 +94,12 @@ class TestRefractionAnalysis:
             (0.5, True),
         ],
     )
-    def test_refraction_change_pupil(
-        self, opticstudio_analysis, pupil_diameter, changed_pupil_diameter, monkeypatch
-    ):
-        monkeypatch.setattr(
-            opticstudio_analysis.backend, "model", MockOpticstudioModel()
-        )
+    def test_refraction_change_pupil(self, opticstudio_analysis, pupil_diameter, changed_pupil_diameter, monkeypatch):
+        monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
 
         assert not opticstudio_analysis.backend.model.pupil.changed_semi_diameter
 
         opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)
 
-        assert (
-            opticstudio_analysis.backend.model.pupil.changed_semi_diameter
-            == changed_pupil_diameter
-        )
+        assert opticstudio_analysis.backend.model.pupil.changed_semi_diameter == changed_pupil_diameter
         assert opticstudio_analysis.backend.model.pupil.semi_diameter == 1.0

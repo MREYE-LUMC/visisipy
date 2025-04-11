@@ -80,9 +80,7 @@ class OptilandBackend(BaseBackend):
         cls.update_settings()
 
     @classmethod
-    def build_model(
-        cls, model: EyeModel, *, replace_existing: bool = False, **kwargs
-    ) -> OptilandEye:
+    def build_model(cls, model: EyeModel, *, replace_existing: bool = False, **kwargs) -> OptilandEye:
         if not replace_existing and cls.model is not None:
             cls.new_model()
 
@@ -122,15 +120,12 @@ class OptilandBackend(BaseBackend):
             If the optic object is not initialized.
         """
         if cls.optic is None:
-            raise RuntimeError(
-                "No optic object initialized. Please initialize the backend first."
-            )
+            raise RuntimeError("No optic object initialized. Please initialize the backend first.")
 
         return cast(Optic, cls.optic)
 
     @classmethod
     def set_aperture(cls):
-
         # warn(cls.settings["aperture_type"])
 
         if cls.settings["aperture_type"] not in OPTILAND_APERTURES:
@@ -167,9 +162,7 @@ class OptilandBackend(BaseBackend):
         field_type: Literal["angle", "object_height"] = "angle",
     ):
         if field_type not in {"angle", "object_height"}:
-            raise ValueError(
-                "field_type must be either 'angle' or 'object_height'."
-            )
+            raise ValueError("field_type must be either 'angle' or 'object_height'.")
 
         # Remove all fields
         cls.get_optic().fields.fields.clear()
