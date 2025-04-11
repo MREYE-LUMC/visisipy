@@ -166,6 +166,11 @@ class OptilandBackend(BaseBackend):
         coordinates: Iterable[tuple[float, float]],
         field_type: Literal["angle", "object_height"] = "angle",
     ):
+        if field_type not in {"angle", "object_height"}:
+            raise ValueError(
+                "field_type must be either 'angle' or 'object_height'."
+            )
+
         # Remove all fields
         cls.get_optic().fields.fields.clear()
 

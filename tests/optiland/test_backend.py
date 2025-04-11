@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
@@ -7,14 +9,125 @@ from optiland.fields import FieldGroup
 from visisipy.optiland.backend import OptilandBackend
 
 if TYPE_CHECKING:
+    from visisipy import EyeModel
     from visisipy.backend import BackendSettings
 
 
 
 class TestOptilandBackend:
-    def test_initialize_optiland(self, optiland_backend):
+    def test_initialize_optiland(self, optiland_backend: OptilandBackend):
         assert optiland_backend.optic is not None
         assert optiland_backend.model is None
+
+    def test_new_model(self, optiland_backend: OptilandBackend):
+        # Change a setting and add a new surface
+        optiland_backend.get_optic().add_field(10, 10)
+        optiland_backend.get_optic().add_surface(index=0)
+
+        assert optiland_backend.get_optic().surface_group.num_surfaces == 1
+
+        optiland_backend.new_model(save_old_model=False)
+
+        assert optiland_backend.get_optic().surface_group.num_surfaces == 0
+        assert optiland_backend.get_optic().fields.num_fields == 1
+
+    def test_build_model(self, optiland_backend: OptilandBackend, eye_model: EyeModel):
+        optiland_backend.build_model(eye_model)
+
+        assert optiland_backend.model is not None
+        assert optiland_backend.model.eye_model == eye_model
+        assert optiland_backend.get_optic().surface_group.num_surfaces == 7
+
+    def test_clear_model(self, optiland_backend: OptilandBackend, eye_model: EyeModel):
+        optiland_backend.build_model(eye_model)
+        assert optiland_backend.model is not None
+        assert optiland_backend.get_optic().surface_group.num_surfaces == 7
+
+        optiland_backend.clear_model()
+
+        assert optiland_backend.model is None
+        assert optiland_backend.optic is None
+
+    def test_save_model(self, optiland_backend: OptilandBackend, eye_model, tmp_path):
+        optiland_backend.build_model(eye_model)
+
+        filename = tmp_path / "test_model.json"
+        optiland_backend.save_model(filename=filename)
+
+        assert filename.exists()
+
+    def test_save_model_invalid_filename_raises_valueerror(
+        self, optiland_backend: OptilandBackend
+    ):
+        with pytest.raises(ValueError, match=r"filename must end in \.json"):
+            optiland_backend.save_model(filename="invalid_path/test_model.zmx")
+
+    @pytest.mark.parametrize(
+        "coordinates,field_type,expectation",
+        [
+            ([(10, 10)], "angle", does_not_raise()),
+            (
+                [(0, 0), (0, 10), (-10, 0), (10, -10)],
+                "angle",
+                does_not_raise(),
+            ),
+            (
+                [(3.14, 4.15), (-12, 1)],
+                "object_height",
+                does_not_raise(),
+            ),
+            (
+                [(0, 0)],
+                "invalid",
+                pytest.raises(
+                    ValueError,
+                    match="field_type must be either 'angle' or 'object_height'",
+                ),
+            ),
+        ],
+    )
+    def test_set_fields(self, coordinates, field_type, expectation, optiland_backend: OptilandBackend):
+        with expectation:
+            optiland_backend.set_fields(coordinates, field_type)
+
+            assert optiland_backend.get_optic().fields.num_fields == len(coordinates)
+            for coordinate, field in zip(coordinates, optiland_backend.get_optic().fields.fields):
+                assert coordinate == (field.x, field.y)
+
+            assert all(f.field_type == field_type for f in optiland_backend.get_optic().fields.fields)
+
+    def test_get_fields(self, optiland_backend: OptilandBackend):
+        coordinates = [(10, 10), (20, 20)]
+        field_type = "angle"
+
+        optiland_backend.get_optic().fields.fields.clear()
+        optiland_backend.get_optic().set_field_type(field_type)
+
+        for coordinate in coordinates:
+            optiland_backend.get_optic().add_field(coordinate[0], coordinate[1])
+
+        assert optiland_backend.get_fields() == coordinates
+
+
+    def test_set_wavelengths(self, optiland_backend: OptilandBackend):
+        wavelengths = [0.543, 0.650, 0.450]
+
+        optiland_backend.set_wavelengths(wavelengths)
+
+        assert optiland_backend.get_optic().wavelengths.num_wavelengths == len(wavelengths)
+        assert all(
+            w.value == e for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths)
+        )
+
+    def test_get_wavelengths(self, optiland_backend: OptilandBackend):
+        wavelengths = [0.543, 0.650, 0.450]
+
+        optiland_backend.get_optic().wavelengths.wavelengths.clear()
+
+        for wavelength in wavelengths:
+            optiland_backend.get_optic().add_wavelength(wavelength)
+
+        assert optiland_backend.get_wavelengths() == wavelengths
 
 
 class TestOptilandBackendSettings:
