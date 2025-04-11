@@ -667,7 +667,7 @@ select = [
 ban-relative-imports = "all"
 
 [lint.isort]
-known-first-party = ["pyrot"]
+known-first-party = ["visisipy"]
 
 [lint.flake8-pytest-style]
 fixture-parentheses = false
