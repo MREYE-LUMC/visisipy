@@ -4,14 +4,13 @@ from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
 import pytest
-from optiland.fields import FieldGroup
-
-from visisipy.optiland.backend import OptilandBackend
 
 if TYPE_CHECKING:
+    from optiland.fields import FieldGroup
+
     from visisipy import EyeModel
     from visisipy.backend import BackendSettings
-
+    from visisipy.optiland.backend import OptilandBackend
 
 
 class TestOptilandBackend:
