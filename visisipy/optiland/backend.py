@@ -120,9 +120,7 @@ class OptilandBackend(BaseBackend):
             If the optic object is not initialized.
         """
         if cls.optic is None:
-            raise RuntimeError(
-                "No optic object initialized. Please initialize the backend first."
-            )
+            raise RuntimeError("No optic object initialized. Please initialize the backend first.")
 
         return cast(Optic, cls.optic)
 

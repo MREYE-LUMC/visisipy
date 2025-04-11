@@ -248,9 +248,7 @@ class OptilandSurface(BaseSurface):
 
 
 @singledispatch
-def make_surface(
-    surface: Surface, material: str | MaterialModel, comment: str = ""
-) -> OptilandSurface:
+def make_surface(surface: Surface, material: str | MaterialModel, comment: str = "") -> OptilandSurface:
     """Create an `OptilandSurface` instance from a given `Surface` instance.
 
     Parameters
@@ -268,9 +266,7 @@ def make_surface(
     OptilandSurface
         The created OptilandSurface instance.
     """
-    return OptilandSurface(
-        comment=comment, thickness=surface.thickness, material=material
-    )
+    return OptilandSurface(comment=comment, thickness=surface.thickness, material=material)
 
 
 @make_surface.register
@@ -319,6 +315,4 @@ def _make_surface(
     material: Union[str, MaterialModel] = "",  # noqa: UP007
     comment: str = "",
 ) -> OptilandSurface:
-    raise NotImplementedError(
-        "ZernikeStandardPhaseSurface is not supported in Optiland."
-    )
+    raise NotImplementedError("ZernikeStandardPhaseSurface is not supported in Optiland.")
