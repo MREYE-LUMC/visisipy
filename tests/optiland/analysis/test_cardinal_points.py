@@ -24,7 +24,7 @@ class TestCardinalPointsAnalysis:
             ),
         ],
     )
-    def test_cardinal_points(self, optiland_backend, optiland_analysis, surface_1, surface_2, expectation):
+    def test_cardinal_points(self, surface_1, surface_2, expectation, optiland_backend, optiland_analysis):
         optiland_backend.build_model(EyeModel())
 
         with expectation:
