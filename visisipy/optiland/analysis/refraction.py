@@ -41,7 +41,7 @@ def refraction(
         sampling=SampleSize(sampling),
     )
 
-    exit_pupil_semi_diameter = backend.get_optic().paraxial.EPD() / 2
+    exit_pupil_semi_diameter = backend.get_optic().paraxial.XPD() / 2
 
     if old_aperture is not None:
         backend.get_optic().set_aperture(aperture_type=old_aperture.ap_type, value=old_aperture.value)
