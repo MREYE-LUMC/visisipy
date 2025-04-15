@@ -200,8 +200,6 @@ def set_backend(
     ValueError
         If an invalid backend is specified.
     """
-    settings = settings or {}
-
     global _BACKEND  # noqa: PLW0603
 
     if _BACKEND is not None:
