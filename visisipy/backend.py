@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import json
-import sys
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from enum import Enum
 from pathlib import Path
 from types import MethodType
@@ -19,10 +18,7 @@ from typing import (
 )
 from warnings import warn
 
-if sys.version_info < (3, 11):
-    from typing_extensions import NotRequired, TypedDict, Unpack
-else:
-    from typing import NotRequired, TypedDict, Unpack
+from visisipy.types import NotRequired, TypedDict, Unpack
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -38,7 +34,7 @@ if TYPE_CHECKING:
     from visisipy.types import SampleSize
     from visisipy.wavefront import ZernikeCoefficients
 
-__all__ = ("Backend", "TypedDict", "Unpack", "get_backend", "get_oss", "set_backend")
+__all__ = ("Backend", "get_backend", "get_oss", "set_backend")
 
 
 _BACKEND: type[BaseBackend] | None = None
@@ -135,10 +131,10 @@ class BackendSettings(TypedDict, total=False):
     field_type: FieldType
     """The field type to use in the optical system. Must be one of 'angle' or 'object_height'."""
 
-    fields: list[FieldCoordinate]
+    fields: Sequence[FieldCoordinate]
     """List of field coordinates to use in the optical system."""
 
-    wavelengths: list[float]
+    wavelengths: Sequence[float]
     """List of wavelengths to use in the optical system."""
 
     aperture_type: ApertureType
@@ -188,8 +184,7 @@ class Backend(str, Enum):
 
 def set_backend(
     backend: Backend | Literal["opticstudio", "optiland"] = Backend.OPTICSTUDIO,
-    *,
-    settings: BackendSettings | None = None,
+    **settings: Unpack[BackendSettings],
 ) -> None:
     """Set the backend to use for optical simulations.
 
@@ -219,12 +214,12 @@ def set_backend(
         from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
         _BACKEND = OpticStudioBackend
-        _BACKEND.initialize(settings=settings)
+        _BACKEND.initialize(**settings)
     elif backend == Backend.OPTILAND:
         from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
         _BACKEND = OptilandBackend
-        _BACKEND.initialize(settings=settings)
+        _BACKEND.initialize(**settings)
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
@@ -277,3 +272,26 @@ def get_optic() -> Optic | None:
         return OptilandBackend.optic
 
     return None
+
+def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack[BackendSettings]):
+    """
+    Update settings on the current backend.
+
+    Optionally, the backend can be manually specified. By default, the current backend is used.
+
+    Parameters
+    ----------
+    backend : type[BaseBackend] | None
+        The backend to update. If `None`, the current backend is used.
+    **settings : Unpack[BackendSettings]
+        The settings to update. The keys and values should match the backend's configuration schema.
+
+    Raises
+    ------
+    ValueError
+        If the settings are not valid for the current backend.
+    """
+    if backend is None:
+        backend = get_backend()
+
+    backend.update_settings(**settings)
