@@ -15,7 +15,9 @@ maintainers = [
 dependencies = [
     "zospy==1.2.1",
     "matplotlib",
+    "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
+    "optiland>=0.3.0",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
 ]
@@ -31,6 +33,7 @@ python = "3.12"
 
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "ruff_defaults.toml"
+dependencies = ["ruff==0.11.5"]
 
 [[tool.hatch.envs.hatch-test.matrix]]
 python = ["3.9", "3.10", "3.11", "3.12"]
@@ -54,6 +57,7 @@ extend = "ruff_defaults.toml"
 line-length = 120
 
 [tool.ruff.lint]
+preview = true
 extend-ignore = [
     "B028",
     "TRY003", # Avoid specifying long messages outside the exception class
@@ -63,8 +67,12 @@ extend-ignore = [
 
 [tool.ruff.lint.extend-per-file-ignores]
 "examples/*" = ["INP001"]
-"tests/*" = ["ARG001", "ARG002"]
+"tests/*" = ["ARG001", "ARG002", "FBT001", "PLC2701"]
 "tests/opticstudio/*" = ["SLF001"]
+"tests/optiland/*" = ["SLF001"]
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
+
+[tool.uv.sources]
+optiland = { git = "https://github.com/HarrisonKramer/optiland", rev = "master" }

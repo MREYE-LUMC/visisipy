@@ -1,3 +1,4 @@
+import math
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
@@ -91,7 +92,7 @@ class TestOpticStudioBackend:
                 does_not_raise(),
             ),
             (
-                [(3.14, 4.15), (-12, 1)],
+                [(math.pi, 4.15), (-12, 1)],
                 "object_height",
                 "ObjectHeight",
                 does_not_raise(),
@@ -146,7 +147,7 @@ class TestOpticStudioBackendSettings:
             "aperture_value": 3.0,
         }
 
-        opticstudio_backend.update_settings(settings)
+        opticstudio_backend.update_settings(**settings)
 
         assert all(opticstudio_backend.settings[k] == v for k, v in settings.items())
 
@@ -158,7 +159,7 @@ class TestOpticStudioBackendSettings:
         ],
     )
     def test_field(self, field_type, fields, expected_field_type, opticstudio_backend):
-        opticstudio_backend.update_settings({"field_type": field_type, "fields": fields})
+        opticstudio_backend.update_settings(field_type=field_type, fields=fields)
 
         assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(fields)
         for i in range(len(fields)):
@@ -174,7 +175,7 @@ class TestOpticStudioBackendSettings:
         [[0.543, 0.650], [0.543, 0.650, 0.450]],
     )
     def test_wavelength(self, wavelengths, opticstudio_backend):
-        opticstudio_backend.update_settings({"wavelengths": wavelengths})
+        opticstudio_backend.update_settings(wavelengths=wavelengths)
 
         assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == len(wavelengths)
         for i, wavelength in enumerate(wavelengths):
@@ -190,7 +191,7 @@ class TestOpticStudioBackendSettings:
         ],
     )
     def test_aperture(self, aperture_type, aperture_value, expected_aperture_type, opticstudio_backend):
-        opticstudio_backend.update_settings({"aperture_type": aperture_type, "aperture_value": aperture_value})
+        opticstudio_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)
 
         assert opticstudio_backend.oss.SystemData.Aperture.ApertureType == zp.constants.process_constant(
             zp.constants.SystemData.ZemaxApertureType, expected_aperture_type
@@ -208,7 +209,7 @@ class TestOpticStudioBackendSettings:
         ],
     )
     def test_ray_aiming(self, ray_aiming, expected, opticstudio_backend):
-        opticstudio_backend.update_settings({"ray_aiming": ray_aiming})
+        opticstudio_backend.update_settings(ray_aiming=ray_aiming)
 
         assert opticstudio_backend.oss.SystemData.RayAiming.RayAiming == zp.constants.process_constant(
             zp.constants.SystemData.RayAimingMethod, expected

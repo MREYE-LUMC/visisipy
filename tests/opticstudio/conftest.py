@@ -26,7 +26,7 @@ def zos(monkeypatch_session):
     zos = zp.ZOS()
 
     def patched_zos(
-        preload: bool = False,  # noqa: FBT001, FBT002
+        preload: bool = False,  # noqa: FBT002
         zosapi_nethelper: str | None = None,
         opticstudio_directory: str | None = None,
     ):

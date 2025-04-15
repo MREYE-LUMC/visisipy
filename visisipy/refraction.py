@@ -76,7 +76,7 @@ class FourierPowerVectorRefraction:
         SpheroCylindricalRefraction
             The refraction in sphero-cylindrical form.
         """
-        if cylinder_form not in ("positive", "negative"):
+        if cylinder_form not in {"positive", "negative"}:
             raise ValueError("cylinder_form must be either 'positive' or 'negative'.")
 
         sphero_cylinder = SpheroCylindricalRefraction(
@@ -172,7 +172,7 @@ class SpheroCylindricalRefraction:
             When the parameter "to" is not set to 'positive' or 'negative'.
         """
 
-        if to not in ("negative", "positive"):
+        if to not in {"negative", "positive"}:
             raise ValueError('"to" should be either "negative" or "positive"')
 
         if (to == "negative" and self.has_negative_cylinder) or (to == "positive" and self.has_positive_cylinder):
