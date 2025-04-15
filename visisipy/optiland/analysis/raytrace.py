@@ -3,40 +3,52 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pandas as pd
-import zospy as zp
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from optiland.optic import Optic
+
     from visisipy.backend import FieldCoordinate, FieldType
-    from visisipy.opticstudio.backend import OpticStudioBackend
+    from visisipy.optiland import OptilandBackend
+
+__all__ = ("raytrace",)
 
 
-def _build_raytrace_result(raytrace_results: list[pd.DataFrame]) -> pd.DataFrame:
-    columns = {
-        "Field": "field",
-        "Wavelength": "wavelength",
-        "Surf": "surface",
-        "Comment": "comment",
-        "X-coordinate": "x",
-        "Y-coordinate": "y",
-        "Z-coordinate": "z",
-    }
+def _trace_single_ray(
+    optic: Optic,
+    field: FieldCoordinate,
+    pupil: tuple[float, float],
+    wavelength: float,
+) -> pd.DataFrame:
+    optic.trace_generic(*field, *pupil, wavelength=wavelength)
+    x = optic.surface_group.x
+    y = optic.surface_group.y
+    z = optic.surface_group.z
+    surface_numbers = range(optic.surface_group.num_surfaces)
 
-    return pd.concat(raytrace_results)[columns.keys()].rename(columns=columns).reset_index()
+    return pd.DataFrame(
+        {
+            "wavelength": [wavelength] * len(x),
+            "surface": surface_numbers,
+            "comment": [None] * len(x),
+            "x": x[:, 0],
+            "y": y[:, 0],
+            "z": z[:, 0],
+        }
+    )
 
 
 def raytrace(
-    backend: type[OpticStudioBackend],
+    backend: type[OptilandBackend],
     coordinates: Iterable[FieldCoordinate] | None = None,
     wavelengths: Iterable[float] | None = None,
     field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
-) -> tuple[pd.DataFrame, list[zp.analyses.base.AnalysisResult]]:
-    """
-    Perform a ray trace analysis using the given parameters.
-    The ray trace is performed for each wavelength and field in the system, using the Single Ray Trace analysis
-    in OpticStudio.
+) -> tuple[pd.DataFrame, None]:
+    """Perform a ray trace analysis using the given parameters.
+
+    The ray trace is performed for each wavelength and field in the system, using the generic ray trace in Optiland.
 
     The analysis returns a Dataframe with the following columns:
 
@@ -50,6 +62,8 @@ def raytrace(
 
     Parameters
     ----------
+    backend : type[OptilandBackend]
+        The Optiland backend to use for the ray trace.
     coordinates : Iterable[tuple[float, float]], optional
         An iterable of tuples representing the coordinates for the ray trace.
         If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.
@@ -73,27 +87,19 @@ def raytrace(
         raise ValueError("Pupil coordinates must be between -1 and 1.")
 
     if coordinates is not None:
-        backend.set_fields(coordinates, field_type=field_type)
+        backend.set_fields(coordinates, field_type)
 
     if wavelengths is not None:
         backend.set_wavelengths(wavelengths)
 
     raytrace_results = []
 
-    for wavelength_number, wavelength in backend.iter_wavelengths():
-        for field_number, field in backend.iter_fields():
-            raytrace_result = zp.analyses.raysandspots.single_ray_trace(
-                backend.oss,
-                px=pupil[0],
-                py=pupil[1],
-                field=field_number,
-                wavelength=wavelength_number,
-                global_coordinates=True,
-            ).Data.RealRayTraceData
+    normalized_fields = backend.get_optic().fields.get_field_coords()
 
-            raytrace_result.insert(0, "Field", [(field.X, field.Y)] * len(raytrace_result))
-            raytrace_result.insert(0, "Wavelength", wavelength)
+    for _, wavelength in backend.iter_wavelengths():
+        for (_, field), normalized_field in zip(backend.iter_fields(), normalized_fields):
+            result = _trace_single_ray(backend.get_optic(), normalized_field, pupil, wavelength)
+            result.insert(0, "field", [field] * len(result))
+            raytrace_results.append(result)
 
-            raytrace_results.append(raytrace_result)
-
-    return _build_raytrace_result(raytrace_results), raytrace_results
+    return pd.concat(raytrace_results).reset_index(), None
