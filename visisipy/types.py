@@ -1,6 +1,15 @@
 from __future__ import annotations
 
 import re
+import sys
+
+if sys.version_info < (3, 11):
+    from typing_extensions import NotRequired, TypedDict, Unpack
+else:
+    from typing import NotRequired, TypedDict, Unpack
+
+
+__all__ = ("NotRequired", "SampleSize", "TypedDict", "Unpack")
 
 RE_SAMPLE_SIZE = re.compile(r"^(?P<sampling>\d+)x(?P=sampling)$", re.IGNORECASE)
 
