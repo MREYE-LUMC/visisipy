@@ -188,11 +188,11 @@ class BaseBackend(ABC):
 
         Raises
         ------
-        ValueError
+        KeyError
             If the setting does not exist.
         """
         if name not in cls.settings:
-            raise ValueError(f"Setting '{name}' does not exist.")
+            raise KeyError(f"Setting '{name}' does not exist.")
 
         return cls.settings[name]
 

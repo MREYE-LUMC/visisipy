@@ -147,3 +147,16 @@ class TestUpdateSettings:
         assert backend_type.settings["field_type"] == "object_height"
         assert backend_type.settings["fields"] == [(0, 0), (1, 1)]
         assert backend_type.settings["wavelengths"] == [550]
+
+
+class TestGetSetting:
+    def test_get_setting(self, monkeypatch):
+        monkeypatch.setattr(backend.BaseBackend, "settings", {"test_setting": "value"}, raising=False)
+
+        assert backend.BaseBackend.get_setting("test_setting") == "value"
+
+    def test_get_undefined_setting_raises_keyerror(self, monkeypatch):
+        monkeypatch.setattr(backend.BaseBackend, "settings", {}, raising=False)
+
+        with pytest.raises(KeyError, match="Setting 'undefined_setting' does not exist"):
+            backend.BaseBackend.get_setting("undefined_setting")
