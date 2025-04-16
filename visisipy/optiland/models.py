@@ -93,10 +93,16 @@ class OptilandEye(BaseEye):
             If the retina is not located at the last surface.
         """
         # Create an object surface if it does not exist
+        if optic.surface_group.num_surfaces != 0 and object_distance != float("inf"):
+            raise ValueError("Cannot set a custom object distance if the optical system is not empty.")
+
         if start_from_index == 0 and optic.surface_group.num_surfaces == 0:
             optic.surface_group.add_surface(
                 index=start_from_index, replace_existing=replace_existing, thickness=object_distance
             )
+        elif start_from_index > optic.surface_group.num_surfaces - 1:
+            message = "'start_from_index' can be at most the index of the last surface in the system."
+            raise ValueError(message)
 
         self.cornea_front.build(optic, position=start_from_index + 1, replace_existing=replace_existing)
         self.cornea_back.build(optic, position=start_from_index + 2, replace_existing=replace_existing)

@@ -4,6 +4,8 @@ import pytest
 
 from visisipy.opticstudio import OpticStudioEye
 
+# pyright: reportOptionalMemberAccess=false
+
 pytestmark = [pytest.mark.needs_opticstudio]
 
 
@@ -73,6 +75,49 @@ class TestOpticStudioEye:
 
         with pytest.raises(ValueError, match="The retina is not located at the image position"):
             opticstudio_eye.build(new_oss)
+
+    def test_build_start_from_index(self, new_oss, eye_model):
+        new_oss.LDE.InsertNewSurfaceAt(1).Comment = "dummy"
+
+        opticstudio_eye = OpticStudioEye(eye_model)
+        opticstudio_eye.build(new_oss, start_from_index=1)
+
+        assert opticstudio_eye.cornea_front.surface.SurfaceNumber == 2
+        assert opticstudio_eye.cornea_back.surface.SurfaceNumber == 3
+        assert opticstudio_eye.pupil.surface.SurfaceNumber == 4
+        assert opticstudio_eye.lens_front.surface.SurfaceNumber == 5
+        assert opticstudio_eye.lens_back.surface.SurfaceNumber == 6
+        assert opticstudio_eye.retina.surface.SurfaceNumber == 7
+
+    def test_build_start_from_index_after_stop_surface_raises_valueerror(self, new_oss, eye_model):
+        opticstudio_eye = OpticStudioEye(eye_model)
+
+        with pytest.raises(
+            ValueError, match="'start_from_index' must be smaller than the index of the stop surface"
+        ):
+            opticstudio_eye.build(new_oss, start_from_index=1)
+
+
+    def test_build_replace_existing(self, new_oss, eye_model):
+        opticstudio_eye = OpticStudioEye(eye_model)
+        opticstudio_eye.build(new_oss)
+
+        eye_model.geometry.cornea_front.thickness = 0.1
+        eye_model.geometry.lens_front.radius = 12
+
+        new_opticstudio_eye = OpticStudioEye(eye_model)
+        new_opticstudio_eye.build(new_oss, replace_existing=True)
+
+        assert new_oss.LDE.GetSurfaceAt(1).Thickness == 0.1
+        assert new_oss.LDE.GetSurfaceAt(4).Radius == 12
+
+    def test_build_object_distance(self, new_oss, eye_model):
+        assert new_oss.LDE.GetSurfaceAt(0).Thickness == float("inf")
+
+        opticstudio_eye = OpticStudioEye(eye_model)
+        opticstudio_eye.build(new_oss, object_distance=1.0)
+
+        assert new_oss.LDE.GetSurfaceAt(0).Thickness == 1.0
 
     def test_set_cornea_front_property(self, new_oss, eye_model):
         opticstudio_eye = OpticStudioEye(eye_model)

@@ -3,8 +3,6 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from visisipy.models import BaseEye, EyeModel
 from visisipy.opticstudio.surfaces import OpticStudioSurface, make_surface
 
@@ -182,7 +180,8 @@ class OpticStudioEye(BaseOpticStudioEye):
         oss : zospy.zpcore.OpticStudioSystem
             OpticStudioSystem in which the eye model is created.
         start_from_index : int
-            Index of the surface after which the eye model will be built.
+            Index of the surface after which the eye model will be built. Because the pupil will be located at the stop surface,
+            `start_from_index` must be smaller than the index of the stop surface.
         replace_existing : bool
             If `True`, replaces existing surfaces instead of inserting new ones. Defaults to `False`.
         object_distance : float, optional
@@ -194,7 +193,11 @@ class OpticStudioEye(BaseOpticStudioEye):
             If the pupil is not located at the stop position.
             If the retina is not located at the image surface.
         """
-        if object_distance != np.inf:
+        if start_from_index >= oss.LDE.StopSurface:
+            message = "'start_from_index' must be smaller than the index of the stop surface."
+            raise ValueError(message)
+
+        if object_distance != float("inf"):
             oss.LDE.GetSurfaceAt(start_from_index).Thickness = object_distance
 
         self.cornea_front.build(oss, position=start_from_index + 1, replace_existing=replace_existing)
