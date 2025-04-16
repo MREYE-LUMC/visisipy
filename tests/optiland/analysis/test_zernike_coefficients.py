@@ -18,7 +18,6 @@ class TestZernikeStandardCoefficientsAnalysis:
                 "object_height",
                 64,
                 None,
-                marks=pytest.mark.xfail(reason="Finite object distances are not yet supported"),
             ),
             ((0, 0), 0.543, "angle", SampleSize(64), 45),
             ((1, 1), 0.632, "angle", "64x64", 100),
@@ -34,7 +33,7 @@ class TestZernikeStandardCoefficientsAnalysis:
         optiland_backend,
         optiland_analysis,
     ):
-        optiland_backend.build_model(EyeModel())
+        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
 
         args = build_args(
             field_coordinate=field_coordinate,
