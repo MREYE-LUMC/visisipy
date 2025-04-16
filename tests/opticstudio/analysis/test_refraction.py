@@ -75,7 +75,9 @@ class TestRefractionAnalysis:
         opticstudio_backend,
         monkeypatch,
     ):
-        opticstudio_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        opticstudio_backend.build_model(
+            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
         # monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
 
         args = build_args(

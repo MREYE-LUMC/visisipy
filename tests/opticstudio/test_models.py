@@ -92,11 +92,8 @@ class TestOpticStudioEye:
     def test_build_start_from_index_after_stop_surface_raises_valueerror(self, new_oss, eye_model):
         opticstudio_eye = OpticStudioEye(eye_model)
 
-        with pytest.raises(
-            ValueError, match="'start_from_index' must be smaller than the index of the stop surface"
-        ):
+        with pytest.raises(ValueError, match="'start_from_index' must be smaller than the index of the stop surface"):
             opticstudio_eye.build(new_oss, start_from_index=1)
-
 
     def test_build_replace_existing(self, new_oss, eye_model):
         opticstudio_eye = OpticStudioEye(eye_model)

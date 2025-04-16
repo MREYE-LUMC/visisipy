@@ -101,7 +101,9 @@ class TestOptilandEye:
 
         optiland_eye = OptilandEye(eye_model)
 
-        with pytest.raises(ValueError, match="'start_from_index' can be at most the index of the last surface in the system"):
+        with pytest.raises(
+            ValueError, match="'start_from_index' can be at most the index of the last surface in the system"
+        ):
             optiland_eye.build(optic, start_from_index=index)
 
     def test_build_object_distance(self, optic: Optic, eye_model: EyeModel):

@@ -36,7 +36,9 @@ class TestZernikeStandardCoefficientsAnalysis:
         opticstudio_backend,
         opticstudio_analysis,
     ):
-        opticstudio_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        opticstudio_backend.build_model(
+            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             field_coordinate=field_coordinate,
