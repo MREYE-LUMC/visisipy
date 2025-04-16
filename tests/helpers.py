@@ -7,7 +7,7 @@ def build_args(*, non_null_defaults: set[str], **kwargs) -> dict[str, Any]:
 
     Parameters
     ----------
-    non_null : set[str], optional
+    non_null_defaults : set[str], optional
         A list of argument names that are optional but do not have `None` as a default value.
     **kwargs : Any
         The arguments to be included in the dictionary.
