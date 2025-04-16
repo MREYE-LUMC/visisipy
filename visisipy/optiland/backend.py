@@ -131,14 +131,11 @@ class OptilandBackend(BaseBackend):
 
         if aperture_type not in OPTILAND_APERTURES:
             raise ValueError(
-                f"Invalid aperture type '{aperture_type}'. "
-                f"Must be one of {list(OPTILAND_APERTURES.keys())}."
+                f"Invalid aperture type '{aperture_type}'. Must be one of {list(OPTILAND_APERTURES.keys())}."
             )
 
         if OPTILAND_APERTURES[aperture_type] is NotImplemented:
-            raise NotImplementedError(
-                f"Aperture type '{aperture_type}' is not implemented in Optiland."
-            )
+            raise NotImplementedError(f"Aperture type '{aperture_type}' is not implemented in Optiland.")
 
         cls.get_optic().set_aperture(
             aperture_type=OPTILAND_APERTURES[aperture_type],

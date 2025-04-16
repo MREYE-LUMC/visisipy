@@ -67,7 +67,7 @@ def zernike_standard_coefficients(
         backend.set_fields([field_coordinate], field_type=field_type)
 
     zernike_result = zp.analyses.wavefront.zernike_standard_coefficients(
-        backend.oss,
+        backend.get_oss(),
         sampling=str(sampling),
         maximum_term=maximum_term,
         wavelength=wavelength_number,
