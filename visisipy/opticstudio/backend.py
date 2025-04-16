@@ -160,7 +160,15 @@ class OpticStudioBackend(BaseBackend):
         cls.update_settings()
 
     @classmethod
-    def build_model(cls, model: EyeModel, *, replace_existing: bool = False, **kwargs) -> OpticStudioEye:
+    def build_model(
+        cls,
+        model: EyeModel,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+        **kwargs,
+    ) -> OpticStudioEye:
         """
         Builds an optical system based on the provided eye model.
 
@@ -185,7 +193,13 @@ class OpticStudioBackend(BaseBackend):
             cls.new_model()
 
         opticstudio_eye = OpticStudioEye(model)
-        opticstudio_eye.build(cls.oss, replace_existing=replace_existing, **kwargs)
+        opticstudio_eye.build(
+            cls.oss,
+            start_from_index=start_from_index,
+            replace_existing=replace_existing,
+            object_distance=object_distance,
+            **kwargs,
+        )
 
         cls.model = opticstudio_eye
 
