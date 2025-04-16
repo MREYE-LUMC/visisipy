@@ -22,7 +22,6 @@ class TestRayTraceAnalysis:
                 "object_height",
                 (1, 0),
                 does_not_raise(),
-                marks=pytest.mark.xfail(reason="ZOSPy cannot parse ray trace results when field_type is object_height"),
             ),
             (
                 [(0, 0), (1, 1)],
@@ -50,7 +49,9 @@ class TestRayTraceAnalysis:
         opticstudio_backend,
         opticstudio_analysis,
     ):
-        opticstudio_backend.build_model(EyeModel())
+        opticstudio_backend.build_model(
+            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             non_null_defaults={"field_type", "pupil"},

@@ -3,6 +3,7 @@ import math
 import pytest
 
 from tests.helpers import build_args
+from visisipy.models import EyeModel
 from visisipy.types import SampleSize
 
 pytestmark = [pytest.mark.needs_opticstudio]
@@ -48,7 +49,7 @@ class TestRefractionAnalysis:
                 0.5,
                 "object_height",
                 None,
-                marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
+                # marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
             ),
             ((0, 0), 0.543, "32x32", 0.5, "angle", True),
             pytest.param(
@@ -58,7 +59,7 @@ class TestRefractionAnalysis:
                 0.5,
                 "object_height",
                 False,
-                marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
+                # marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
             ),
         ],
     )
@@ -71,9 +72,13 @@ class TestRefractionAnalysis:
         field_type,
         use_higher_order_aberrations,
         opticstudio_analysis,
+        opticstudio_backend,
         monkeypatch,
     ):
-        monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
+        opticstudio_backend.build_model(
+            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
+        # monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
 
         args = build_args(
             field_coordinate=field_coordinate,
