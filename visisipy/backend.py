@@ -271,6 +271,7 @@ def get_optic() -> Optic | None:
 
     return None
 
+
 def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack[BackendSettings]):
     """
     Update settings on the current backend.

@@ -19,6 +19,7 @@ class MockBackend:
     Unlike the real backends, instances of this class are used instead of the class itself.
     This is necessary to make sure modifications to the backend settings are not shared between tests.
     """
+
     __name__ = "MockBackend"
 
     def __init__(self):
@@ -26,7 +27,6 @@ class MockBackend:
         self.initialized: bool = False
         self.oss = object()
         self.optic = object()
-
 
     def initialize(self, **settings):
         self.initialized = True
@@ -41,12 +41,14 @@ class MockBackend:
 def mock_backend(monkeypatch):
     monkeypatch.setattr(backend, "_BACKEND", MockBackend())
 
+
 @pytest.fixture
 def mock_opticstudio_backend(monkeypatch):
     instance = MockBackend()
     monkeypatch.setattr(visisipy.opticstudio, "OpticStudioBackend", instance)
 
     return instance
+
 
 @pytest.fixture
 def mock_optiland_backend(monkeypatch):
@@ -57,10 +59,7 @@ def mock_optiland_backend(monkeypatch):
 
 
 class TestSetBackend:
-    @pytest.mark.parametrize(
-        "name",
-        ["opticstudio", backend.Backend.OPTICSTUDIO]
-    )
+    @pytest.mark.parametrize("name", ["opticstudio", backend.Backend.OPTICSTUDIO])
     def test_set_opticstudio_backend(self, name, mock_opticstudio_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend to avoid side effects in other tests
 
@@ -70,10 +69,7 @@ class TestSetBackend:
         assert mock_opticstudio_backend.initialized
         assert mock_opticstudio_backend.settings["field_type"] == "object_height"
 
-    @pytest.mark.parametrize(
-        "name",
-        ["optiland", backend.Backend.OPTILAND]
-    )
+    @pytest.mark.parametrize("name", ["optiland", backend.Backend.OPTILAND])
     def test_set_optiland_backend(self, name, mock_optiland_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend to avoid side effects in other tests
 
@@ -108,6 +104,7 @@ class TestGetBackend:
 
         assert backend.get_backend() == mock_optiland_backend
 
+
 class TestGetModels:
     def test_get_oss(self, mock_opticstudio_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", mock_opticstudio_backend)
@@ -124,6 +121,7 @@ class TestGetModels:
 
     def test_get_optic_no_optiland_backend(self, mock_opticstudio_backend):
         assert backend.get_optic() is None
+
 
 class TestUpdateSettings:
     def test_update_settings(self, mock_backend):
@@ -143,7 +141,6 @@ class TestUpdateSettings:
         field_type = "object_height"
         fields = [(0, 0), (1, 1)]
         wavelengths = [550]
-
 
         backend.update_settings(backend_type, field_type=field_type, fields=fields, wavelengths=wavelengths)
 
