@@ -170,6 +170,33 @@ class BaseBackend(ABC):
     def save_model(cls, filename: str | PathLike | None = None) -> None: ...
 
     @classmethod
+    def get_setting(cls, name: str) -> Any:
+        """Get a value from the backend settings.
+
+        This method is mainly intended for internal use, to prevent the type checker from warning
+        about potentially missing keys in the settings dictionary.
+
+        Parameters
+        ----------
+        name : str
+            The name of the setting to get.
+
+        Returns
+        -------
+        Any
+            The value of the setting.
+
+        Raises
+        ------
+        ValueError
+            If the setting does not exist.
+        """
+        if name not in cls.settings:
+            raise ValueError(f"Setting '{name}' does not exist.")
+
+        return cls.settings[name]
+
+    @classmethod
     def save_settings(cls, filename: str | PathLike) -> None:
         if not str(filename).endswith(".json"):
             raise ValueError("Settings file must have a '.json' extension.")

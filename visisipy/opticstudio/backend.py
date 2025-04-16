@@ -119,7 +119,7 @@ class OpticStudioBackend(BaseBackend):
             )
 
         if cls.oss is None:
-            cls.oss = cls.zos.connect(cls.settings["mode"])
+            cls.oss = cls.zos.connect(cls.get_setting("mode"))
 
         cls.new_model()
 
@@ -140,9 +140,9 @@ class OpticStudioBackend(BaseBackend):
             )
         else:
             cls.set_aperture()
-            cls.set_fields(cls.settings["fields"], field_type=cls.settings["field_type"])
-            cls.set_ray_aiming(cls.oss, cls.settings["ray_aiming"])
-            cls.set_wavelengths(cls.settings["wavelengths"])
+            cls.set_fields(cls.get_setting("fields"), field_type=cls.get_setting("field_type"))
+            cls.set_ray_aiming(cls.oss, cls.get_setting("ray_aiming"))
+            cls.set_wavelengths(cls.get_setting("wavelengths"))
 
     @classmethod
     def new_model(
@@ -235,19 +235,19 @@ class OpticStudioBackend(BaseBackend):
     @classmethod
     def _set_aperture_value(cls) -> None:
         if cls.settings.get("aperture_value") is not None:
-            cls.oss.SystemData.Aperture.ApertureValue = cls.settings["aperture_value"]
+            cls.oss.SystemData.Aperture.ApertureValue = cls.get_setting("aperture_value")
 
     @classmethod
     def set_aperture(cls):
-        if cls.settings["aperture_type"] == "float_by_stop_size":
+        if cls.get_setting("aperture_type") == "float_by_stop_size":
             cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
-        elif cls.settings["aperture_type"] == "entrance_pupil_diameter":
+        elif cls.get_setting("aperture_type") == "entrance_pupil_diameter":
             cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.EntrancePupilDiameter
             cls._set_aperture_value()
-        elif cls.settings["aperture_type"] == "image_f_number":
+        elif cls.get_setting("aperture_type") == "image_f_number":
             cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.ImageSpaceFNum
             cls._set_aperture_value()
-        elif cls.settings["aperture_type"] == "object_numeric_aperture":
+        elif cls.get_setting("aperture_type") == "object_numeric_aperture":
             cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.ObjectSpaceNA
             cls._set_aperture_value()
         else:
