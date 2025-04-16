@@ -66,16 +66,16 @@ def cardinal_points(
         is greater than or equal to `surface_2`.
     """
     surface_1 = surface_1 or 1
-    surface_2 = surface_2 or backend.oss.LDE.NumberOfSurfaces - 1
+    surface_2 = surface_2 or backend.get_oss().LDE.NumberOfSurfaces - 1
 
-    if surface_1 < 1 or surface_2 > backend.oss.LDE.NumberOfSurfaces - 1:
+    if surface_1 < 1 or surface_2 > backend.get_oss().LDE.NumberOfSurfaces - 1:
         raise ValueError("surface_1 and surface_2 must be between 1 and the number of surfaces in the system.")
 
     if surface_1 >= surface_2:
         raise ValueError("surface_1 must be less than surface_2.")
 
     cardinal_points_result = zp.analyses.reports.cardinal_points(
-        backend.oss,
+        backend.get_oss(),
         surface_1=surface_1,
         surface_2=surface_2,
     )

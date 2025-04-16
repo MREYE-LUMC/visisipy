@@ -1,35 +1,44 @@
 from __future__ import annotations
 
-import sys
+import json
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from enum import Enum
+from pathlib import Path
 from types import MethodType
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Generic,
+    Literal,
+    TypeVar,
+    cast,
+    overload,
+)
 from warnings import warn
 
-if sys.version_info <= (3, 11):
-    from typing_extensions import NotRequired, TypedDict
-else:
-    from typing import NotRequired, TypedDict
+from visisipy.types import NotRequired, TypedDict, Unpack
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from os import PathLike
 
+    from optiland.optic import Optic
     from pandas import DataFrame
     from zospy.zpcore import OpticStudioSystem
 
     from visisipy.analysis.cardinal_points import CardinalPointsResult
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
+    from visisipy.types import SampleSize
     from visisipy.wavefront import ZernikeCoefficients
 
-__all__ = ("Backend", "set_backend", "get_backend", "get_oss")
+__all__ = ("Backend", "get_backend", "get_oss", "set_backend")
 
 
-_BACKEND: BaseBackend | None = None
-_DEFAULT_BACKEND: Backend | str = "opticstudio"
+_BACKEND: type[BaseBackend] | None = None
+_DEFAULT_BACKEND: Backend | Literal["opticstudio", "optiland"] = "opticstudio"
 
 
 _Analysis = TypeVar("_Analysis", bound=Callable)
@@ -72,35 +81,46 @@ class BaseAnalysisRegistry(ABC):
         self,
         surface_1: int | None = None,
         surface_2: int | None = None,
-    ) -> CardinalPointsResult: ...
+    ) -> tuple[CardinalPointsResult, Any]: ...
 
     @abstractmethod
     def raytrace(
         self,
-        coordinates: Iterable[tuple[float, float]],
-        field_type: Literal["angle", "object"] = "angle",
+        coordinates: Iterable[FieldCoordinate] | None = None,
+        wavelengths: Iterable[float] | None = None,
+        field_type: FieldType = "angle",
         pupil: tuple[float, float] = (0, 0),
-    ) -> DataFrame: ...
+    ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
     def refraction(
         self,
-        field_coordinate: tuple[float, float] | None = None,
+        field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
-    ) -> FourierPowerVectorRefraction: ...
+        sampling: SampleSize | str | int = 64,
+        pupil_diameter: float | None = None,
+        field_type: FieldType = "angle",
+        *,
+        use_higher_order_aberrations: bool = True,
+    ) -> tuple[FourierPowerVectorRefraction, Any]: ...
 
     @abstractmethod
     def zernike_standard_coefficients(
         self,
-        field_coordinate: tuple[float, float] | None = None,
+        field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
-        field_type: Literal["angle", "object_height"] = "angle",
-        sampling: str = "512x512",
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 64,
         maximum_term: int = 45,
-    ) -> ZernikeCoefficients: ...
+    ) -> tuple[ZernikeCoefficients, Any]: ...
 
 
-ApertureType = Literal["float_by_stop_size", "entrance_pupil_diameter", "image_f_number", "object_numeric_aperture"]
+ApertureType = Literal[
+    "float_by_stop_size",
+    "entrance_pupil_diameter",
+    "image_f_number",
+    "object_numeric_aperture",
+]
 FieldType = Literal["angle", "object_height"]
 FieldCoordinate = tuple[float, float]
 
@@ -111,10 +131,10 @@ class BackendSettings(TypedDict, total=False):
     field_type: FieldType
     """The field type to use in the optical system. Must be one of 'angle' or 'object_height'."""
 
-    fields: list[FieldCoordinate]
+    fields: Sequence[FieldCoordinate]
     """List of field coordinates to use in the optical system."""
 
-    wavelengths: list[float]
+    wavelengths: Sequence[float]
     """List of wavelengths to use in the optical system."""
 
     aperture_type: ApertureType
@@ -131,12 +151,11 @@ class BaseBackend(ABC):
     model: BaseEye | None
     settings: BackendSettings
 
-    @_classproperty
-    def analysis(self) -> BaseAnalysisRegistry: ...
+    analysis: ClassVar[BaseAnalysisRegistry]
 
     @classmethod
     @abstractmethod
-    def update_settings(cls, settings: BackendSettings | None = None) -> None: ...
+    def update_settings(cls, **settings: Unpack[BackendSettings]) -> None: ...
 
     @classmethod
     @abstractmethod
@@ -150,12 +169,50 @@ class BaseBackend(ABC):
     @abstractmethod
     def save_model(cls, filename: str | PathLike | None = None) -> None: ...
 
+    @classmethod
+    def get_setting(cls, name: str) -> Any:
+        """Get a value from the backend settings.
+
+        This method is mainly intended for internal use, to prevent the type checker from warning
+        about potentially missing keys in the settings dictionary.
+
+        Parameters
+        ----------
+        name : str
+            The name of the setting to get.
+
+        Returns
+        -------
+        Any
+            The value of the setting.
+
+        Raises
+        ------
+        KeyError
+            If the setting does not exist.
+        """
+        if name not in cls.settings:
+            raise KeyError(f"Setting '{name}' does not exist.")
+
+        return cls.settings[name]
+
+    @classmethod
+    def save_settings(cls, filename: str | PathLike) -> None:
+        if not str(filename).endswith(".json"):
+            raise ValueError("Settings file must have a '.json' extension.")
+
+        Path(filename).write_text(json.dumps(cls.settings, indent=4, sort_keys=True), encoding="utf-8")
+
 
 class Backend(str, Enum):
     OPTICSTUDIO = "opticstudio"
+    OPTILAND = "optiland"
 
 
-def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, *, settings: BackendSettings | None = None) -> None:
+def set_backend(
+    backend: Backend | Literal["opticstudio", "optiland"] = Backend.OPTICSTUDIO,
+    **settings: Unpack[BackendSettings],
+) -> None:
     """Set the backend to use for optical simulations.
 
     Parameters
@@ -170,27 +227,32 @@ def set_backend(backend: Backend | str = Backend.OPTICSTUDIO, *, settings: Backe
     ValueError
         If an invalid backend is specified.
     """
-    settings = settings or {}
-
     global _BACKEND  # noqa: PLW0603
 
     if _BACKEND is not None:
         warn(
-            f"The backend is already set to {_BACKEND.__class__.__name__}. "
+            f"The backend is already set to {_BACKEND.__name__}. "
             f"Reconfiguring the backend is not recommended and may cause issues."
         )
 
     if backend == Backend.OPTICSTUDIO:
-        from visisipy.opticstudio import OpticStudioBackend
+        from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
         _BACKEND = OpticStudioBackend
-        _BACKEND.initialize(settings=settings)
+        _BACKEND.initialize(**settings)
+    elif backend == Backend.OPTILAND:
+        from visisipy.optiland import OptilandBackend  # noqa: PLC0415
+
+        _BACKEND = OptilandBackend
+        _BACKEND.initialize(**settings)
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
 
-def get_backend() -> BaseBackend:
+def get_backend() -> type[BaseBackend]:
     """Get the current backend.
+
+    The backend is set to the default backend if it has not been set yet.
 
     Returns
     -------
@@ -200,7 +262,7 @@ def get_backend() -> BaseBackend:
     if _BACKEND is None:
         set_backend(_DEFAULT_BACKEND)
 
-    return _BACKEND
+    return cast(type[BaseBackend], _BACKEND)
 
 
 def get_oss() -> OpticStudioSystem | None:
@@ -212,9 +274,50 @@ def get_oss() -> OpticStudioSystem | None:
     OpticStudioSystem | None
         The OpticStudioSystem instance if the current backend is the OpticStudio backend, otherwise `None`.
     """
-    from visisipy.opticstudio import OpticStudioBackend
+    from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
     if _BACKEND is OpticStudioBackend:
         return OpticStudioBackend.oss
 
     return None
+
+
+def get_optic() -> Optic | None:
+    """
+    Get the Optic instance from the current backend.
+
+    Returns
+    -------
+    Optic
+        The Optic instance if the current backend is the Optiland backend, otherwise `None`.
+    """
+    from visisipy.optiland import OptilandBackend  # noqa: PLC0415
+
+    if _BACKEND is OptilandBackend:
+        return OptilandBackend.optic
+
+    return None
+
+
+def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack[BackendSettings]):
+    """
+    Update settings on the current backend.
+
+    Optionally, the backend can be manually specified. By default, the current backend is used.
+
+    Parameters
+    ----------
+    backend : type[BaseBackend] | None
+        The backend to update. If `None`, the current backend is used.
+    **settings : Unpack[BackendSettings]
+        The settings to update. The keys and values should match the backend's configuration schema.
+
+    Raises
+    ------
+    ValueError
+        If the settings are not valid for the current backend.
+    """
+    if backend is None:
+        backend = get_backend()
+
+    backend.update_settings(**settings)

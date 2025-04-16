@@ -1,0 +1,30 @@
+{
+    "models": {
+        "cornea": {
+            "refractive_index": 1.3760893927086157,
+            "abbe_number": 53.049630674367904,
+            "partial_dispersion": 0
+        },
+        "aqueous": {
+            "refractive_index": 1.337454140357322,
+            "abbe_number": 48.49905307541748,
+            "partial_dispersion": 0
+        },
+        "lens": {
+            "refractive_index": 1.4201120875715691,
+            "abbe_number": 46.3823857404518,
+            "partial_dispersion": 0
+        },
+        "vitreous": {
+            "refractive_index": 1.3360870349145728,
+            "abbe_number": 49.685360416317124,
+            "partial_dispersion": 0
+        }
+    },
+    "mean_absolute_errors": {
+        "cornea": 4.210648905056402e-05,
+        "aqueous": 5.641284682744718e-05,
+        "lens": 6.67929124473221e-05,
+        "vitreous": 3.765700357377666e-05
+    }
+}

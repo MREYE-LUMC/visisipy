@@ -1,3 +1,4 @@
+import math
 from contextlib import nullcontext as does_not_raise
 from types import SimpleNamespace
 
@@ -269,10 +270,10 @@ class TestBaseOpticStudioZernikeSurface:
             self.MockOpticStudioZernikeSurface(
                 comment="Test",
                 number_of_terms=1,
-                zernike_coefficients={2: 3.14},
+                zernike_coefficients={2: math.pi},
             )
 
-    @pytest.mark.parametrize("key", [0, -1, -3.14])
+    @pytest.mark.parametrize("key", [0, -1, -math.pi])
     def test_init_negative_zernike_coefficient_raises_valueerror(self, key):
         with pytest.raises(ValueError, match="Zernike coefficients must be larger than 0"):
             self.MockOpticStudioZernikeSurface(
@@ -314,7 +315,7 @@ class TestBaseOpticStudioZernikeSurface:
             (
                 4,
                 {1: 1.234, 2: 3.456},
-                pytest.raises(ValueError, match="Zernike coefficient must be smaller than the " "maximum term 3"),
+                pytest.raises(ValueError, match="Zernike coefficient must be smaller than the maximum term 3"),
             ),
             (0, {1: 1.234, 2: 3.456}, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
         ],
