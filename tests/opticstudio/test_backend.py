@@ -2,6 +2,7 @@ import math
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pytest
 import zospy as zp
 
@@ -95,6 +96,12 @@ class TestOpticStudioBackend:
                 [(math.pi, 4.15), (-12, 1)],
                 "object_height",
                 "ObjectHeight",
+                does_not_raise(),
+            ),
+            (
+                [(np.int64(10), np.int64(11))],  # Test float conversion
+                "angle",
+                "Angle",
                 does_not_raise(),
             ),
             (

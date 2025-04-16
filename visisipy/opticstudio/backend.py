@@ -275,9 +275,9 @@ class OpticStudioBackend(BaseBackend):
         for i, c in enumerate(coordinates):
             if i == 0:
                 field = oss.SystemData.Fields.GetField(1)
-                field.X, field.Y, field.Weight = c[0], c[1], 1
+                field.X, field.Y, field.Weight = float(c[0]), float(c[1]), 1
             else:
-                oss.SystemData.Fields.AddField(c[0], c[1], 1)
+                oss.SystemData.Fields.AddField(float(c[0]), float(c[1]), 1)
 
     @classmethod
     def set_fields(
