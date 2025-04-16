@@ -6,7 +6,14 @@ from typing import TYPE_CHECKING, Any
 
 import visisipy.backend as _backend
 from visisipy.models.geometry import EyeGeometry, NavarroGeometry, create_geometry
-from visisipy.models.materials import EyeMaterials, NavarroMaterials
+from visisipy.models.materials import (
+    EyeMaterials,
+    NavarroMaterials,
+    NavarroMaterials458,
+    NavarroMaterials543,
+    NavarroMaterials589,
+    NavarroMaterials633,
+)
 
 if TYPE_CHECKING:
     from os import PathLike
@@ -19,6 +26,10 @@ __all__ = (
     "EyeModel",
     "NavarroGeometry",
     "NavarroMaterials",
+    "NavarroMaterials458",
+    "NavarroMaterials543",
+    "NavarroMaterials589",
+    "NavarroMaterials633",
     "create_geometry",
 )
 
