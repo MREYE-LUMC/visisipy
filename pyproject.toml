@@ -17,7 +17,7 @@ dependencies = [
     "matplotlib",
     "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
-    "optiland>=0.3.0",
+    "optiland>=0.3.1",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
 ]
@@ -66,7 +66,7 @@ extend-ignore = [
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"examples/*" = ["INP001"]
+"examples/*" = ["INP001", "T20"]
 "tests/*" = ["ARG001", "ARG002", "FBT001", "PLC2701"]
 "tests/opticstudio/*" = ["SLF001"]
 "tests/optiland/*" = ["SLF001"]
