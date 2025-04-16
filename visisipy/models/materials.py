@@ -89,30 +89,30 @@ class NavarroMaterials(EyeMaterials):
 
     cornea: MaterialModel = field(
         default_factory=_material_model_factory(
-            refractive_index=1.37602751686,
-            abbe_number=56.9362270454,
-            partial_dispersion=0.0633737882164,
+            refractive_index=1.3760893927086157,
+            abbe_number=53.049630674367904,
+            partial_dispersion=0,
         )
     )
     aqueous: MaterialModel = field(
         default_factory=_material_model_factory(
-            refractive_index=1.33738703254,
-            abbe_number=49.0704608205,
-            partial_dispersion=0.0618839248407,
+            refractive_index=1.337454140357322,
+            abbe_number=48.49905307541748,
+            partial_dispersion=0,
         )
     )
     lens: MaterialModel = field(
         default_factory=_material_model_factory(
-            refractive_index=1.4200127433,
-            abbe_number=48.0785554825,
-            partial_dispersion=0.0838140446604,
+            refractive_index=1.4201120875715691,
+            abbe_number=46.3823857404518,
+            partial_dispersion=0,
         )
     )
     vitreous: MaterialModel = field(
         default_factory=_material_model_factory(
-            refractive_index=1.33602751687,
-            abbe_number=50.8796247462,
-            partial_dispersion=0.0531865765832,
+            refractive_index=1.3360870349145728,
+            abbe_number=49.685360416317124,
+            partial_dispersion=0,
         )
     )
 
