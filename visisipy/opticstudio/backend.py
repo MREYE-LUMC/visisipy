@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 from warnings import warn
 
 import zospy as zp
+from zospy.zpcore import OpticStudioSystem
 
 from visisipy.backend import (
     BackendSettings,
     BaseBackend,
+    FieldCoordinate,
     NotRequired,
     Unpack,
     _classproperty,
@@ -20,7 +22,7 @@ if TYPE_CHECKING:
     from os import PathLike
 
     from zospy.api import _ZOSAPI
-    from zospy.zpcore import ZOS, OpticStudioSystem
+    from zospy.zpcore import ZOS
 
     from visisipy import EyeModel
 
@@ -233,6 +235,25 @@ class OpticStudioBackend(BaseBackend):
         cls.zos = None
 
     @classmethod
+    def get_oss(cls) -> OpticStudioSystem:
+        """Returns the current optical system.
+
+        Returns
+        -------
+        OpticStudioSystem
+            The current optical system.
+
+        Raises
+        ------
+        RuntimeError
+            If the OpticStudio system is not initialized.
+        """
+        if cls.oss is None:
+            raise RuntimeError("No OpticStudio system initialized. Please initialize the backend first.")
+
+        return cast(OpticStudioSystem, cls.oss)
+
+    @classmethod
     def _set_aperture_value(cls) -> None:
         if cls.settings.get("aperture_value") is not None:
             cls.oss.SystemData.Aperture.ApertureValue = cls.get_setting("aperture_value")
@@ -255,6 +276,23 @@ class OpticStudioBackend(BaseBackend):
                 "aperture_type must be one of 'float_by_stop_size', 'entrance_pupil_diameter', "
                 "'image_f_number', or 'object_numeric_aperture'."
             )
+
+    @classmethod
+    def get_fields(cls) -> list[FieldCoordinate]:
+        """Get the fields in the optical system.
+
+        Returns
+        -------
+        list[tuple[float, float]]
+            The fields in the optical system as tuples of (x, y) coordinates.
+        """
+        fields = []
+
+        for i in range(cls.get_oss().SystemData.Fields.NumberOfFields):
+            field = cls.get_oss().SystemData.Fields.GetField(i + 1)
+            fields.append((field.X, field.Y))
+
+        return fields
 
     @staticmethod
     def _set_field_type(oss: OpticStudioSystem, field_type: Literal["angle", "object_height"]) -> None:
@@ -286,7 +324,7 @@ class OpticStudioBackend(BaseBackend):
         field_type: Literal["angle", "object_height"] = "angle",
     ) -> None:
         """
-        Sets the fields for the optical system.
+        Set the fields for the optical system.
 
         This method removes any existing fields and adds the new ones provided.
 
@@ -300,6 +338,18 @@ class OpticStudioBackend(BaseBackend):
         """
         cls._set_field_type(cls.oss, field_type)
         cls._set_fields(cls.oss, coordinates)
+
+    @classmethod
+    def get_wavelengths(cls) -> list[float]:
+        """Get the wavelengths in the optical system.
+
+        Returns
+        -------
+        list[float]
+            The wavelengths in the optical system.
+        """
+
+        return [cls.get_oss().SystemData.Wavelengths.GetWavelength(i + 1).Wavelength for i in range(cls.get_oss().SystemData.Wavelengths.NumberOfWavelengths)]
 
     @staticmethod
     def _remove_wavelenghts(oss: OpticStudioSystem) -> None:

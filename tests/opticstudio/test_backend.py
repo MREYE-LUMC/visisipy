@@ -128,12 +128,35 @@ class TestOpticStudioBackend:
                 zp.constants.SystemData.FieldType, field_constant
             )
 
+    def test_get_fields(self, opticstudio_backend):
+        coordinates = [(0, 0), (0, 10), (-10, 0), (10, -10)]
+
+        for i, f in enumerate(coordinates, start=1):
+            if i == 1:
+                field = opticstudio_backend.oss.SystemData.Fields.GetField(i)
+                field.X, field.Y = f
+            else:
+                opticstudio_backend.get_oss().SystemData.Fields.AddField(*f, 1)
+
+        assert opticstudio_backend.get_fields() == coordinates
+
     def test_set_wavelengths(self, opticstudio_backend):
         opticstudio_backend.set_wavelengths([0.543, 0.650])
 
         assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == 2
         assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength == 0.543
         assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(2).Wavelength == 0.650
+
+    def test_get_wavelengths(self, opticstudio_backend):
+        wavelengths = [0.543, 0.650]
+
+        for i, w in enumerate(wavelengths, start=1):
+            if i == 1:
+                opticstudio_backend.get_oss().SystemData.Wavelengths.GetWavelength(i).Wavelength = w
+            else:
+                opticstudio_backend.oss.SystemData.Wavelengths.AddWavelength(w, i)
+
+        assert opticstudio_backend.get_wavelengths() == wavelengths
 
     def test_get_wavelength_number(self, opticstudio_backend):
         opticstudio_backend.set_wavelengths([0.543, 0.650])
