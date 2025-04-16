@@ -58,7 +58,7 @@ def refraction(
           The ocular refraction in Fourier power vector form.
     """
     # Get the wavelength from OpticStudio if not specified
-    wavelength = backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength if wavelength is None else wavelength
+    wavelength = backend.get_wavelengths()[0] if wavelength is None else wavelength
 
     # Temporarily change the pupil diameter
     old_pupil_semi_diameter = None
