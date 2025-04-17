@@ -83,7 +83,7 @@ def raytrace(
     for wavelength_number, wavelength in backend.iter_wavelengths():
         for field_number, field in backend.iter_fields():
             raytrace_result = zp.analyses.raysandspots.single_ray_trace(
-                backend.oss,
+                backend.get_oss(),
                 px=pupil[0],
                 py=pupil[1],
                 field=field_number,
