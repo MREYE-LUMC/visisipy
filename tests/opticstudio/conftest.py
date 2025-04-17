@@ -24,6 +24,7 @@ def opticstudio_backend(opticstudio_connection_mode, request):
 def zos():
     return zp.ZOS.get_instance() or zp.ZOS()
 
+
 @pytest.fixture
 def oss(zos, opticstudio_connection_mode, request):
     oss = zos.connect(mode=opticstudio_connection_mode) if zos.Application is None else zos.get_primary_system()
