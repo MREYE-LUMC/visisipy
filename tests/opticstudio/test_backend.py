@@ -133,7 +133,7 @@ class TestOpticStudioBackend:
 
         for i, f in enumerate(coordinates, start=1):
             if i == 1:
-                field = opticstudio_backend.oss.SystemData.Fields.GetField(i)
+                field = opticstudio_backend.get_oss().SystemData.Fields.GetField(i)
                 field.X, field.Y = f
             else:
                 opticstudio_backend.get_oss().SystemData.Fields.AddField(*f, 1)
@@ -154,7 +154,7 @@ class TestOpticStudioBackend:
             if i == 1:
                 opticstudio_backend.get_oss().SystemData.Wavelengths.GetWavelength(i).Wavelength = w
             else:
-                opticstudio_backend.oss.SystemData.Wavelengths.AddWavelength(w, i)
+                opticstudio_backend.get_oss().SystemData.Wavelengths.AddWavelength(w, i)
 
         assert opticstudio_backend.get_wavelengths() == wavelengths
 
