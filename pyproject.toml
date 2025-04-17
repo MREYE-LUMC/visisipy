@@ -78,6 +78,3 @@ extend-ignore = [
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
-
-[tool.uv.sources]
-optiland = { git = "https://github.com/HarrisonKramer/optiland", rev = "master" }
