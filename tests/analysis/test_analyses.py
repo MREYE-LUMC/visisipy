@@ -24,20 +24,17 @@ class MockAnalysis:
 
     def refraction(
         self,
+        use_higher_order_aberrations,
         field_coordinate,
         wavelength,
-        sampling,
         pupil_diameter,
         field_type,
-        *,
-        use_higher_order_aberrations,
     ):
         return None, None
 
 
 class MockBackend:
     analysis = MockAnalysis()
-    model = object()
 
 
 def test_cardinal_points_analysis(monkeypatch):

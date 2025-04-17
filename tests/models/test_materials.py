@@ -27,7 +27,7 @@ class TestEyeMaterials:
 class TestNavarroMaterials:
     def test_default_initialization(self):
         navarro_materials = NavarroMaterials()
-        assert navarro_materials.cornea.refractive_index == 1.3760893927086157
-        assert navarro_materials.aqueous.refractive_index == 1.337454140357322
-        assert navarro_materials.lens.refractive_index == 1.4201120875715691
-        assert navarro_materials.vitreous.refractive_index == 1.3360870349145728
+        assert navarro_materials.cornea.refractive_index == 1.37602751686
+        assert navarro_materials.aqueous.refractive_index == 1.33738703254
+        assert navarro_materials.lens.refractive_index == 1.4200127433
+        assert navarro_materials.vitreous.refractive_index == 1.33602751687

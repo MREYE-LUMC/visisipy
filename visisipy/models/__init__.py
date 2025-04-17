@@ -6,31 +6,20 @@ from typing import TYPE_CHECKING, Any
 
 import visisipy.backend as _backend
 from visisipy.models.geometry import EyeGeometry, NavarroGeometry, create_geometry
-from visisipy.models.materials import (
-    EyeMaterials,
-    NavarroMaterials,
-    NavarroMaterials458,
-    NavarroMaterials543,
-    NavarroMaterials589,
-    NavarroMaterials633,
-)
+from visisipy.models.materials import EyeMaterials, NavarroMaterials
 
 if TYPE_CHECKING:
     from os import PathLike
 
 __all__ = (
+    "create_geometry",
+    "EyeModel",
+    "EyeGeometry",
+    "NavarroGeometry",
+    "EyeMaterials",
+    "NavarroMaterials",
     "BaseEye",
     "BaseSurface",
-    "EyeGeometry",
-    "EyeMaterials",
-    "EyeModel",
-    "NavarroGeometry",
-    "NavarroMaterials",
-    "NavarroMaterials458",
-    "NavarroMaterials543",
-    "NavarroMaterials589",
-    "NavarroMaterials633",
-    "create_geometry",
 )
 
 
@@ -103,7 +92,7 @@ class BaseEye(ABC):
         """Dictionary with surface names as keys and surfaces as values."""
         return {k.lstrip("_"): v for k, v in self.__dict__.items() if isinstance(v, BaseSurface)}
 
-    def update_surfaces(self, attribute: str, value: Any, surface_names: list[str] | None = None) -> None:
+    def update_surfaces(self, attribute: str, value: Any, surfaces: list[str] | None = None) -> None:
         """Batch update all surfaces.
 
         Set `attribute` to `value` for multiple surfaces. If `surfaces` is not specified, all surfaces of the eye
@@ -122,7 +111,7 @@ class BaseEye(ABC):
         -------
 
         """
-        surfaces = [self.surfaces[s] for s in surface_names] if surface_names is not None else self.surfaces.values()
+        surfaces = [self.surfaces[s] for s in surfaces] if surfaces is not None else self.surfaces.keys()
 
         for s in surfaces:
             setattr(s, attribute, value)

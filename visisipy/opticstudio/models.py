@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from visisipy.models import BaseEye, EyeModel
 from visisipy.opticstudio.surfaces import OpticStudioSurface, make_surface
@@ -56,6 +56,30 @@ class BaseOpticStudioEye(BaseEye):
     def surfaces(self) -> dict[str, OpticStudioSurface]:
         """Dictionary with surface names as keys and surfaces as values."""
         return {k.lstrip("_"): v for k, v in self.__dict__.items() if isinstance(v, OpticStudioSurface)}
+
+    def update_surfaces(self, attribute: str, value: Any, surfaces: list[str] | None = None) -> None:
+        """Batch update all surfaces.
+
+        Set `attribute` to `value` for multiple surfaces. If `surfaces` is not specified, all surfaces of the eye
+        model are updated.
+
+        Parameters
+        ----------
+        attribute : str
+            Name of the attribute to update
+        value : Any
+            New value of the surface attribute
+        surfaces : list[str]
+            List of surfaces to be updated. If not specified, all surfaces are updated.
+
+        Returns
+        -------
+
+        """
+        surfaces = [self.surfaces[s] for s in surfaces] if surfaces is not None else self.surfaces.values()
+
+        for s in surfaces:
+            setattr(s, attribute, value)
 
     def relink_surfaces(self, oss: OpticStudioSystem) -> bool:
         """Link surfaces to OpticStudio surfaces based on their comments.
