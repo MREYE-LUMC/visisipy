@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal, NamedTuple, overload
 
-from visisipy.analysis.base import _AUTOMATIC_BACKEND, analysis
+from visisipy.analysis.base import analysis
 
 if TYPE_CHECKING:
     from visisipy import EyeModel
     from visisipy.backend import BaseBackend
 
-__all__ = ("CardinalPoints", "CardinalPointsResult", "cardinal_points")
+__all__ = ("cardinal_points", "CardinalPoints", "CardinalPointsResult")
 
 
 class CardinalPoints(NamedTuple):
@@ -52,34 +52,34 @@ class CardinalPointsResult:
 
 @overload
 def cardinal_points(
-    model: EyeModel | None = None,
-    surface_1: int | None = None,
-    surface_2: int | None = None,
+    model: EyeModel | None,
+    surface_1: int | None,
+    surface_2: int | None,
     *,
-    return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    return_raw_result: Literal[False],
+    backend: type[BaseBackend],
 ) -> CardinalPointsResult: ...
 
 
 @overload
 def cardinal_points(
-    model: EyeModel | None = None,
-    surface_1: int | None = None,
-    surface_2: int | None = None,
+    model: EyeModel | None,
+    surface_1: int | None,
+    surface_2: int | None,
     *,
-    return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    return_raw_result: Literal[True],
+    backend: type[BaseBackend],
 ) -> tuple[CardinalPointsResult, Any]: ...
 
 
 @analysis
 def cardinal_points(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None,  # noqa: ARG001
     surface_1: int | None = None,
     surface_2: int | None = None,
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: type[BaseBackend],
 ) -> tuple[CardinalPointsResult, Any]:
     """
     Get the cardinal points of the system between `surface_1` and `surface_2`.

@@ -12,17 +12,16 @@ if TYPE_CHECKING:
     from visisipy.backend import BaseBackend
 
 
-class MockBackend:
-    def __init__(self):
-        self.model = None
-
-    def build_model(self, model):
-        self.model = SimpleNamespace(eye_model=model)
-
-
 @pytest.fixture
 def mock_backend(monkeypatch):
     """Mock the backend for testing."""
+
+    class MockBackend:
+        def __init__(self):
+            self.model = None
+
+        def build_model(self, model):
+            self.model = SimpleNamespace(eye_model=model)
 
     backend = MockBackend()
 
@@ -56,27 +55,6 @@ class TestAnalysisDecorator:
 
         assert mock_backend.model is not None
         assert mock_backend.model.eye_model == model
-
-    def test_get_backend(self, mock_backend):
-        def example_analysis(
-            model: EyeModel | None, x: int, *, return_raw_result: bool, backend: type[BaseBackend]
-        ) -> tuple[type[BaseBackend], int]:
-            return backend, x
-
-        decorated_analysis = base.analysis(example_analysis)
-
-        assert decorated_analysis(EyeModel(), 1) == mock_backend
-
-    def test_pass_backend(self):
-        def example_analysis(
-            model: EyeModel | None, x: int, *, return_raw_result: bool, backend: type[BaseBackend]
-        ) -> tuple[type[BaseBackend], int]:
-            return backend, x
-
-        decorated_analysis = base.analysis(example_analysis)
-        backend = MockBackend()
-
-        assert decorated_analysis(EyeModel(), 1, backend=backend) == backend
 
     def test_no_model_raises_valueerror(self):
         def example_analysis(x, *, return_raw_result: bool = False, backend: type[BaseBackend]):
@@ -112,7 +90,7 @@ class TestAnalysisDecorator:
         def example_analysis(
             model: EyeModel | None,
             x,
-            return_raw_result: bool,
+            return_raw_result: bool,  # noqa: FBT001
             *,
             backend: type[BaseBackend],
         ):

@@ -111,4 +111,4 @@ def test_material_model_refractive_index(opticstudio_model, material_model, wave
     angle = raytrace_result.Data.RealRayTraceData.loc[3]["Anglein"]
     refractive_index = np.sin(np.deg2rad(20)) / np.sin(np.deg2rad(angle))
 
-    assert refractive_index == pytest.approx(expected_index, rel=1e-3)
+    assert refractive_index == pytest.approx(expected_index, rel=1e-4)

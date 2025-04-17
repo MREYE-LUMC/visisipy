@@ -230,7 +230,7 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
     This class provides methods and properties shared by all Zernike surfaces.
     """
 
-    def __new__(cls, *args, **kwargs):  # noqa: ARG004, RUF100
+    def __new__(cls, *args, **kwargs):  # noqa: ARG003
         if cls is BaseOpticStudioZernikeSurface:
             raise TypeError("Only child classes of BaseOpticStudioZernikeSurface may be instantiated.")
 

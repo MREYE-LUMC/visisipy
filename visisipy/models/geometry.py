@@ -10,11 +10,11 @@ import numpy as np
 from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
-    "EyeGeometry",
-    "NavarroGeometry",
+    "Surface",
     "StandardSurface",
     "Stop",
-    "Surface",
+    "EyeGeometry",
+    "NavarroGeometry",
     "create_geometry",
 )
 
@@ -100,7 +100,7 @@ class StandardSurface(Surface):
             )
 
         raise NotImplementedError(
-            f"Half axes are only defined for ellipses (asphericity > -1), got {self.asphericity=}"
+            f"Half axes are only defined for ellipses (asphericity > -1), " f"got {self.asphericity=}"
         )
 
 
@@ -450,12 +450,12 @@ def _calculate_vitreous_thickness(
     )
     _lens_thickness = geometry.lens_thickness if lens_thickness is None else lens_thickness
 
-    if None in {
+    if None in (
         _axial_length,
         _cornea_thickness,
         _anterior_chamber_depth,
         _lens_thickness,
-    }:
+    ):
         raise ValueError("Cannot calculate vitreous thickness from the supplied parameters.")
 
     return _axial_length - (_cornea_thickness + _anterior_chamber_depth + _lens_thickness)

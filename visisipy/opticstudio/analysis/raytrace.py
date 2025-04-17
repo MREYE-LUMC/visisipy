@@ -1,14 +1,10 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Literal
 
 import pandas as pd
 import zospy as zp
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from visisipy.backend import FieldCoordinate, FieldType
     from visisipy.opticstudio.backend import OpticStudioBackend
 
 
@@ -27,10 +23,10 @@ def _build_raytrace_result(raytrace_results: list[pd.DataFrame]) -> pd.DataFrame
 
 
 def raytrace(
-    backend: type[OpticStudioBackend],
-    coordinates: Iterable[FieldCoordinate] | None = None,
-    wavelengths: Iterable[float] | None = None,
-    field_type: FieldType = "angle",
+    backend: "type[OpticStudioBackend]",
+    coordinates: Iterable[tuple[float, float]],
+    wavelengths: Iterable[float] = (0.543,),
+    field_type: Literal["angle", "object_height"] = "angle",
     pupil: tuple[float, float] = (0, 0),
 ) -> tuple[pd.DataFrame, list[zp.analyses.base.AnalysisResult]]:
     """
@@ -50,14 +46,13 @@ def raytrace(
 
     Parameters
     ----------
-    coordinates : Iterable[tuple[float, float]], optional
+    coordinates : Iterable[tuple[float, float]]
         An iterable of tuples representing the coordinates for the ray trace.
         If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.
         If `field_type` is "object_height", the coordinates should be the object heights along the
-        (X, Y) axes in mm. Defaults to `None`, which uses the fields defined in the backend.
+        (X, Y) axes in mm.
     wavelengths : Iterable[float], optional
-        An iterable of wavelengths to be used in the ray trace. Defaults to `None`, which uses the wavelengths
-        defined in the backend.
+        An iterable of wavelengths to be used in the ray trace. Defaults to (0.543,).
     field_type : Literal["angle", "object_height"], optional
         The type of field to be used in the ray trace. Can be either "angle" or "object_height". Defaults to
         "angle".
@@ -69,21 +64,15 @@ def raytrace(
     DataFrame
         A pandas DataFrame containing the results of the ray trace analysis.
     """
-    if abs(pupil[0]) > 1 or abs(pupil[1]) > 1:
-        raise ValueError("Pupil coordinates must be between -1 and 1.")
-
-    if coordinates is not None:
-        backend.set_fields(coordinates, field_type=field_type)
-
-    if wavelengths is not None:
-        backend.set_wavelengths(wavelengths)
+    backend.set_fields(coordinates, field_type=field_type)
+    backend.set_wavelengths(wavelengths)
 
     raytrace_results = []
 
     for wavelength_number, wavelength in backend.iter_wavelengths():
         for field_number, field in backend.iter_fields():
             raytrace_result = zp.analyses.raysandspots.single_ray_trace(
-                backend.get_oss(),
+                backend.oss,
                 px=pupil[0],
                 py=pupil[1],
                 field=field_number,

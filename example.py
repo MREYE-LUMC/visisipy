@@ -1,5 +1,4 @@
 # %%
-from operator import itemgetter
 from typing import NamedTuple
 
 import matplotlib.pyplot as plt
@@ -35,7 +34,7 @@ dummy_surface.Thickness = 1
 y_angles = range(0, 90, 5)
 raytrace = visisipy.analysis.raytrace(coordinates=zip([0] * len(y_angles), y_angles))
 
-raytrace["input_angle"] = raytrace.field.apply(itemgetter(1))
+raytrace["input_angle"] = raytrace.field.apply(lambda x: x[1])
 
 
 # %% Calculate input and output angles
