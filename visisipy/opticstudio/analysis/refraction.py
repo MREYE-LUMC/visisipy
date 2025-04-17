@@ -11,6 +11,8 @@ from visisipy.opticstudio.analysis.zernike_coefficients import (
 from visisipy.types import SampleSize
 
 if TYPE_CHECKING:
+    from zospy.analyses.wavefront.zernike_standard_coefficients import ZernikeStandardCoefficientsResult
+
     from visisipy.backend import FieldCoordinate, FieldType
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.refraction import FourierPowerVectorRefraction
@@ -25,7 +27,7 @@ def refraction(
     field_type: FieldType = "angle",
     *,
     use_higher_order_aberrations: bool = True,
-) -> tuple[FourierPowerVectorRefraction, zp.analyses.base.AnalysisResult]:
+) -> tuple[FourierPowerVectorRefraction, ZernikeStandardCoefficientsResult]:
     """Calculates the ocular refraction.
 
     The ocular refraction is calculated from Zernike standard coefficients and represented in Fourier power
