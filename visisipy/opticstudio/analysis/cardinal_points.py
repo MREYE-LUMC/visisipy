@@ -79,6 +79,6 @@ def cardinal_points(
     cardinal_points_result = zp.analyses.reports.CardinalPoints(
         surface_1=surface_1,
         surface_2=surface_2,
-    ).run(backend.oss)
+    ).run(backend.get_oss())
 
     return _build_cardinal_points_result(cardinal_points_result.data), cardinal_points_result.data

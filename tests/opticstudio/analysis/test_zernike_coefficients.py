@@ -20,7 +20,6 @@ class TestZernikeStandardCoefficientsAnalysis:
                 "object_height",
                 64,
                 None,
-                # marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
             ),
             ((0, 0), 0.543, "angle", SampleSize(64), 45),
             ((1, 1), 0.632, "angle", "64x64", 100),

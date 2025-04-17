@@ -49,7 +49,6 @@ class TestRefractionAnalysis:
                 0.5,
                 "object_height",
                 None,
-                # marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
             ),
             ((0, 0), 0.543, "32x32", 0.5, "angle", True),
             pytest.param(
@@ -59,7 +58,6 @@ class TestRefractionAnalysis:
                 0.5,
                 "object_height",
                 False,
-                # marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
             ),
         ],
     )

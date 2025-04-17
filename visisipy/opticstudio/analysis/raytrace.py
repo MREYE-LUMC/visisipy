@@ -91,7 +91,7 @@ def raytrace(
                 field=field_number,
                 wavelength=wavelength_number,
                 global_coordinates=True,
-            ).run(backend.oss)
+            ).run(backend.get_oss())
             real_ray_trace = raytrace_result.data.real_ray_trace_data
 
             if real_ray_trace is None:
