@@ -1,6 +1,7 @@
 import pytest
 
 from tests.helpers import build_args
+from visisipy.models import EyeModel
 from visisipy.types import SampleSize
 
 pytestmark = [pytest.mark.needs_opticstudio]
@@ -19,7 +20,7 @@ class TestZernikeStandardCoefficientsAnalysis:
                 "object_height",
                 64,
                 None,
-                marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
+                # marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
             ),
             ((0, 0), 0.543, "angle", SampleSize(64), 45),
             ((1, 1), 0.632, "angle", "64x64", 100),
@@ -32,8 +33,13 @@ class TestZernikeStandardCoefficientsAnalysis:
         field_type,
         sampling,
         maximum_term,
+        opticstudio_backend,
         opticstudio_analysis,
     ):
+        opticstudio_backend.build_model(
+            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
+
         args = build_args(
             field_coordinate=field_coordinate,
             wavelength=wavelength,

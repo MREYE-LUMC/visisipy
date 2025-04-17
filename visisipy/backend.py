@@ -159,7 +159,15 @@ class BaseBackend(ABC):
 
     @classmethod
     @abstractmethod
-    def build_model(cls, model: EyeModel, **kwargs) -> BaseEye: ...
+    def build_model(
+        cls,
+        model: EyeModel,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+        **kwargs,
+    ) -> BaseEye: ...
 
     @classmethod
     @abstractmethod

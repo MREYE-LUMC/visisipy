@@ -24,7 +24,14 @@ class BaseOpticStudioEye(BaseEye):
         ...
 
     @abstractmethod
-    def build(self, oss: OpticStudioSystem, *, start_from_index: int, replace_existing: bool):
+    def build(
+        self,
+        oss: OpticStudioSystem,
+        *,
+        start_from_index: int,
+        replace_existing: bool,
+        object_distance: float = float("inf"),
+    ):
         """Create the eye in OpticStudio.
 
         Create the eye model in the provided `OpticStudioSystem` `oss`, starting from `start_from_index`.
@@ -159,6 +166,7 @@ class OpticStudioEye(BaseOpticStudioEye):
         *,
         start_from_index: int = 0,
         replace_existing: bool = False,
+        object_distance: float = float("inf"),
     ):
         """Create the eye in OpticStudio.
 
@@ -172,15 +180,26 @@ class OpticStudioEye(BaseOpticStudioEye):
         oss : zospy.zpcore.OpticStudioSystem
             OpticStudioSystem in which the eye model is created.
         start_from_index : int
-            Index at which the first  surface of the eye is located.
+            Index of the surface after which the eye model will be built. Because the pupil will be located at the stop surface,
+            `start_from_index` must be smaller than the index of the stop surface.
         replace_existing : bool
             If `True`, replaces existing surfaces instead of inserting new ones. Defaults to `False`.
+        object_distance : float, optional
+            Distance from the object surface (or the surface before the eye model) to the eye model. Defaults to infinity.
 
         Raises
         ------
-        AssertionError
-            If the retina is not located at the IMAGE surface.
+        ValueError
+            If the pupil is not located at the stop position.
+            If the retina is not located at the image surface.
         """
+        if start_from_index >= oss.LDE.StopSurface:
+            message = "'start_from_index' must be smaller than the index of the stop surface."
+            raise ValueError(message)
+
+        if object_distance != float("inf"):
+            oss.LDE.GetSurfaceAt(start_from_index).Thickness = object_distance
+
         self.cornea_front.build(oss, position=start_from_index + 1, replace_existing=replace_existing)
         self.cornea_back.build(oss, position=start_from_index + 2, replace_existing=replace_existing)
         self.pupil.build(oss, position=start_from_index + 3, replace_existing=True)

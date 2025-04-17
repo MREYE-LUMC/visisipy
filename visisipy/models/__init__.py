@@ -40,9 +40,22 @@ class EyeModel:
     materials: EyeMaterials = field(default_factory=NavarroMaterials)
     _built: BaseEye | None = field(default=None, init=False, repr=False)
 
-    def build(self, **kwargs) -> BaseEye:
+    def build(
+        self,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+        **kwargs,
+    ) -> BaseEye:
         backend = _backend.get_backend()
-        self._built = backend.build_model(self, **kwargs)
+        self._built = backend.build_model(
+            self,
+            start_from_index=start_from_index,
+            replace_existing=replace_existing,
+            object_distance=object_distance,
+            **kwargs,
+        )
 
         return self._built
 
@@ -90,7 +103,14 @@ class BaseEye(ABC):
     def __init__(self, model: EyeModel): ...
 
     @abstractmethod
-    def build(self, *args, **kwargs):
+    def build(
+        self,
+        *args,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+        **kwargs,
+    ):
         """Build the eye model in the backend."""
         ...
 

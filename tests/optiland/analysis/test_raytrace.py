@@ -20,7 +20,6 @@ class TestRayTraceAnalysis:
                 "object_height",
                 (1, 0),
                 does_not_raise(),
-                marks=pytest.mark.xfail(reason="Finite object distances are not yet supported"),
             ),
             (
                 [(0, 0), (1, 1)],
@@ -48,7 +47,7 @@ class TestRayTraceAnalysis:
         optiland_backend,
         optiland_analysis,
     ):
-        optiland_backend.build_model(EyeModel())
+        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
 
         args = build_args(
             non_null_defaults={"field_type", "pupil"},

@@ -80,18 +80,32 @@ class OptilandBackend(BaseBackend):
         cls.update_settings()
 
     @classmethod
-    def build_model(cls, model: EyeModel, *, replace_existing: bool = False, **kwargs) -> OptilandEye:
+    def build_model(
+        cls,
+        model: EyeModel,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+        **kwargs,
+    ) -> OptilandEye:
         if not replace_existing and cls.model is not None:
             cls.new_model()
 
         optiland_eye = OptilandEye(model)
-        optiland_eye.build(cls.get_optic(), replace_existing=replace_existing, **kwargs)
+        optiland_eye.build(
+            cls.get_optic(),
+            start_from_index=start_from_index,
+            replace_existing=replace_existing,
+            object_distance=object_distance,
+            **kwargs,
+        )
 
         cls.model = optiland_eye
         return optiland_eye
 
     @classmethod
-    def clear_model(cls) -> NotImplemented:
+    def clear_model(cls) -> None:
         cls.model = None
         cls.optic = None
 
