@@ -74,6 +74,6 @@ def zernike_standard_coefficients(
         sx=0.0,
         sy=0.0,
         sr=1.0,
-    ).run(backend.oss)
+    ).run(backend.get_oss())
 
     return _build_zernike_result(zernike_result.data, maximum_term), zernike_result.data

@@ -84,6 +84,42 @@ class TestOptilandEye:
         with pytest.raises(ValueError, match="The retina is not located at the image position"):
             optiland_eye.build(optic)
 
+    def test_build_start_from_index(self, optic: Optic, eye_model: EyeModel):
+        optic.add_surface(index=0, comment="Dummy 1")
+        optic.add_surface(index=1, comment="Dummy 1")
+
+        optiland_eye = OptilandEye(eye_model)
+        optiland_eye.build(optic, start_from_index=1)
+
+        assert optic.surface_group.surfaces[2].comment == "cornea front"
+        assert optic.surface_group.get_thickness(2) == eye_model.geometry.cornea_front.thickness
+
+    @pytest.mark.parametrize("n_surfaces,index", [(0, 1), (0, 3), (2, 2), (2, 3)])
+    def test_build_start_from_index_invalid(self, n_surfaces: int, index: int, optic: Optic, eye_model: EyeModel):
+        for i in range(n_surfaces):
+            optic.add_surface(index=i, comment=f"Dummy {i}")
+
+        optiland_eye = OptilandEye(eye_model)
+
+        with pytest.raises(
+            ValueError, match="'start_from_index' can be at most the index of the last surface in the system"
+        ):
+            optiland_eye.build(optic, start_from_index=index)
+
+    def test_build_object_distance(self, optic: Optic, eye_model: EyeModel):
+        optiland_eye = OptilandEye(eye_model)
+        optiland_eye.build(optic, object_distance=10)
+
+        assert optic.surface_group.get_thickness(0) == 10
+
+    def test_build_object_distance_nonempty_system(self, optic: Optic, eye_model: EyeModel):
+        optic.add_surface(index=0, comment="Object")
+
+        optiland_eye = OptilandEye(eye_model)
+
+        with pytest.raises(ValueError, match="Cannot set a custom object distance if the optical system is not empty"):
+            optiland_eye.build(optic, object_distance=10)
+
     def test_get_cornea_front_comment(self, optic: Optic, eye_model: EyeModel):
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.build(optic)

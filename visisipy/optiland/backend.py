@@ -60,10 +60,10 @@ class OptilandBackend(BaseBackend):
         if cls.optic is not None:
             cls.set_aperture()
             cls.set_fields(
-                field_type=cls.settings["field_type"],
-                coordinates=cls.settings["fields"],
+                field_type=cls.get_setting("field_type"),
+                coordinates=cls.get_setting("fields"),
             )
-            cls.set_wavelengths(cls.settings["wavelengths"])
+            cls.set_wavelengths(cls.get_setting("wavelengths"))
 
     @classmethod
     def new_model(
@@ -80,18 +80,32 @@ class OptilandBackend(BaseBackend):
         cls.update_settings()
 
     @classmethod
-    def build_model(cls, model: EyeModel, *, replace_existing: bool = False, **kwargs) -> OptilandEye:
+    def build_model(
+        cls,
+        model: EyeModel,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+        **kwargs,
+    ) -> OptilandEye:
         if not replace_existing and cls.model is not None:
             cls.new_model()
 
         optiland_eye = OptilandEye(model)
-        optiland_eye.build(cls.get_optic(), replace_existing=replace_existing, **kwargs)
+        optiland_eye.build(
+            cls.get_optic(),
+            start_from_index=start_from_index,
+            replace_existing=replace_existing,
+            object_distance=object_distance,
+            **kwargs,
+        )
 
         cls.model = optiland_eye
         return optiland_eye
 
     @classmethod
-    def clear_model(cls) -> NotImplemented:
+    def clear_model(cls) -> None:
         cls.model = None
         cls.optic = None
 
@@ -126,21 +140,20 @@ class OptilandBackend(BaseBackend):
 
     @classmethod
     def set_aperture(cls):
-        # warn(cls.settings["aperture_type"])
-        if cls.settings["aperture_type"] not in OPTILAND_APERTURES:
+        aperture_type = cls.get_setting("aperture_type")
+        aperture_value = cls.get_setting("aperture_value")
+
+        if aperture_type not in OPTILAND_APERTURES:
             raise ValueError(
-                f"Invalid aperture type '{cls.settings['aperture_type']}'. "
-                f"Must be one of {list(OPTILAND_APERTURES.keys())}."
+                f"Invalid aperture type '{aperture_type}'. Must be one of {list(OPTILAND_APERTURES.keys())}."
             )
 
-        if OPTILAND_APERTURES[cls.settings["aperture_type"]] is NotImplemented:
-            raise NotImplementedError(
-                f"Aperture type '{cls.settings['aperture_type']}' is not implemented in Optiland."
-            )
+        if OPTILAND_APERTURES[aperture_type] is NotImplemented:
+            raise NotImplementedError(f"Aperture type '{aperture_type}' is not implemented in Optiland.")
 
         cls.get_optic().set_aperture(
-            aperture_type=OPTILAND_APERTURES[cls.settings["aperture_type"]],
-            value=cls.settings["aperture_value"],
+            aperture_type=OPTILAND_APERTURES[aperture_type],
+            value=aperture_value,
         )
 
     @classmethod

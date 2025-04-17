@@ -159,7 +159,15 @@ class BaseBackend(ABC):
 
     @classmethod
     @abstractmethod
-    def build_model(cls, model: EyeModel, **kwargs) -> BaseEye: ...
+    def build_model(
+        cls,
+        model: EyeModel,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+        **kwargs,
+    ) -> BaseEye: ...
 
     @classmethod
     @abstractmethod
@@ -168,6 +176,33 @@ class BaseBackend(ABC):
     @classmethod
     @abstractmethod
     def save_model(cls, filename: str | PathLike | None = None) -> None: ...
+
+    @classmethod
+    def get_setting(cls, name: str) -> Any:
+        """Get a value from the backend settings.
+
+        This method is mainly intended for internal use, to prevent the type checker from warning
+        about potentially missing keys in the settings dictionary.
+
+        Parameters
+        ----------
+        name : str
+            The name of the setting to get.
+
+        Returns
+        -------
+        Any
+            The value of the setting.
+
+        Raises
+        ------
+        KeyError
+            If the setting does not exist.
+        """
+        if name not in cls.settings:
+            raise KeyError(f"Setting '{name}' does not exist.")
+
+        return cls.settings[name]
 
     @classmethod
     def save_settings(cls, filename: str | PathLike) -> None:

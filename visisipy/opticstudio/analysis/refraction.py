@@ -60,7 +60,7 @@ def refraction(
           The ocular refraction in Fourier power vector form.
     """
     # Get the wavelength from OpticStudio if not specified
-    wavelength = backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength if wavelength is None else wavelength
+    wavelength = backend.get_wavelengths()[0] if wavelength is None else wavelength
 
     # Temporarily change the pupil diameter
     old_pupil_semi_diameter = None
@@ -68,7 +68,7 @@ def refraction(
         old_pupil_semi_diameter = backend.model.pupil.semi_diameter
         backend.model.pupil.semi_diameter = pupil_diameter / 2
 
-    pupil_data = zp.functions.lde.get_pupil(backend.oss)
+    pupil_data = zp.functions.lde.get_pupil(backend.get_oss())
     zernike_coefficients, raw_result = zernike_standard_coefficients(
         backend,
         field_coordinate=field_coordinate,

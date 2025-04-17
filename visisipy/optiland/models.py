@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from visisipy.models import BaseEye
 from visisipy.optiland.surfaces import OptilandSurface, make_surface
 
@@ -64,10 +62,47 @@ class OptilandEye(BaseEye):
         """Retina surface."""
         return self._retina
 
-    def build(self, optic: Optic, *, start_from_index: int = 0, replace_existing: bool = False) -> None:
+    def build(
+        self,
+        optic: Optic,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+    ) -> None:
+        """Create the eye in Optiland.
+
+        Create the eye model in the provided optical system `optic`, starting from `start_from_index`.
+        If `replace_existing` is set to `True`, existing surfaces will be overwritten.
+
+        Parameters
+        ----------
+        optic : Optic
+            Optiland Optic in which the eye model is created.
+        start_from_index : int
+            Index of the surface after which the eye model will be built.
+        replace_existing : bool
+            If `True`, replaces existing surfaces instead of inserting new ones. Defaults to `False`.
+        object_distance : float, optional
+            Distance from the object surface (or the surface before the eye model) to the eye model. Defaults to infinity.
+
+        Raises
+        ------
+        AssertionError
+            If the pupil is not located at the stop position.
+            If the retina is not located at the last surface.
+        """
         # Create an object surface if it does not exist
+        if optic.surface_group.num_surfaces != 0 and object_distance != float("inf"):
+            raise ValueError("Cannot set a custom object distance if the optical system is not empty.")
+
         if start_from_index == 0 and optic.surface_group.num_surfaces == 0:
-            optic.surface_group.add_surface(index=start_from_index, replace_existing=replace_existing, thickness=np.inf)
+            optic.surface_group.add_surface(
+                index=start_from_index, replace_existing=replace_existing, thickness=object_distance
+            )
+        elif start_from_index > optic.surface_group.num_surfaces - 1:
+            message = "'start_from_index' can be at most the index of the last surface in the system."
+            raise ValueError(message)
 
         self.cornea_front.build(optic, position=start_from_index + 1, replace_existing=replace_existing)
         self.cornea_back.build(optic, position=start_from_index + 2, replace_existing=replace_existing)
