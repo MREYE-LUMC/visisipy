@@ -1,3 +1,5 @@
+"""Visisipy: VISion Simulations In PYthon"""
+
 from __future__ import annotations
 
 from visisipy import analysis, models, opticstudio, optiland, plots, refraction, wavefront

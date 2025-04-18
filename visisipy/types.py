@@ -1,3 +1,8 @@
+"""Types for use throughout visisipy.
+
+This module contains type definitions and utility classes for use throughout the visisipy package.
+"""
+
 from __future__ import annotations
 
 import re

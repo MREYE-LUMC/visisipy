@@ -1,3 +1,20 @@
+"""Optical analyses for eye models.
+
+This module provides access to various optical analyses for eye models.
+The simulations themselves are implemented for each backend.
+This module only provides a common interface for the analyses.
+
+Analysis are functions with the following signature:
+
+    analysis(model, [parameters], backend)
+
+The first parameter is the eye model to be used in the analysis. This parameter is optional;
+if no model is provided, the model that is currently defined in the backend will be used.
+The backend parameter is also optional; if no backend is provided, the current or default backend will be used.
+"""
+
+from __future__ import annotations
+
 from visisipy.analysis.cardinal_points import cardinal_points
 from visisipy.analysis.raytracing import raytrace
 from visisipy.analysis.refraction import refraction

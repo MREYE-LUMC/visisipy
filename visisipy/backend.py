@@ -1,3 +1,27 @@
+"""Backends for optical simulations.
+
+This module provides a unified interface for different optical simulation backends,
+as well as functions to interact with these backends.
+
+Interfaces:
+
+- `BaseAnalysisRegistry`: Base class for the backend analysis registry.
+- `BaseBackend`: Base class for simulation backends.
+
+Functions:
+
+- `set_backend`: Set the backend to use for optical simulations.
+- `get_backend`: Get the current backend, or initialize the default backend if not set.
+- `get_oss`: Get the OpticStudioSystem instance if the current backend is OpticStudio.
+- `get_optic`: Get the Optic instance if the current backend is Optiland.
+- `update_settings`: Update settings on the current backend.
+
+See Also
+--------
+visispy.opticstudio.backend : Backend for OpticStudio.
+visispy.optiland.backend : Backend for Optiland.
+"""
+
 from __future__ import annotations
 
 import json
@@ -63,12 +87,30 @@ class _AnalysisMethod(Generic[_Analysis]):
         return MethodType(self._analysis, instance.backend)
 
 
-class _classproperty(property):  # noqa: N801
-    def __get__(self, instance, owner=None):
-        return self.fget(owner)
-
-
 class BaseAnalysisRegistry(ABC):
+    """Base class for analysis registry.
+
+    Interface for the analysis methods of the backend. Backends should implement this interface
+    including all the analysis methods. If an analysis method is not implemented in the backend,
+    it should raise a NotImplementedError.
+
+    Attributes
+    ----------
+    backend : BaseBackend
+        The backend in which the analysis is performed.
+
+    Methods
+    -------
+    cardinal_points(surface_1, surface_2)
+        Calculate the cardinal points of the optical system.
+    raytrace(coordinates, wavelengths, field_type, pupil)
+        Perform a raytrace through the optical system.
+    refraction(field_coordinate, wavelength, sampling, pupil_diameter, field_type)
+        Calculate the spherical equivalent of refraction for the optical system.
+    zernike_standard_coefficients(field_coordinate, wavelength, field_type, sampling, maximum_term)
+        Calculate the Zernike standard coefficients for the optical system.
+    """
+
     def __init__(self, backend: BaseBackend) -> None:
         self._backend = backend
 
@@ -148,6 +190,11 @@ class BackendSettings(TypedDict, total=False):
 
 
 class BaseBackend(ABC):
+    """Base class for optical simulation backends.
+
+    Backends should implement this interface to provide a unified interface for optical simulations.
+    """
+
     model: BaseEye | None
     settings: BackendSettings
 
@@ -213,6 +260,8 @@ class BaseBackend(ABC):
 
 
 class Backend(str, Enum):
+    """Available backends for optical simulations."""
+
     OPTICSTUDIO = "opticstudio"
     OPTILAND = "optiland"
 
