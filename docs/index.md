@@ -9,19 +9,6 @@ It provides an easy-to-use interface to define and build eye models, and to perf
 
 ## Project goals
 
-```{gallery-grid}
-:grid-columns: 1 1 2 2
-
-- header: {fa}`eye;pst-color-primary` **Uniform model definitions**
-  content: Provide a uniform interface to define, build and analyze various types of eye models, using abstractions that make sense in a clinical context.
-- header: {fa}`box-open;pst-color-primary` **Ready-to-use models**
-  content: Provide a collection of ready-to-use eye models, such as the Navarro model[^navarro], that can be customized at need.
-- header: {fa}`chart-line;pst-color-primary` **Accessible analyses**
-   content: Provide an accessible interface to clinically relevant analyses on these models, such as off-axis refraction calculations.
-- header: {fa}`puzzle-piece;pst-color-primary` **Multiple backends**
-  content: Modular design with support for multiple backends, both open-source and commercial.
-```
-
 ::::{grid} 1 1 2 2
 :gutter: 4
 
@@ -79,7 +66,7 @@ examples/index
 ```{toctree}
 :maxdepth: 2
 
-contributing <community/index>
+Contributing <community/index>
 ```
 
 ## API
