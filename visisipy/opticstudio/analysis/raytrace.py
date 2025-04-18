@@ -95,7 +95,7 @@ def raytrace(
             real_ray_trace = raytrace_result.data.real_ray_trace_data
 
             if real_ray_trace is None:
-                raise ValueError("Failed to perform ray trace: ray trace data is empty.")
+                raise ValueError(f"Failed to perform ray trace for field ({field.X}, {field.Y}) and wavelength {wavelength}.")
 
             real_ray_trace.insert(0, "Field", [(field.X, field.Y)] * len(real_ray_trace))
             real_ray_trace.insert(0, "Wavelength", wavelength)
