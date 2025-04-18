@@ -42,7 +42,7 @@ Modular design with support for multiple backends, both open-source and commerci
 Visisipy can use multiple backends for calculations.
 Currently, two backends are available:
 
-- [**OpticStudio**][opticstudio]: commercial ray tracing software. Visisipy uses [ZOSPy][zospy] to interface with OpticStudio.
+- [**OpticStudio**][opticstudio]: commercial ray tracing software. Visisipy uses [ZOSPy][zospy][^zospy] to interface with OpticStudio.
 - [**Optiland**][optiland]: an open-source Python library for optical simulations.
 
 ## User guide
@@ -83,5 +83,5 @@ API <api/index>
 
 
 [^navarro]: Escudero-Sanz, I., & Navarro, R. (1999). Off-axis aberrations of a wide-angle schematic eye model. JOSA A, 16(8), 1881–1891. https://doi.org/10.1364/JOSAA.16.001881
-[^rozema]: Rozema, J. J., Rodriguez, P., Navarro, R., & Tassignon, M.-J. (2016). SyntEyes: A Higher-Order Statistical Eye Model for Healthy Eyes. Investigative Ophthalmology & Visual Science, 57(2), 683–691. https://doi.org/10.1167/iovs.15-18067
+<!-- [^rozema]: Rozema, J. J., Rodriguez, P., Navarro, R., & Tassignon, M.-J. (2016). SyntEyes: A Higher-Order Statistical Eye Model for Healthy Eyes. Investigative Ophthalmology & Visual Science, 57(2), 683–691. https://doi.org/10.1167/iovs.15-18067 -->
 [^zospy]: Vught, L. van, Haasjes, C., & Beenakker, J.-W. M. (2024). ZOSPy: Optical ray tracing in Python through OpticStudio. Journal of Open Source Software, 9(96), 5756. https://doi.org/10.21105/joss.05756
