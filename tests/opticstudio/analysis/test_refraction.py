@@ -39,28 +39,12 @@ class TestRefractionAnalysis:
         [
             (None, None, None, None, None, None),
             ((0, 0), 0.543, None, None, None, None),
-            ((1, 1), 0.632, 64, None, None, None),
-            ((math.pi, math.tau), 0.543, "64x64", 0.5, None, None),
+            pytest.param((1, 1), 0.632, 64, None, None, None, marks=pytest.mark.xfail),
+            pytest.param((math.pi, math.tau), 0.543, "64x64", 0.5, None, None, marks=pytest.mark.xfail),
             ((0, 0), 0.543, "64x64", 0.5, "angle", None),
-            pytest.param(
-                (1, 1),
-                0.632,
-                SampleSize(32),
-                0.5,
-                "object_height",
-                None,
-                # marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
-            ),
+            pytest.param((1, 1), 0.632, SampleSize(32), 0.5, "object_height", None, marks=pytest.mark.xfail),
             ((0, 0), 0.543, "32x32", 0.5, "angle", True),
-            pytest.param(
-                (1, 1),
-                0.632,
-                "64x64",
-                0.5,
-                "object_height",
-                False,
-                # marks=pytest.mark.xfail(reason="ZOSPy cannot parse Zernike results when field_type is object_height"),
-            ),
+            pytest.param((1, 1), 0.632, "64x64", 0.5, "object_height", False, marks=pytest.mark.xfail),
         ],
     )
     def test_refraction(

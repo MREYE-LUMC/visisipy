@@ -29,8 +29,8 @@ pytestmark = [pytest.mark.needs_opticstudio]
 
 
 @pytest.fixture
-def surface(new_oss):
-    surface = new_oss.LDE.InsertNewSurfaceAt(1)
+def surface(oss):
+    surface = oss.LDE.InsertNewSurfaceAt(1)
     surface.Comment = "Test comment"
 
     return surface
@@ -131,7 +131,7 @@ class TestOpticStudioSurfaceDataProperty:
 
 class TestOpticStudioSurface:
     @pytest.mark.parametrize("is_stop", [True, None])
-    def test_build(self, new_oss, is_stop):
+    def test_build(self, oss, is_stop):
         surface = OpticStudioSurface(
             comment="Test comment",
             radius=1.0,
@@ -143,7 +143,7 @@ class TestOpticStudioSurface:
         )
 
         assert surface._is_built is False
-        surface.build(new_oss, position=2)
+        surface.build(oss, position=2)
         assert surface._is_built is True
 
         assert surface.surface.SurfaceNumber == 2
@@ -156,9 +156,9 @@ class TestOpticStudioSurface:
         assert surface.material == "TEST MATERIAL"  # OpticStudio capitalizes material names
         assert surface.is_stop is bool(is_stop)
 
-    def test_is_stop_false_warns(self, new_oss):
+    def test_is_stop_false_warns(self, oss):
         with pytest.warns(UserWarning, match="is_stop is set to False"):
-            OpticStudioSurface(comment="Test", is_stop=False).build(new_oss, position=1)
+            OpticStudioSurface(comment="Test", is_stop=False).build(oss, position=1)
 
     @pytest.mark.parametrize(
         "material_model",
@@ -167,9 +167,9 @@ class TestOpticStudioSurface:
             MaterialModel(refractive_index=1.5, abbe_number=50, partial_dispersion=0.67),
         ],
     )
-    def test_set_material_model(self, new_oss, material_model):
+    def test_set_material_model(self, oss, material_model):
         surface = OpticStudioSurface(comment="Test")
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
         surface.material = material_model
 
         material_solvedata = surface.surface.MaterialCell.GetSolveData()._S_MaterialModel
@@ -181,9 +181,9 @@ class TestOpticStudioSurface:
         "refractive_index,abbe_number,partial_dispersion",
         [(1.5, 0, 0), (1.5, 50, 0.67)],
     )
-    def test_get_material_model(self, new_oss, refractive_index, abbe_number, partial_dispersion):
+    def test_get_material_model(self, oss, refractive_index, abbe_number, partial_dispersion):
         surface = OpticStudioSurface(comment="Test")
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
         solve_material_model(
             surface.surface.MaterialCell,
             refractive_index=refractive_index,
@@ -202,49 +202,49 @@ class TestOpticStudioSurface:
 
         assert surface.material is None
 
-    def test_set_material_str(self, new_oss):
+    def test_set_material_str(self, oss):
         surface = OpticStudioSurface(comment="Test")
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
         surface.material = "Test material"
 
         assert surface.surface.Material == "TEST MATERIAL"
 
-    def test_get_material_str(self, new_oss):
+    def test_get_material_str(self, oss):
         surface = OpticStudioSurface(comment="Test")
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
         surface.surface.Material = "Test material"
 
         assert surface.material == "TEST MATERIAL"
 
-    def test_set_material_incorrect_type_raises_typeerror(self, new_oss):
+    def test_set_material_incorrect_type_raises_typeerror(self, oss):
         surface = OpticStudioSurface(comment="Test")
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         with pytest.raises(TypeError, match="'material' must be MaterialModel or str"):
             surface.material = 5
 
-    def test_relink_surface(self, new_oss):
+    def test_relink_surface(self, oss):
         surface = OpticStudioSurface(comment="Test")
-        surface.build(new_oss, position=2)
+        surface.build(oss, position=2)
 
         assert surface.surface.SurfaceNumber == 2
 
-        OpticStudioSurface(comment="New test").build(new_oss, position=1)
+        OpticStudioSurface(comment="New test").build(oss, position=1)
 
-        assert surface.relink_surface(new_oss)
+        assert surface.relink_surface(oss)
         assert surface.surface.SurfaceNumber == 3
 
-    def test_relink_surface_changed_comment(self, new_oss):
+    def test_relink_surface_changed_comment(self, oss):
         surface = OpticStudioSurface(comment="Test")
-        surface.build(new_oss, position=2)
+        surface.build(oss, position=2)
         surface._comment = "New test"
 
-        assert not surface.relink_surface(new_oss)
+        assert not surface.relink_surface(oss)
 
-    def test_set_surface_type(self, new_oss):
+    def test_set_surface_type(self, oss):
         surface = OpticStudioSurface(comment="Test")
         surface._TYPE = "ABCD"
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         assert surface.surface.TypeName == "ABCD"
 
@@ -296,13 +296,13 @@ class TestBaseOpticStudioZernikeSurface:
             ),
         ],
     )
-    def test_set_zernike_coefficient(self, new_oss, n: int, value: float, maximum_term: int, expectation):
+    def test_set_zernike_coefficient(self, oss, n: int, value: float, maximum_term: int, expectation):
         surface = self.MockOpticStudioZernikeSurface(
             comment="Test",
             number_of_terms=maximum_term,
         )
 
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         with expectation:
             surface.set_zernike_coefficient(n, value)
@@ -320,14 +320,14 @@ class TestBaseOpticStudioZernikeSurface:
             (0, {1: 1.234, 2: 3.456}, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
         ],
     )
-    def test_get_zernike_coefficient(self, new_oss, n, coefficients, expectation):
+    def test_get_zernike_coefficient(self, oss, n, coefficients, expectation):
         surface = OpticStudioZernikeStandardSagSurface(
             comment="Test",
             number_of_terms=3,
             zernike_coefficients=coefficients,
         )
 
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         with expectation:
             assert surface.get_zernike_coefficient(n) == coefficients[n]
@@ -344,7 +344,7 @@ class TestOpticStudioZernikeStandardSagSurface:
             (231, None, 1, 0.0, 0.0),
         ],
     )
-    def test_build(self, new_oss, maximum_term, coefficients, extrapolate, decenter_x, decenter_y):
+    def test_build(self, oss, maximum_term, coefficients, extrapolate, decenter_x, decenter_y):
         surface = OpticStudioZernikeStandardSagSurface(
             comment="Test comment",
             number_of_terms=maximum_term,
@@ -355,7 +355,7 @@ class TestOpticStudioZernikeStandardSagSurface:
         )
 
         assert surface._is_built is False
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
         assert surface._is_built is True
         assert str(surface.surface.Type) == "ZernikeStandardSag"
 
@@ -369,39 +369,39 @@ class TestOpticStudioZernikeStandardSagSurface:
             assert surface.get_zernike_coefficient(n) == value
 
     @pytest.mark.parametrize("decenter_x", np.arange(-2, 3, dtype=float))
-    def test_zernike_decenter_x(self, new_oss, decenter_x):
+    def test_zernike_decenter_x(self, oss, decenter_x):
         surface = OpticStudioZernikeStandardSagSurface(
             comment="Test",
             zernike_decenter_x=decenter_x,
         )
 
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         surface.zernike_decenter_x = decenter_x
         assert surface.zernike_decenter_x == decenter_x
         assert surface.surface.SurfaceData.ZernikeDecenter_X == decenter_x
 
     @pytest.mark.parametrize("decenter_y", np.arange(-2, 3, dtype=float))
-    def test_zernike_decenter_y(self, new_oss, decenter_y):
+    def test_zernike_decenter_y(self, oss, decenter_y):
         surface = OpticStudioZernikeStandardSagSurface(
             comment="Test",
             zernike_decenter_y=decenter_y,
         )
 
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         surface.zernike_decenter_y = decenter_y
         assert surface.zernike_decenter_y == decenter_y
         assert surface.surface.SurfaceData.ZernikeDecenter_Y == decenter_y
 
     @pytest.mark.parametrize("extrapolate", [0, 1, True, False])
-    def test_extrapolate(self, new_oss, extrapolate):
+    def test_extrapolate(self, oss, extrapolate):
         surface = OpticStudioZernikeStandardSagSurface(
             comment="Test",
             extrapolate=extrapolate,
         )
 
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         surface.extrapolate = extrapolate
         assert surface.extrapolate == extrapolate
@@ -419,7 +419,7 @@ class TestOpticStudioZernikeStandardPhaseSurface:
             (231, None, 1, 5.6),
         ],
     )
-    def test_build(self, new_oss, maximum_term, coefficients, extrapolate, diffract_order):
+    def test_build(self, oss, maximum_term, coefficients, extrapolate, diffract_order):
         surface = OpticStudioZernikeStandardPhaseSurface(
             comment="Test comment",
             number_of_terms=maximum_term,
@@ -429,7 +429,7 @@ class TestOpticStudioZernikeStandardPhaseSurface:
         )
 
         assert surface._is_built is False
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
         assert surface._is_built is True
         assert str(surface.surface.Type) == "ZernikeStandardPhase"
 
@@ -442,26 +442,26 @@ class TestOpticStudioZernikeStandardPhaseSurface:
             assert surface.get_zernike_coefficient(n) == value
 
     @pytest.mark.parametrize("diffract_order", np.arange(0, 4, dtype=float))
-    def test_diffract_order(self, new_oss, diffract_order):
+    def test_diffract_order(self, oss, diffract_order):
         surface = OpticStudioZernikeStandardPhaseSurface(
             comment="Test",
             diffract_order=diffract_order,
         )
 
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         surface.diffract_order = diffract_order
         assert surface.diffract_order == diffract_order
         assert surface.surface.SurfaceData.DiffractOrder == diffract_order
 
     @pytest.mark.parametrize("extrapolate", [0, 1, True, False])
-    def test_extrapolate(self, new_oss, extrapolate):
+    def test_extrapolate(self, oss, extrapolate):
         surface = OpticStudioZernikeStandardPhaseSurface(
             comment="Test",
             extrapolate=extrapolate,
         )
 
-        surface.build(new_oss, position=1)
+        surface.build(oss, position=1)
 
         surface.extrapolate = extrapolate
         assert surface.extrapolate == extrapolate

@@ -46,7 +46,6 @@ def detect_opticstudio() -> bool:
         zos.disconnect()
         assert zos.Application is None
 
-        zp.ZOS._instances = set()  # noqa: SLF001
         del zos
 
     except FileNotFoundError:
