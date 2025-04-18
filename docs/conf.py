@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from subprocess import run
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -47,12 +48,32 @@ html_theme_options = {
         "text": "Visisipy",
     },
     "show_toc_level": 1,
+    "use_edit_page_button": True,
+    "secondary_sidebar_items": {
+        "**": ["page-toc"],
+        "examples/**/**": ["page-toc", "edit-this-page"]
+    },
 }
 
+if os.getenv("READTHEDOCS") == "True":
+    git_branch = os.getenv("READTHEDOCS_GIT_IDENTIFIER", "main")
+else:
+    try:
+        git_branch = run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],  # noqa: S607
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    except:  # noqa: E722
+        git_branch = "main"
+
 html_context = {
+    "edit_page_url_template": "{{ github_url }}/{{ github_user }}/{{ github_repo }}/tree/{{ github_version }}/{{ doc_path }}{{ file_name }}",
+    "edit_page_provider_name": "GitHub",
     "github_user": "MREYE-LUMC",
     "github_repo": "visisipy",
-    "github_version": "main",
+    "github_version": git_branch,
     "doc_path": "docs",
 }
 
