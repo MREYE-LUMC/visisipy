@@ -35,6 +35,7 @@ python = "3.12"
 installer = "uv"
 python = "3.13"
 dependencies = [
+    "myst-nb",
     "myst-parser",
     "pydata-sphinx-theme",
     "sphinx",
@@ -45,7 +46,7 @@ dependencies = [
 
 [tool.hatch.envs.docs.scripts]
 build = "sphinx-build -M {args:html} docs docs/_build"
-preview = "sphinx-autobuild docs docs/_build/html --open-browser --ignore docs/api"
+preview = "sphinx-autobuild docs docs/_build/html --open-browser --ignore docs/api {args}"
 
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "ruff_defaults.toml"
@@ -82,6 +83,7 @@ extend-ignore = [
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
+"docs/*" = ["INP001"]
 "examples/*" = ["INP001", "T20"]
 "scripts/*" = ["S101"]
 "tests/*" = ["ARG001", "ARG002", "FBT001", "PLC2701"]

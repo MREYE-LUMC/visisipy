@@ -87,6 +87,11 @@ class _AnalysisMethod(Generic[_Analysis]):
         return MethodType(self._analysis, instance.backend)
 
 
+class _classproperty(property):  # noqa: N801
+    def __get__(self, instance, owner=None):
+        return self.fget(owner)
+
+
 class BaseAnalysisRegistry(ABC):
     """Base class for analysis registry.
 

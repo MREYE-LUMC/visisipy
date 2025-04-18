@@ -66,6 +66,14 @@ Currently, two backends are available:
 user_guide/index
 ```
 
+## Examples
+
+```{toctree}
+:maxdepth: 2
+
+examples/index
+```
+
 ## Contributing
 
 ```{toctree}
