@@ -10,6 +10,7 @@ from visisipy.models import (
     EyeModel,
     NavarroGeometry,
     NavarroMaterials,
+    create_geometry,
 )
 
 __all__ = (
@@ -19,6 +20,7 @@ __all__ = (
     "NavarroGeometry",
     "NavarroMaterials",
     "analysis",
+    "create_geometry",
     "get_backend",
     "models",
     "opticstudio",
