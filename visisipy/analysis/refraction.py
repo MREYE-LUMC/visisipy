@@ -1,3 +1,5 @@
+"""Calculate the spherical equivalent of refraction of the eye."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, overload
@@ -76,6 +78,8 @@ def refraction(
     wavelength : float, optional
         The wavelength for the Zernike calculation. When `None`, the default wavelength configured in the backend is
         used. Defaults to `None`.
+    sampling : SampleSize | str | int, optional
+        The sampling for the Zernike calculation. Defaults to 64.
     field_type : Literal["angle", "object_height"], optional
         The type of field to be used when setting the field coordinate. This parameter is only used when
         `field_coordinate` is specified. Defaults to "angle".
@@ -93,6 +97,10 @@ def refraction(
           The ocular refraction in Fourier power vector form.
     Any
         The raw analysis result from the backend.
+
+    See Also
+    --------
+    FourierPowerVectorRefraction : Ocular refraction in Fourier power vector form.
     """
     return backend.analysis.refraction(
         use_higher_order_aberrations=use_higher_order_aberrations,
@@ -111,8 +119,7 @@ def zernike_data_to_refraction(
     *,
     use_higher_order_aberrations: bool = True,
 ) -> FourierPowerVectorRefraction:
-    """
-    Convert Zernike coefficients to ocular refraction in Fourier power vector form.
+    """Convert Zernike coefficients to ocular refraction in Fourier power vector form.
 
     Parameters
     ----------
@@ -123,7 +130,6 @@ def zernike_data_to_refraction(
 
     Returns
     -------
-
     """
     z4 = zernike_coefficients[4] * wavelength * 4 * np.sqrt(3)
     z11 = zernike_coefficients[11] * wavelength * 12 * np.sqrt(5)

@@ -12,7 +12,7 @@ from subprocess import run
 
 project = "Visisipy"
 year = datetime.now().year  # noqa: DTZ005
-copyright_year = str(year) if year == 2025 else f"2025 - {year}"
+copyright_year = str(year) if year == 2025 else f"2025 - {year}"  # noqa: PLR2004
 copyright = f"{copyright_year}, Corné Haasjes, Luc van Vught, Jan-Willem Beenakker"  # noqa: A001
 author = "Corné Haasjes, Luc van Vught, Jan-Willem Beenakker"
 
@@ -49,10 +49,7 @@ html_theme_options = {
     },
     "show_toc_level": 1,
     "use_edit_page_button": True,
-    "secondary_sidebar_items": {
-        "**": ["page-toc"],
-        "examples/**/**": ["page-toc", "edit-this-page"]
-    },
+    "secondary_sidebar_items": {"**": ["page-toc"], "examples/**/**": ["page-toc", "edit-this-page"]},
 }
 
 if os.getenv("READTHEDOCS") == "True":

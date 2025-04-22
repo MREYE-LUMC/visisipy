@@ -1,3 +1,5 @@
+"""Cardinal points analysis for Optiland."""
+
 from __future__ import annotations
 
 from copy import deepcopy
@@ -17,6 +19,11 @@ __all__ = ("cardinal_points",)
 
 @dataclass
 class OptilandCardinalPointsResult(CardinalPointsResult):
+    """The cardinal points of a system.
+
+    Calculating anti-principal and anti-nodal points is not supported in Optiland.
+    """
+
     anti_principal_points: CardinalPoints = field(init=False, default=NotImplemented)
     anti_nodal_points: CardinalPoints = field(init=False, default=NotImplemented)
 

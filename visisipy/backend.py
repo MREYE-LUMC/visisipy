@@ -185,8 +185,7 @@ class BackendSettings(TypedDict, total=False):
     """List of wavelengths to use in the optical system."""
 
     aperture_type: ApertureType
-    """
-    The aperture type to use in the optical system. Must be one of 'float_by_stop_size', 'entrance_pupil_diameter',
+    """The aperture type to use in the optical system. Must be one of 'float_by_stop_size', 'entrance_pupil_diameter',
     'image_f_number', or 'object_numeric_aperture'.
     """
 
@@ -328,8 +327,7 @@ def get_backend() -> type[BaseBackend]:
 
 
 def get_oss() -> OpticStudioSystem | None:
-    """
-    Get the OpticStudioSystem instance from the current backend.
+    """Get the OpticStudioSystem instance from the current backend.
 
     Returns
     -------
@@ -345,8 +343,7 @@ def get_oss() -> OpticStudioSystem | None:
 
 
 def get_optic() -> Optic | None:
-    """
-    Get the Optic instance from the current backend.
+    """Get the Optic instance from the current backend.
 
     Returns
     -------
@@ -362,8 +359,7 @@ def get_optic() -> Optic | None:
 
 
 def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack[BackendSettings]):
-    """
-    Update settings on the current backend.
+    """Update settings on the current backend.
 
     Optionally, the backend can be manually specified. By default, the current backend is used.
 

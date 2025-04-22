@@ -1,3 +1,5 @@
+"""Build and manage eye models in OpticStudio."""
+
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -14,6 +16,8 @@ __all__ = ("OpticStudioEye", "OpticStudioReverseEye")
 
 
 class BaseOpticStudioEye(BaseEye):
+    """Base class for OpticStudio eye models."""
+
     @abstractmethod
     def __init__(self, model: EyeModel): ...
 
@@ -28,8 +32,8 @@ class BaseOpticStudioEye(BaseEye):
         self,
         oss: OpticStudioSystem,
         *,
-        start_from_index: int,
-        replace_existing: bool,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
         object_distance: float = float("inf"),
     ):
         """Create the eye in OpticStudio.
@@ -84,7 +88,16 @@ class BaseOpticStudioEye(BaseEye):
 
 
 class OpticStudioEye(BaseOpticStudioEye):
+    """Eye model in OpticStudio."""
+
     def __init__(self, eye_model: EyeModel) -> None:
+        """Create a new OpticStudio eye model.
+
+        Parameters
+        ----------
+        eye_model : EyeModel
+            Eye model specification from which the OpticStudio eye model is created.
+        """
         self._eye_model = eye_model
 
         self._cornea_front = make_surface(eye_model.geometry.cornea_front, eye_model.materials.cornea, "cornea front")
@@ -104,6 +117,7 @@ class OpticStudioEye(BaseOpticStudioEye):
 
     @property
     def eye_model(self) -> EyeModel:
+        """Eye model specification from which the OpticStudio eye model is created."""
         return self._eye_model
 
     @property

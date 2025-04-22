@@ -15,7 +15,7 @@ maintainers = [
 dependencies = [
     "zospy==1.2.1",
     "matplotlib",
-    "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
+    "numba>=0.60.0",  # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
     "optiland>=0.3.1",
     "scipy",
@@ -30,6 +30,10 @@ path = "visisipy/__init__.py"
 [tool.hatch.envs.default]
 installer = "uv"
 python = "3.12"
+
+[tool.hatch.envs.default.scripts]
+# Format docstrings according to numpydoc
+format-docstrings = "{env:HATCH_UV:uv} tool run pydocstringformatter --write {args:scripts tests visisipy}"
 
 [tool.hatch.envs.docs]
 installer = "uv"
@@ -92,6 +96,13 @@ extend-ignore = [
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
+
+[tool.pydocstringformatter]
+style = "numpydoc"
+max-line-length = 120
+max-summary-lines = 1
+summary-quotes-same-line = true
+linewrap-full-docstring = true
 
 [tool.uv.sources]
 optiland = { git = "https://github.com/HarrisonKramer/optiland", rev = "master" }

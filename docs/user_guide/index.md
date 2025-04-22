@@ -1,6 +1,6 @@
 # User guide
 
-This user guide provides instructions, examples, and explanations to help you effectively use VisiSiPy for simulating and analyzing visual systems.
+This user guide provides instructions, examples, and explanations to help you effectively use Visisipy for simulating and analyzing visual systems.
 
 Refer to the sections below to learn about installation, normal simulation workflow, and advanced usage. 
 
@@ -18,7 +18,7 @@ example
 
 eye_models
 backend
-analysis
+analyses
 visualization
 ```
 
@@ -28,4 +28,5 @@ visualization
 
 backend_direct
 backend_multiple
+custom_surfaces
 ```

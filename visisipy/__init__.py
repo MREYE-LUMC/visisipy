@@ -1,4 +1,4 @@
-"""Visisipy: VISion Simulations In PYthon"""
+"""Visisipy: VISion Simulations In PYthon."""
 
 from __future__ import annotations
 

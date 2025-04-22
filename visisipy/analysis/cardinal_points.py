@@ -1,3 +1,5 @@
+"""Calculate the cardinal points of an eye model."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,9 +15,7 @@ __all__ = ("CardinalPoints", "CardinalPointsResult", "cardinal_points")
 
 
 class CardinalPoints(NamedTuple):
-    """
-    The cardinal points of a system in object and image space.
-    """
+    """The cardinal points of a system in object and image space."""
 
     object: float
     image: float
@@ -23,8 +23,7 @@ class CardinalPoints(NamedTuple):
 
 @dataclass
 class CardinalPointsResult:
-    """
-    The cardinal points of a system.
+    """The cardinal points of a system.
 
     Attributes
     ----------
@@ -81,8 +80,7 @@ def cardinal_points(
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> tuple[CardinalPointsResult, Any]:
-    """
-    Get the cardinal points of the system between `surface_1` and `surface_2`.
+    """Get the cardinal points of the system between `surface_1` and `surface_2`.
 
     Parameters
     ----------

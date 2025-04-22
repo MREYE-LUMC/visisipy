@@ -2,8 +2,7 @@ from typing import Any
 
 
 def build_args(*, non_null_defaults: set[str], **kwargs) -> dict[str, Any]:
-    """
-    Build a dictionary of arguments for the analysis.
+    """Build a dictionary of arguments for the analysis.
 
     Parameters
     ----------

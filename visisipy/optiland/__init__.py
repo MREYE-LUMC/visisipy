@@ -1,3 +1,5 @@
+"""Analyze optical eye models in Optiland."""
+
 from __future__ import annotations
 
 from visisipy.optiland.backend import OptilandBackend

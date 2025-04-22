@@ -8,17 +8,14 @@ from visisipy.opticstudio.backend import OpticStudioBackend, OpticStudioSettings
 
 @pytest.fixture(scope="session")
 def monkeypatch_session():
-    """
-    Session-scoped monkeypatch fixture.
-    """
+    """Session-scoped monkeypatch fixture."""
     with pytest.MonkeyPatch.context() as mp:
         yield mp
 
 
 @pytest.fixture(scope="session")
 def zos(monkeypatch_session):
-    """
-    Initialize a ZOS instance.
+    """Initialize a ZOS instance.
 
     After initializing the ZOS instance, zospy.ZOS is patched to return the same instance,
     so multiple calls to zospy.ZOS() will not raise an error.

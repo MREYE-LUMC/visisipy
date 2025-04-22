@@ -1,3 +1,5 @@
+"""Analyze optical eye models in Optiland."""
+
 __all__ = ("OptilandAnalysisRegistry",)
 
 from typing import TYPE_CHECKING
@@ -13,9 +15,7 @@ if TYPE_CHECKING:
 
 
 class OptilandAnalysisRegistry(BaseAnalysisRegistry):
-    """
-    Analyses for the OpticStudio backend.
-    """
+    """Analyses for the OpticStudio backend."""
 
     def __init__(self, backend: "OptilandBackend"):
         super().__init__(backend)

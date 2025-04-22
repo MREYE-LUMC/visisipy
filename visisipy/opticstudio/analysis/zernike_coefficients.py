@@ -1,3 +1,5 @@
+"""Zernike coefficients analysis for OpticStudio."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -28,8 +30,7 @@ def zernike_standard_coefficients(
     sampling: SampleSize | str | int = 64,
     maximum_term: int = 45,
 ) -> tuple[ZernikeCoefficients, zp.analyses.base.AnalysisResult]:
-    """
-    Calculate the Zernike standard coefficients at the retina surface.
+    """Calculate the Zernike standard coefficients at the retina surface.
 
     Parameters
     ----------

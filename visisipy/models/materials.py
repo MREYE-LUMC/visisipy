@@ -1,3 +1,5 @@
+"""Optical properties of materials used in eye models."""
+
 from dataclasses import dataclass, field
 from typing import Callable
 
