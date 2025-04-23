@@ -26,6 +26,7 @@ dynamic = ["version"]
 
 [tool.hatch.version]
 source = "versioningit"
+default-version = "0.0.0+unknown"
 
 [tool.hatch.envs.default]
 installer = "uv"
@@ -78,5 +79,3 @@ extend-ignore = [
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
-
-[tool.versioningit]

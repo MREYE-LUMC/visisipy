@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from importlib.metadata import version
+
 from visisipy import analysis, models, opticstudio, optiland, plots, refraction, wavefront
 from visisipy.backend import get_backend, set_backend, update_settings
 from visisipy.models import (
@@ -27,3 +29,5 @@ __all__ = (
     "update_settings",
     "wavefront",
 )
+
+__version__ = version("visisipy")
