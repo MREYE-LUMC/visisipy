@@ -161,11 +161,15 @@ class TestCreateGeometry:
         assert geometry.__dict__ == example_geometry.__dict__
 
     def test_create_geometry_estimate_cornea_back(self, base_geometry, example_geometry_parameters):
-        geometry = create_geometry(
-            base=base_geometry,
-            **example_geometry_parameters,
-            estimate_cornea_back=True,
-        )
+        with pytest.warns(
+            UserWarning,
+            match="The cornea back radius was provided, but it will be ignored",
+        ):
+            geometry = create_geometry(
+                base=base_geometry,
+                **example_geometry_parameters,
+                estimate_cornea_back=True,
+            )
 
         assert geometry.cornea_back.radius == 0.81 * geometry.cornea_front.radius
 

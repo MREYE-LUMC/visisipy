@@ -43,7 +43,7 @@ markers = [
     "needs_opticstudio: test needs OpticStudio and will be skipped if it is not available",
 ]
 filterwarnings = [
-    "ignore: Header and row length mismatch",
+    "ignore:Header and row length mismatch",
     "ignore:Only a single instance of ZOS can exist at any time",
 ]
 
