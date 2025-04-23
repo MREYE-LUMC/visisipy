@@ -49,7 +49,11 @@ html_theme_options = {
     },
     "show_toc_level": 1,
     "use_edit_page_button": True,
-    "secondary_sidebar_items": {"**": ["page-toc"], "examples/**/**": ["page-toc", "edit-this-page"]},
+    "secondary_sidebar_items": {
+        "**": ["page-toc"],
+        "user_guide/**": ["page-toc", "download-notebook"],
+        "examples/**/**": ["page-toc", "download-notebook"],
+    },
 }
 
 if os.getenv("READTHEDOCS") == "True":
