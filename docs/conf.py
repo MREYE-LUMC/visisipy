@@ -77,7 +77,7 @@ html_context = {
 # -- Options for myst-nb ----------------------------------------------------
 # https://myst-nb.readthedocs.io/en/latest/configuration.html
 
-nb_execution_mode = "off" if os.getenv("BUILD_NOTEBOOKS") == "false" else "cache"
+nb_execution_mode = "off" if os.getenv("BUILD_NOTEBOOKS") == "false" or os.getenv("READTHEDOCS") else "cache"
 
 if os.getenv("READTHEDOCS"):
     # Do not build notebooks that depend on OpticStudio
