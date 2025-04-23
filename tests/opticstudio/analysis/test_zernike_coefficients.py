@@ -13,10 +13,10 @@ class TestZernikeStandardCoefficientsAnalysis:
         [
             (None, None, None, None, None),
             ((0, 0), 0.543, None, None, None),
-            pytest.param((1, 1), 0.632, "angle", None, None, marks=pytest.mark.xfail),
-            pytest.param((0.5, 0.5), 0.543, "object_height", 64, None, marks=pytest.mark.xfail),
+            ((1, 1), 0.632, "angle", None, None),
+            ((0.5, 0.5), 0.543, "object_height", 64, None),
             ((0, 0), 0.543, "angle", SampleSize(64), 45),
-            pytest.param((1, 1), 0.632, "angle", "64x64", 100, marks=pytest.mark.xfail),
+            ((1, 1), 0.632, "angle", "64x64", 100),
         ],
     )
     def test_zernike_standard_coefficients(

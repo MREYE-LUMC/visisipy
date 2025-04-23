@@ -13,7 +13,7 @@ maintainers = [
     { name = "MReye research group", email = "zospy@mreye.nl" }
 ]
 dependencies = [
-    "zospy>=2.0.0,<3.0.0",
+    "zospy>=2.0.1",
     "matplotlib",
     "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
