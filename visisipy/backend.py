@@ -30,16 +30,7 @@ from collections.abc import Callable, Sequence
 from enum import Enum
 from pathlib import Path
 from types import MethodType
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    ClassVar,
-    Generic,
-    Literal,
-    TypeVar,
-    cast,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
 from warnings import warn
 
 from visisipy.types import NotRequired, TypedDict, Unpack
@@ -58,7 +49,16 @@ if TYPE_CHECKING:
     from visisipy.types import SampleSize
     from visisipy.wavefront import ZernikeCoefficients
 
-__all__ = ("Backend", "get_backend", "get_oss", "set_backend")
+__all__ = (
+    "Backend",
+    "BackendSettings",
+    "BaseBackend",
+    "get_backend",
+    "get_optic",
+    "get_oss",
+    "set_backend",
+    "update_settings",
+)
 
 
 _BACKEND: type[BaseBackend] | None = None

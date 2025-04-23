@@ -88,7 +88,7 @@ extend-ignore = [
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"docs/*" = ["INP001"]
+"docs/*" = ["INP001", "T20"]
 "examples/*" = ["INP001", "T20"]
 "scripts/*" = ["S101"]
 "tests/*" = ["ARG001", "ARG002", "FBT001", "PLC2701"]
