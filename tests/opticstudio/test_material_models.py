@@ -8,7 +8,7 @@ pytestmark = [pytest.mark.needs_opticstudio]
 
 
 @pytest.fixture
-def opticstudio_model(new_oss):
+def opticstudio_model(oss):
     """
     Simple optical system with 3 parallel surfaces: a stop, refracting interface, and image surface.
     All surfaces except the refracting interface and image surface have a refractive index of 1.0.
@@ -18,12 +18,12 @@ def opticstudio_model(new_oss):
     refraction at the refracting interface. This allows to calculate the refractive index of the refracting interface
     from the angle of incidence at the refracting interface and the angle of incidence at the image surface.
     """
-    new_oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
+    oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
 
-    new_oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
-    new_oss.SystemData.Fields.GetField(1).Y = 20
+    oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
+    oss.SystemData.Fields.GetField(1).Y = 20
 
-    obj = new_oss.LDE.GetSurfaceAt(0)
+    obj = oss.LDE.GetSurfaceAt(0)
     obj.Comment = "object"
     obj.Thickness = float("inf")
     zp.solvers.material_model(
@@ -33,13 +33,13 @@ def opticstudio_model(new_oss):
         partial_dispersion=0.0,
     )
 
-    stop = new_oss.LDE.GetSurfaceAt(1)
+    stop = oss.LDE.GetSurfaceAt(1)
     stop.Comment = "stop"
     stop.Thickness = 5.0
     stop.SemiDiameter = 1.0
     zp.solvers.material_model(stop.MaterialCell, refractive_index=1.0, abbe_number=0.0, partial_dispersion=0.0)
 
-    interface = new_oss.LDE.InsertNewSurfaceAt(2)
+    interface = oss.LDE.InsertNewSurfaceAt(2)
     interface.Comment = "interface"
     interface.Thickness = 5.0
     zp.solvers.material_model(
@@ -49,7 +49,7 @@ def opticstudio_model(new_oss):
         partial_dispersion=0.0,
     )
 
-    image = new_oss.LDE.GetSurfaceAt(3)
+    image = oss.LDE.GetSurfaceAt(3)
     image.Comment = "image"
     zp.solvers.material_model(
         image.MaterialCell,
@@ -58,7 +58,7 @@ def opticstudio_model(new_oss):
         partial_dispersion=0.0,
     )
 
-    return new_oss
+    return oss
 
 
 def _set_material_model(material_cell, material_model):
@@ -105,10 +105,10 @@ def test_material_model_refractive_index(opticstudio_model, material_model, wave
 
     # Get angle of incidence at image surface. As the refracting surface and the image surface are parallel, the angle
     # of incidence at the image surface is equal to the angle of refraction at the refracting surface.
-    raytrace_result = zp.analyses.raysandspots.single_ray_trace(
-        opticstudio_model, hx=0, hy=1, px=0, py=1, wavelength=1, global_coordinates=True
-    )
-    angle = raytrace_result.Data.RealRayTraceData.loc[3]["Anglein"]
+    raytrace_result = zp.analyses.raysandspots.SingleRayTrace(
+        hx=0, hy=1, px=0, py=1, wavelength=1, global_coordinates=True
+    ).run(opticstudio_model)
+    angle = raytrace_result.data.real_ray_trace_data.loc[3]["Angle in"]
     refractive_index = np.sin(np.deg2rad(20)) / np.sin(np.deg2rad(angle))
 
     assert refractive_index == pytest.approx(expected_index, rel=1e-3)

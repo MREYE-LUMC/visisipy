@@ -8,16 +8,14 @@ from visisipy.types import SampleSize
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
+    from zospy.analyses.wavefront.zernike_standard_coefficients import ZernikeStandardCoefficientsResult
+
     from visisipy.backend import FieldCoordinate, FieldType
     from visisipy.opticstudio.backend import OpticStudioBackend
 
 
-def _get_zernike_coefficient(zernike_result: zp.analyses.base.AttrDict, coefficient: int) -> float:
-    return zernike_result.Data.Coefficients.loc["Z" + str(coefficient)].Value
-
-
-def _build_zernike_result(zernike_result: zp.analyses.base.AttrDict, maximum_term: int) -> ZernikeCoefficients:
-    return ZernikeCoefficients({i: _get_zernike_coefficient(zernike_result, i) for i in range(1, maximum_term + 1)})
+def _build_zernike_result(zernike_result: ZernikeStandardCoefficientsResult, maximum_term: int) -> ZernikeCoefficients:
+    return ZernikeCoefficients({k: v.value for k, v in zernike_result.coefficients.items() if k <= maximum_term})
 
 
 def zernike_standard_coefficients(
@@ -27,7 +25,7 @@ def zernike_standard_coefficients(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int = 45,
-) -> tuple[ZernikeCoefficients, zp.analyses.base.AnalysisResult]:
+) -> tuple[ZernikeCoefficients, ZernikeStandardCoefficientsResult]:
     """
     Calculate the Zernike standard coefficients at the retina surface.
 
@@ -51,7 +49,7 @@ def zernike_standard_coefficients(
 
     Returns
     -------
-    AttrDict
+    ZernikeCoefficients
         ZOSPy Zernike standard coefficients analysis output.
     """
     if not isinstance(sampling, SampleSize):
@@ -66,8 +64,7 @@ def zernike_standard_coefficients(
     if field_coordinate is not None:
         backend.set_fields([field_coordinate], field_type=field_type)
 
-    zernike_result = zp.analyses.wavefront.zernike_standard_coefficients(
-        backend.get_oss(),
+    zernike_result = zp.analyses.wavefront.ZernikeStandardCoefficients(
         sampling=str(sampling),
         maximum_term=maximum_term,
         wavelength=wavelength_number,
@@ -77,6 +74,6 @@ def zernike_standard_coefficients(
         sx=0.0,
         sy=0.0,
         sr=1.0,
-    )
+    ).run(backend.get_oss())
 
-    return _build_zernike_result(zernike_result, maximum_term), zernike_result
+    return _build_zernike_result(zernike_result.data, maximum_term), zernike_result.data

@@ -13,7 +13,7 @@ maintainers = [
     { name = "MReye research group", email = "zospy@mreye.nl" }
 ]
 dependencies = [
-    "zospy==1.2.1",
+    "zospy>=2.0.1",
     "matplotlib",
     "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
@@ -36,11 +36,15 @@ config-path = "ruff_defaults.toml"
 dependencies = ["ruff==0.11.5"]
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.9", "3.10", "3.11", "3.12"]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
 [tool.pytest.ini_options]
 markers = [
     "needs_opticstudio: test needs OpticStudio and will be skipped if it is not available",
+]
+filterwarnings = [
+    "ignore: Header and row length mismatch",
+    "ignore:Only a single instance of ZOS can exist at any time",
 ]
 
 [tool.coverage.report]
@@ -74,6 +78,3 @@ extend-ignore = [
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
-
-[tool.uv.sources]
-optiland = { git = "https://github.com/HarrisonKramer/optiland", rev = "master" }
