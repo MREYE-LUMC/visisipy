@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "versioningit"]
 build-backend = "hatchling.build"
 
 [project]
@@ -25,7 +25,8 @@ requires-python = ">=3.9, <3.14"
 dynamic = ["version"]
 
 [tool.hatch.version]
-path = "visisipy/__init__.py"
+source = "versioningit"
+default-version = "0.0.0+unknown"
 
 [tool.hatch.envs.default]
 installer = "uv"
