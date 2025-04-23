@@ -27,5 +27,3 @@ __all__ = (
     "update_settings",
     "wavefront",
 )
-
-__version__ = "0.0.1"

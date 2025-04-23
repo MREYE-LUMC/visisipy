@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "versioningit"]
 build-backend = "hatchling.build"
 
 [project]
@@ -25,7 +25,7 @@ requires-python = ">=3.9, <3.14"
 dynamic = ["version"]
 
 [tool.hatch.version]
-path = "visisipy/__init__.py"
+source = "versioningit"
 
 [tool.hatch.envs.default]
 installer = "uv"
@@ -78,3 +78,5 @@ extend-ignore = [
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
+
+[tool.versioningit]
