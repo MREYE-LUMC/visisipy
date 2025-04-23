@@ -77,7 +77,14 @@ html_context = {
 # -- Options for myst-nb ----------------------------------------------------
 # https://myst-nb.readthedocs.io/en/latest/configuration.html
 
-nb_execution_mode = "off" if os.getenv("READTHEDOCS") or os.getenv("BUILD_NOTEBOOKS") == "false" else "cache"
+nb_execution_mode = "off" if os.getenv("BUILD_NOTEBOOKS") == "false" else "cache"
+
+if os.getenv("READTHEDOCS"):
+    # Do not build notebooks that depend on OpticStudio
+    execution_excludepatterns = [
+        "*examples/Patient-specific mapping of fundus photographs to three-dimensional ocular imaging/*",
+        "*examples/Backend comparison/*",
+    ]
 
 # -- Options for autoapi ----------------------------------------------------
 # https://sphinx-autoapi.readthedocs.io/en/latest/
