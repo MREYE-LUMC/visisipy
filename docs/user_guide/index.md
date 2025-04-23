@@ -19,7 +19,6 @@ example
 eye_models
 backend
 analyses
-visualization
 ```
 
 ```{toctree}

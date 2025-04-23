@@ -1,1 +1,0 @@
-# Visualizing eye models
