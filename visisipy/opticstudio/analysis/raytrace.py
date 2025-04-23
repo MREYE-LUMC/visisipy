@@ -10,6 +10,8 @@ import zospy as zp
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from zospy.analyses.raysandspots.single_ray_trace import SingleRayTraceResult
+
     from visisipy.backend import FieldCoordinate, FieldType
     from visisipy.opticstudio.backend import OpticStudioBackend
 
@@ -34,7 +36,7 @@ def raytrace(
     wavelengths: Iterable[float] | None = None,
     field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
-) -> tuple[pd.DataFrame, list[zp.analyses.base.AnalysisResult]]:
+) -> tuple[pd.DataFrame, list[SingleRayTraceResult]]:
     """Perform a ray trace analysis using the given parameters.
     The ray trace is performed for each wavelength and field in the system, using the Single Ray Trace analysis
     in OpticStudio.
@@ -81,22 +83,29 @@ def raytrace(
     if wavelengths is not None:
         backend.set_wavelengths(wavelengths)
 
+    real_ray_traces = []
     raytrace_results = []
 
     for wavelength_number, wavelength in backend.iter_wavelengths():
         for field_number, field in backend.iter_fields():
-            raytrace_result = zp.analyses.raysandspots.single_ray_trace(
-                backend.get_oss(),
+            raytrace_result = zp.analyses.raysandspots.SingleRayTrace(
                 px=pupil[0],
                 py=pupil[1],
                 field=field_number,
                 wavelength=wavelength_number,
                 global_coordinates=True,
-            ).Data.RealRayTraceData
+            ).run(backend.get_oss())
+            real_ray_trace = raytrace_result.data.real_ray_trace_data
 
-            raytrace_result.insert(0, "Field", [(field.X, field.Y)] * len(raytrace_result))
-            raytrace_result.insert(0, "Wavelength", wavelength)
+            if real_ray_trace is None:
+                raise ValueError(
+                    f"Failed to perform ray trace for field ({field.X}, {field.Y}) and wavelength {wavelength}."
+                )
 
-            raytrace_results.append(raytrace_result)
+            real_ray_trace.insert(0, "Field", [(field.X, field.Y)] * len(real_ray_trace))
+            real_ray_trace.insert(0, "Wavelength", wavelength)
 
-    return _build_raytrace_result(raytrace_results), raytrace_results
+            real_ray_traces.append(real_ray_trace)
+            raytrace_results.append(raytrace_result.data)
+
+    return _build_raytrace_result(real_ray_traces), raytrace_results

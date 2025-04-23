@@ -9,41 +9,43 @@ import zospy as zp
 from visisipy.analysis.cardinal_points import CardinalPoints, CardinalPointsResult
 
 if TYPE_CHECKING:
+    from zospy.analyses.reports.cardinal_points import CardinalPointsResult as ZOSPyCardinalPointsResult
+
     from visisipy.opticstudio.backend import OpticStudioBackend
 
 
-def _build_cardinal_points_result(cardinal_points_result: zp.analyses.base.AttrDict) -> CardinalPointsResult:
+def _build_cardinal_points_result(cardinal_points_result: ZOSPyCardinalPointsResult) -> CardinalPointsResult:
     return CardinalPointsResult(
         focal_lengths=CardinalPoints(
-            image=cardinal_points_result.Data["Image Space"]["Focal Length"],
-            object=cardinal_points_result.Data["Object Space"]["Focal Length"],
+            image=cardinal_points_result.cardinal_points.focal_length.image,
+            object=cardinal_points_result.cardinal_points.focal_length.object,
         ),
         focal_points=CardinalPoints(
-            image=cardinal_points_result.Data["Image Space"]["Focal Planes"],
-            object=cardinal_points_result.Data["Object Space"]["Focal Planes"],
+            image=cardinal_points_result.cardinal_points.focal_planes.image,
+            object=cardinal_points_result.cardinal_points.focal_planes.object,
         ),
         principal_points=CardinalPoints(
-            image=cardinal_points_result.Data["Image Space"]["Principal Planes"],
-            object=cardinal_points_result.Data["Object Space"]["Principal Planes"],
+            image=cardinal_points_result.cardinal_points.principal_planes.image,
+            object=cardinal_points_result.cardinal_points.principal_planes.object,
         ),
         anti_principal_points=CardinalPoints(
-            image=cardinal_points_result.Data["Image Space"]["Anti-Principal Planes"],
-            object=cardinal_points_result.Data["Object Space"]["Anti-Principal Planes"],
+            image=cardinal_points_result.cardinal_points.anti_principal_planes.image,
+            object=cardinal_points_result.cardinal_points.anti_principal_planes.object,
         ),
         anti_nodal_points=CardinalPoints(
-            image=cardinal_points_result.Data["Image Space"]["Anti-Nodal Planes"],
-            object=cardinal_points_result.Data["Object Space"]["Anti-Nodal Planes"],
+            image=cardinal_points_result.cardinal_points.anti_nodal_planes.image,
+            object=cardinal_points_result.cardinal_points.anti_nodal_planes.object,
         ),
         nodal_points=CardinalPoints(
-            image=cardinal_points_result.Data["Image Space"]["Nodal Planes"],
-            object=cardinal_points_result.Data["Object Space"]["Nodal Planes"],
+            image=cardinal_points_result.cardinal_points.nodal_planes.image,
+            object=cardinal_points_result.cardinal_points.nodal_planes.object,
         ),
     )
 
 
 def cardinal_points(
-    backend: type[OpticStudioBackend], surface_1: int | None = None, surface_2: int | None = None
-) -> tuple[CardinalPointsResult, zp.analyses.base.AnalysisResult]:
+    backend: OpticStudioBackend, surface_1: int | None = None, surface_2: int | None = None
+) -> tuple[CardinalPointsResult, ZOSPyCardinalPointsResult]:
     """Get the cardinal points of the system between `surface_1` and `surface_2`.
 
     Parameters
@@ -77,10 +79,9 @@ def cardinal_points(
     if surface_1 >= surface_2:
         raise ValueError("surface_1 must be less than surface_2.")
 
-    cardinal_points_result = zp.analyses.reports.cardinal_points(
-        backend.get_oss(),
+    cardinal_points_result = zp.analyses.reports.CardinalPoints(
         surface_1=surface_1,
         surface_2=surface_2,
-    )
+    ).run(backend.get_oss())
 
-    return _build_cardinal_points_result(cardinal_points_result), cardinal_points_result
+    return _build_cardinal_points_result(cardinal_points_result.data), cardinal_points_result.data
