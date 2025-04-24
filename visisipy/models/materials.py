@@ -1,4 +1,5 @@
 """Optical properties of materials used in eye models."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

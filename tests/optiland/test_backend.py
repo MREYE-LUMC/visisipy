@@ -3,7 +3,6 @@ from __future__ import annotations
 import math
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
-from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS
 
 import pytest
 
@@ -196,8 +195,13 @@ class TestOptilandBackendSettings:
         ],
     )
     def test_aperture(
-        self, aperture_type, aperture_value, expected_aperture_type, expectation, optiland_backend: OptilandBackend,
-            monkeypatch
+        self,
+        aperture_type,
+        aperture_value,
+        expected_aperture_type,
+        expectation,
+        optiland_backend: OptilandBackend,
+        monkeypatch,
     ):
         with expectation:
             optiland_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)
