@@ -43,6 +43,12 @@ html_theme_options = {
             "url": "https://pypi.org/project/visisipy",
             "icon": "fa-brands fa-python",
         },
+        {
+            "name": "MReye.nl",
+            "url": "https://mreye.nl",
+            "icon": "https://mreye.nl/icon.png",
+            "type": "url",
+        },
     ],
     "logo": {
         "text": "Visisipy",
