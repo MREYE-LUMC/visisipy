@@ -6,10 +6,11 @@ This module only provides a common interface for the analyses.
 
 Analysis are functions with the following signature:
 
-    analysis(model, [parameters], backend)
+    analysis(model, [parameters], return_raw_result, backend)
 
 The first parameter is the eye model to be used in the analysis. This parameter is optional;
 if no model is provided, the model that is currently defined in the backend will be used.
+Setting the return_raw_result parameter to True will return the raw analysis result from the backend.
 The backend parameter is also optional; if no backend is provided, the current or default backend will be used.
 """
 
