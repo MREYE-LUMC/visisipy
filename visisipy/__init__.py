@@ -39,3 +39,5 @@ if platform.system() == "Windows":
     __all__ += ["opticstudio"]
 
 __version__ = version("visisipy")
+
+install_zospy_loader()
