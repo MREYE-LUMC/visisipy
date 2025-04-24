@@ -58,7 +58,7 @@ examples/index
 ```{toctree}
 :maxdepth: 2
 
-Contributing <community/index>
+Contributing <contributing>
 ```
 
 ## API
