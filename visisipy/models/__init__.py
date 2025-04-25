@@ -43,12 +43,12 @@ __all__ = (
 class EyeModel:
     """Optical model of the eye.
 
-    Visisipy's eye models consist of two parts: the geometry and the material model. The geometry defines the shape of the
-    eye, while the material model defines the optical properties of the materials in the eye. By default, this model
-    uses the geometry and materials of the Navarro eye model [1]_. The default material model has been fitted to the
-    refractive indices reported by Escudero-Sanz and Navarro [1]_. This model will work with all visible wavelengths,
-    but could deviate slightly from the values provided in the literature for the specified wavelengths.
-    
+    Visisipy's eye models consist of two parts: the geometry and the material model. The geometry defines the shape of
+    the eye, while the material model defines the optical properties of the materials in the eye. By default, this model
+    uses the geometry and materials of the Navarro wide-field eye model [1]_. The default material model has been
+    fitted to the refractive indices reported by Escudero-Sanz and Navarro [1]_. This model will work with all visible
+    wavelengths, but could deviate slightly from the values provided in the literature for the specified wavelengths.
+
     Attributes
     ----------
     geometry : EyeGeometry
