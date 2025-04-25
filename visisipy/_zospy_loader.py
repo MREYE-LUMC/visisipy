@@ -37,8 +37,7 @@ class ZOSPyFinder:
 
 def install_zospy_loader():
     """Install the ZOSPy loader to handle the import of the ZOSPy module."""
-    if "zospy" not in sys.modules:
-        if not any(isinstance(m, ZOSPyFinder) for m in sys.meta_path):
+    if "zospy" not in sys.modules and not any(isinstance(m, ZOSPyFinder) for m in sys.meta_path):
             # Only add the finder if it's not already present
             # This prevents multiple finders from being added and causing import errors
             sys.meta_path.insert(0, ZOSPyFinder())
