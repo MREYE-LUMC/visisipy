@@ -29,7 +29,7 @@ class ZOSPyLoader:
 class ZOSPyFinder:
     @staticmethod
     def find_spec(fullname, path, target=None) -> ModuleSpec | None:  # noqa: ARG004
-        if fullname.startswith("zospy"):
+        if fullname.split(".")[0] == "zospy":
             return ModuleSpec(name=fullname, loader=ZOSPyLoader(fullname))
 
         return None
@@ -38,6 +38,6 @@ class ZOSPyFinder:
 def install_zospy_loader():
     """Install the ZOSPy loader to handle the import of the ZOSPy module."""
     if "zospy" not in sys.modules and not any(isinstance(m, ZOSPyFinder) for m in sys.meta_path):
-            # Only add the finder if it's not already present
-            # This prevents multiple finders from being added and causing import errors
-            sys.meta_path.insert(0, ZOSPyFinder())
+        # Only add the finder if it's not already present
+        # This prevents multiple finders from being added and causing import errors
+        sys.meta_path.insert(0, ZOSPyFinder())
