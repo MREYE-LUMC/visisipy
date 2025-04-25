@@ -14,7 +14,7 @@ Please follow the guidelines below to ensure a smooth collaboration.
 
 1. **Discuss your idea**  
    Before starting work on a new feature or significant change, please [open a discussion] to share your idea. 
-   This helps us ensure alignment with the project's goals and avoid duplicate efforts.
+   This helps us ensure alignment with the project's goals and avoids duplicate efforts.
 
 2. **Fork and clone the repository**  
    Fork the repository to your GitHub account and clone it locally:
@@ -97,7 +97,7 @@ and mention the reason why the example requires OpticStudio in your Pull Request
 When writing a new analysis, make sure it follows the structure documented {py:mod}`here <visisipy.analysis>`.
 Analysis functions are decorated with the {py:func}`@analysis <visisipy.analysis.base.analysis>` decorator, which
 ensures the required analysis structure is followed.
-Furthermore, the analysis should be implemented for all backends.
+In principle, the analysis should be implemented for all backends.
 If the analysis is only implemented for a specific backend, please mention this in your Pull Request.
 
 [open a discussion]: https://github.com/MREYE-LUMC/visisipy/discussions
