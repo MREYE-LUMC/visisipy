@@ -18,25 +18,13 @@ jobs:
 
   test:
     name: "Test"
-    runs-on: windows-latest
+
     strategy:
       matrix:
         python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
 
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up uv
-        id: setup-uv
-        uses: astral-sh/setup-uv@v3
-      - name: Run tests
-        run: uvx hatch test --python ${{ matrix.python-version }} ./tests --no-opticstudio
-
-  test-linux:
-    name: "Test Linux"
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
