@@ -23,7 +23,6 @@ __all__ = [
     "analysis",
     "get_backend",
     "models",
-    "opticstudio",
     "optiland",
     "plots",
     "refraction",
