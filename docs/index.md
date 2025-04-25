@@ -15,7 +15,7 @@ It provides an easy-to-use interface to define and build eye models, and to perf
 :::{grid-item-card}
 {fa}`eye;pst-color-primary` **Uniform model definitions**
 ^^^
-Provide a uniform interface to define, build and analyze various types of eye models, using abstractions that make sense in a clinical context.
+Provide a uniform interface to define, build and analyze various types of eye models, using abstractions that are relevant in a clinical context.
 :::
 
 :::{grid-item-card} 
