@@ -47,8 +47,8 @@ class EyeModel:
     eye, while the material model defines the optical properties of the materials in the eye. By default, this model
     uses the geometry and materials of the Navarro eye model [1]_. The default material model has been fitted to the
     refractive indices reported by Escudero-Sanz and Navarro [1]_. This model will work with all visible wavelengths,
-    but may be slightly less accurate than the specific models for each wavelength.
-
+    but could deviate slightly from the values provided in the literature for the specified wavelengths.
+    
     Attributes
     ----------
     geometry : EyeGeometry
