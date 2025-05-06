@@ -1,3 +1,4 @@
+import platform
 from typing import Literal
 
 import pytest
@@ -5,6 +6,10 @@ import pytest
 from visisipy import EyeGeometry, EyeMaterials, EyeModel
 from visisipy.models.geometry import StandardSurface, Stop
 from visisipy.models.materials import MaterialModel
+
+# Only run the OpticStudio tests on Windows
+if platform.system() != "Windows":
+    collect_ignore = ["opticstudio"]
 
 
 def pytest_addoption(parser):
@@ -35,6 +40,9 @@ def pytest_collection_modifyitems(config, items):
 
 
 def detect_opticstudio() -> bool:
+    if platform.system() != "Windows":
+        return False
+
     import zospy as zp  # noqa: PLC0415
 
     opticstudio_available: bool = False
@@ -72,6 +80,12 @@ def opticstudio_available(request) -> bool:
 def skip_opticstudio(request, opticstudio_available):
     if request.node.get_closest_marker("needs_opticstudio") and not opticstudio_available:
         pytest.skip("OpticStudio is not available.")
+
+
+@pytest.fixture(autouse=True)
+def skip_windows_only(request, opticstudio_available):
+    if request.node.get_closest_marker("windows_only") and platform.system() != "Windows":
+        pytest.skip("Running on a non-Windows platform.")
 
 
 @pytest.fixture

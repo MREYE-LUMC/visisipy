@@ -1,12 +1,17 @@
+import platform
 from typing import Any
 
 import pytest
 
-import visisipy.opticstudio
 import visisipy.optiland
 from visisipy import backend
-from visisipy.opticstudio.backend import OpticStudioBackend
 from visisipy.optiland.backend import OptilandBackend
+
+if platform.system() == "Windows":
+    import visisipy.opticstudio
+    from visisipy.opticstudio.backend import OpticStudioBackend
+else:
+    OpticStudioBackend = object()
 
 # ruff: noqa: SLF001
 # pyright: reportOptionalMemberAccess=false, reportTypedDictNotRequiredAccess=false
@@ -58,6 +63,7 @@ def mock_optiland_backend(monkeypatch):
 
 
 class TestSetBackend:
+    @pytest.mark.windows_only
     @pytest.mark.parametrize("name", ["opticstudio", backend.Backend.OPTICSTUDIO])
     def test_set_opticstudio_backend(self, name, mock_opticstudio_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend to avoid side effects in other tests
@@ -90,6 +96,7 @@ class TestSetBackend:
 
 
 class TestGetBackend:
+    @pytest.mark.windows_only
     def test_get_backend(self, mock_opticstudio_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", mock_opticstudio_backend)
 
@@ -105,11 +112,13 @@ class TestGetBackend:
 
 
 class TestGetModels:
+    @pytest.mark.windows_only
     def test_get_oss(self, mock_opticstudio_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", mock_opticstudio_backend)
 
         assert backend.get_oss() is mock_opticstudio_backend.oss
 
+    @pytest.mark.windows_only
     def test_get_oss_no_opticstudio_backend(self, mock_optiland_backend):
         assert backend.get_oss() is None
 
@@ -118,7 +127,7 @@ class TestGetModels:
 
         assert backend.get_optic() is mock_optiland_backend.optic
 
-    def test_get_optic_no_optiland_backend(self, mock_opticstudio_backend):
+    def test_get_optic_no_optiland_backend(self, mock_backend):
         assert backend.get_optic() is None
 
 
@@ -135,7 +144,9 @@ class TestUpdateSettings:
         assert backend._BACKEND.settings["wavelengths"] == [550]
 
     @pytest.mark.filterwarnings("ignore:The OpticStudio backend settings")
-    @pytest.mark.parametrize("backend_type", [OpticStudioBackend, OptilandBackend])
+    @pytest.mark.parametrize(
+        "backend_type", [pytest.param(OpticStudioBackend, marks=pytest.mark.windows_only), OptilandBackend]
+    )
     def test_update_settings_by_backend(self, backend_type):
         field_type = "object_height"
         fields = [(0, 0), (1, 1)]

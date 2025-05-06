@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "versioningit"]
 build-backend = "hatchling.build"
 
 [project]
@@ -13,20 +13,20 @@ maintainers = [
     { name = "MReye research group", email = "zospy@mreye.nl" }
 ]
 dependencies = [
-    "zospy>=2.0.2",
     "matplotlib",
     "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
     "optiland>=0.3.1",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
-    "notebook>=7.4.0",
+    "zospy>=2.0.2; sys_platform == 'win32'",
 ]
 requires-python = ">=3.9, <3.14"
 dynamic = ["version"]
 
 [tool.hatch.version]
-path = "visisipy/__init__.py"
+source = "versioningit"
+default-version = "0.0.0+unknown"
 
 [tool.hatch.envs.default]
 installer = "uv"
@@ -63,6 +63,7 @@ python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 [tool.pytest.ini_options]
 markers = [
     "needs_opticstudio: test needs OpticStudio and will be skipped if it is not available",
+    "windows_only: test can only be run on Windows",
 ]
 filterwarnings = [
     "ignore:Header and row length mismatch",
