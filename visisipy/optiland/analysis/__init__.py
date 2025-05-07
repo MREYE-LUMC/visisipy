@@ -1,7 +1,5 @@
 """Analyze optical eye models in Optiland."""
 
-__all__ = ("OptilandAnalysisRegistry",)
-
 from typing import TYPE_CHECKING
 
 from visisipy.backend import BaseAnalysisRegistry, _AnalysisMethod
@@ -12,6 +10,8 @@ from visisipy.optiland.analysis.zernike_coefficients import zernike_standard_coe
 
 if TYPE_CHECKING:
     from visisipy.optiland.backend import OptilandBackend
+
+__all__ = ("OptilandAnalysisRegistry",)
 
 
 class OptilandAnalysisRegistry(BaseAnalysisRegistry):

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from visisipy.analysis.cardinal_points import CardinalPoints, CardinalPointsResult
@@ -17,19 +16,8 @@ if TYPE_CHECKING:
 __all__ = ("cardinal_points",)
 
 
-@dataclass
-class OptilandCardinalPointsResult(CardinalPointsResult):
-    """The cardinal points of a system.
-
-    Calculating anti-principal and anti-nodal points is not supported in Optiland.
-    """
-
-    anti_principal_points: CardinalPoints = field(init=False, default=NotImplemented)
-    anti_nodal_points: CardinalPoints = field(init=False, default=NotImplemented)
-
-
-def _build_cardinal_points_result(paraxial: Paraxial) -> OptilandCardinalPointsResult:
-    return OptilandCardinalPointsResult(
+def _build_cardinal_points_result(paraxial: Paraxial) -> CardinalPointsResult:
+    return CardinalPointsResult(
         focal_lengths=CardinalPoints(
             object=paraxial.f1(),
             image=paraxial.f2(),
@@ -42,9 +30,17 @@ def _build_cardinal_points_result(paraxial: Paraxial) -> OptilandCardinalPointsR
             object=paraxial.P1(),
             image=paraxial.P2(),
         ),
+        anti_principal_points=CardinalPoints(
+            object=paraxial.P1anti(),
+            image=paraxial.P2anti(),
+        ),
         nodal_points=CardinalPoints(
             object=paraxial.N1(),
             image=paraxial.N2(),
+        ),
+        anti_nodal_points=CardinalPoints(
+            object=paraxial.N1anti(),
+            image=paraxial.N2anti(),
         ),
     )
 

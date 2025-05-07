@@ -4,14 +4,16 @@ import math
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
+import optiland.backend
 import pytest
+
+from tests.helpers import build_args
 
 if TYPE_CHECKING:
     from optiland.fields import FieldGroup
 
     from visisipy import EyeModel
-    from visisipy.backend import BackendSettings
-    from visisipy.optiland.backend import OptilandBackend
+    from visisipy.optiland.backend import OptilandBackend, OptilandSettings
 
 
 class TestOptilandBackend:
@@ -127,12 +129,13 @@ class TestOptilandBackend:
 
 class TestOptilandBackendSettings:
     def test_update_settings(self, optiland_backend):
-        settings: BackendSettings = {
+        settings: OptilandSettings = {
             "field_type": "object_height",
             "fields": [(0, 0), (0, 10), (-10, 0), (10, -10)],
             "wavelengths": [0.55, 0.65, 0.75],
             "aperture_type": "entrance_pupil_diameter",
             "aperture_value": 3.0,
+            "computation_backend": "numpy",
         }
 
         optiland_backend.update_settings(**settings)
@@ -208,3 +211,59 @@ class TestOptilandBackendSettings:
 
             assert optiland_backend.get_optic().aperture.ap_type == expected_aperture_type
             assert optiland_backend.get_optic().aperture.value == aperture_value
+
+    @pytest.mark.parametrize(
+        "backend,torch_device,torch_precision,torch_gradient_mode,expectation",
+        [
+            ("numpy", None, None, None, does_not_raise()),
+            ("torch", "cpu", "float64", False, does_not_raise()),
+            ("torch", "cuda", "float32", True, does_not_raise()),
+            (
+                "invalid_backend",
+                "cpu",
+                "float32",
+                "none",
+                pytest.raises(ValueError, match="computation_backend must be either 'numpy' or 'torch'"),
+            ),
+            (
+                "torch",
+                "invalid_device",
+                "float32",
+                True,
+                pytest.raises(ValueError, match="torch_device must be either 'cpu' or 'cuda'"),
+            ),
+            (
+                "torch",
+                "cpu",
+                "invalid_precision",
+                True,
+                pytest.raises(ValueError, match="torch_precision must be either 'float32' or 'float64'"),
+            ),
+        ],
+    )
+    def test_computation_backend(
+        self, backend, torch_device, torch_precision, torch_gradient_mode, expectation, optiland_backend, monkeypatch
+    ):
+        if backend == "torch":
+            torch = pytest.importorskip("torch", reason="Torch is not installed")
+            monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+
+        args = build_args(
+            computation_backend=backend,
+            torch_device=torch_device,
+            torch_precision=torch_precision,
+            torch_use_grad_mode=torch_gradient_mode,
+            non_null_defaults={"computation_backend", "torch_device", "torch_precision", "torch_use_grad_mode"},
+        )
+
+        with expectation:
+            optiland_backend.update_settings(**args)
+
+            assert optiland.backend.get_backend() == backend
+
+            if torch_device is not None:
+                assert optiland.backend.get_device() == torch_device
+            if torch_precision is not None:
+                assert str(optiland.backend.get_precision()) == f"torch.{torch_precision}"
+            if torch_gradient_mode is not None:
+                assert optiland.backend.grad_mode.requires_grad == torch_gradient_mode
