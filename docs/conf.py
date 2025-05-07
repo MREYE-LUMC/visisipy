@@ -1,6 +1,10 @@
+import logging
 import os
 from datetime import datetime
 from subprocess import run
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -75,6 +79,8 @@ else:
     except:  # noqa: E722
         git_branch = "main"
 
+logger.info("Building documentation for branch %s", git_branch)
+
 html_context = {
     "edit_page_url_template": "{{ github_url }}/{{ github_user }}/{{ github_repo }}/tree/{{ github_version }}/{{ doc_path }}{{ file_name }}",
     "edit_page_provider_name": "GitHub",
@@ -87,7 +93,16 @@ html_context = {
 # -- Options for myst-nb ----------------------------------------------------
 # https://myst-nb.readthedocs.io/en/latest/configuration.html
 
-nb_execution_mode = "off" if os.getenv("BUILD_NOTEBOOKS") == "false" else "cache"
+if os.getenv("RUN_NOTEBOOKS") == "false":
+    nb_execution_mode = "off"
+    logger.info("Skipping notebook execution")
+elif os.getenv("READTHEDOCS") == "True":
+    nb_execution_mode = "force"
+    logger.info("Using notebook execution mode '%s'", nb_execution_mode)
+else:
+    nb_execution_mode = "cache"
+    logger.info("Using notebook execution mode '%s'", nb_execution_mode)
+
 
 if os.getenv("READTHEDOCS"):
     # Do not build notebooks that depend on OpticStudio
@@ -103,10 +118,6 @@ autoapi_dirs = ["../visisipy"]
 autoapi_root = "api"
 autoapi_options = [
     "members",
-    # "undoc-members",
-    # "private-members",
     "show-inheritance",
     "show-module-summary",
-    # "special-members",
-    # "imported-members",
 ]
