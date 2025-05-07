@@ -1,5 +1,7 @@
 """Implementation of Visisipy's analyses for the OpticStudio backend."""
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from visisipy.backend import BaseAnalysisRegistry, _AnalysisMethod
@@ -19,7 +21,7 @@ __all__ = ("OpticStudioAnalysisRegistry",)
 class OpticStudioAnalysisRegistry(BaseAnalysisRegistry):
     """Analyses for the OpticStudio backend."""
 
-    def __init__(self, backend: "OpticStudioBackend"):
+    def __init__(self, backend: OpticStudioBackend):
         super().__init__(backend)
         self._oss = backend.oss
 

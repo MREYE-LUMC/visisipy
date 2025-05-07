@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
