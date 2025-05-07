@@ -30,13 +30,13 @@ def _build_cardinal_points_result(cardinal_points_result: ZOSPyCardinalPointsRes
             image=cardinal_points_result.cardinal_points.anti_principal_planes.image,
             object=cardinal_points_result.cardinal_points.anti_principal_planes.object,
         ),
-        anti_nodal_points=CardinalPoints(
-            image=cardinal_points_result.cardinal_points.anti_nodal_planes.image,
-            object=cardinal_points_result.cardinal_points.anti_nodal_planes.object,
-        ),
         nodal_points=CardinalPoints(
             image=cardinal_points_result.cardinal_points.nodal_planes.image,
             object=cardinal_points_result.cardinal_points.nodal_planes.object,
+        ),
+        anti_nodal_points=CardinalPoints(
+            image=cardinal_points_result.cardinal_points.anti_nodal_planes.image,
+            object=cardinal_points_result.cardinal_points.anti_nodal_planes.object,
         ),
     )
 
