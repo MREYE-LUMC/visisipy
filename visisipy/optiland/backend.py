@@ -34,8 +34,7 @@ class OptilandSettings(BackendSettings, total=False):
     """Backend settings that are specific to the Optiland backend."""
 
     computation_backend: ComputationBackend
-    """
-    Backend used for numerical operations. Must be one of 'numpy' or 'torch'. See
+    """Backend used for numerical operations. Must be one of 'numpy' or 'torch'. See
     https://optiland.readthedocs.io/en/latest/developers_guide/configurable_backend.html for more details.
 
     When using 'torch', the 'torch' package must be installed manually.
@@ -45,14 +44,13 @@ class OptilandSettings(BackendSettings, total=False):
     """Device to use for torch backend. Must be one of 'cpu' or 'cuda'. Only used if computation_backend is 'torch'."""
 
     torch_precision: TorchPrecision
-    """
-    Precision to use for torch backend. Must be one of 'float32' or 'float64'.
+    """Precision to use for torch backend. Must be one of 'float32' or 'float64'.
     Only used if computation_backend is 'torch'.
     """
 
     torch_use_grad_mode: bool
-    """
-    Globally enable or disable autodifferentiation for the 'torch' backend.
+    """Globally enable or disable autodifferentiation for the 'torch' backend. Only used if computation_backend is
+    'torch'.
     """
 
 
