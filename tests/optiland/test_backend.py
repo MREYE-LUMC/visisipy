@@ -48,19 +48,19 @@ class TestOptilandBackend:
         optiland_backend.clear_model()
 
         assert optiland_backend.model is None
-        assert optiland_backend.optic is None
+        assert optiland_backend.get_optic().surface_group.num_surfaces == 0
 
     def test_save_model(self, optiland_backend: OptilandBackend, eye_model, tmp_path):
         optiland_backend.build_model(eye_model)
 
-        filename = tmp_path / "test_model.json"
-        optiland_backend.save_model(filename=filename)
+        path = tmp_path / "test_model.json"
+        optiland_backend.save_model(path=path)
 
-        assert filename.exists()
+        assert path.exists()
 
     def test_save_model_invalid_filename_raises_valueerror(self, optiland_backend: OptilandBackend):
         with pytest.raises(ValueError, match=r"filename must end in \.json"):
-            optiland_backend.save_model(filename="invalid_path/test_model.zmx")
+            optiland_backend.save_model(path="invalid_path/test_model.zmx")
 
     @pytest.mark.parametrize(
         "coordinates,field_type,expectation",
@@ -198,7 +198,13 @@ class TestOptilandBackendSettings:
         ],
     )
     def test_aperture(
-        self, aperture_type, aperture_value, expected_aperture_type, expectation, optiland_backend: OptilandBackend
+        self,
+        aperture_type,
+        aperture_value,
+        expected_aperture_type,
+        expectation,
+        optiland_backend: OptilandBackend,
+        monkeypatch,
     ):
         with expectation:
             optiland_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)

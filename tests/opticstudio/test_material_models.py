@@ -9,8 +9,7 @@ pytestmark = [pytest.mark.needs_opticstudio]
 
 @pytest.fixture
 def opticstudio_model(oss):
-    """
-    Simple optical system with 3 parallel surfaces: a stop, refracting interface, and image surface.
+    """Simple optical system with 3 parallel surfaces: a stop, refracting interface, and image surface.
     All surfaces except the refracting interface and image surface have a refractive index of 1.0.
     The refractive index of the image surface is equal to that of the refracting interface, to prevent reflection.
 

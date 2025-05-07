@@ -18,8 +18,7 @@ else:
 
 
 class MockBackend:
-    """
-    Mock backend for testing purposes.
+    """Mock backend for testing purposes.
 
     Unlike the real backends, instances of this class are used instead of the class itself.
     This is necessary to make sure modifications to the backend settings are not shared between tests.

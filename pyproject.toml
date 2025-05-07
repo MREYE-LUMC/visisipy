@@ -35,6 +35,27 @@ default-version = "0.0.0+unknown"
 installer = "uv"
 python = "3.12"
 
+[tool.hatch.envs.default.scripts]
+# Format docstrings according to numpydoc
+format-docstrings = "{env:HATCH_UV:uv} tool run pydocstringformatter --write {args:scripts tests visisipy}"
+
+[tool.hatch.envs.docs]
+installer = "uv"
+python = "3.13"
+dependencies = [
+    "myst-nb",
+    "myst-parser",
+    "pydata-sphinx-theme",
+    "sphinx",
+    "sphinx-autoapi",
+    "sphinx-autobuild",
+    "sphinx-design",
+]
+
+[tool.hatch.envs.docs.scripts]
+build = "sphinx-build -M {args:html} docs docs/_build"
+preview = "sphinx-autobuild docs docs/_build/html --open-browser --ignore docs/api {args}"
+
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "ruff_defaults.toml"
 dependencies = ["ruff==0.11.5"]
@@ -78,6 +99,7 @@ extend-ignore = [
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
+"docs/*" = ["INP001", "T20"]
 "examples/*" = ["INP001", "T20"]
 "scripts/*" = ["S101"]
 "tests/*" = ["ARG001", "ARG002", "FBT001", "PLC2701"]
@@ -86,3 +108,10 @@ extend-ignore = [
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
+
+[tool.pydocstringformatter]
+style = "numpydoc"
+max-line-length = 120
+max-summary-lines = 1
+summary-quotes-same-line = true
+linewrap-full-docstring = true

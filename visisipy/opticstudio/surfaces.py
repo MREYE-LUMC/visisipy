@@ -1,3 +1,5 @@
+"""Optical surfaces for OpticStudio."""
+
 from __future__ import annotations
 
 from abc import ABC
@@ -28,6 +30,11 @@ PropertyType = TypeVar("PropertyType")
 
 
 class OpticStudioSurfaceProperty(Generic[PropertyType]):
+    """Descriptor for OpticStudio surface properties.
+
+    This descriptor is used to access and modify properties of the OpticStudio surface.
+    """
+
     def __init__(self, name: str) -> None:
         self.name = name
 
@@ -46,6 +53,11 @@ class OpticStudioSurfaceProperty(Generic[PropertyType]):
 
 
 class OpticStudioSurfaceDataProperty(Generic[PropertyType]):
+    """Property descriptor for OpticStudio surface data properties.
+
+    This descriptor is used to access and modify properties of the OpticStudio surface data.
+    """
+
     def __init__(self, name: str) -> None:
         self.name = name
 
@@ -64,9 +76,7 @@ class OpticStudioSurfaceDataProperty(Generic[PropertyType]):
 
 
 class OpticStudioSurface(BaseSurface):
-    """
-    Sequential surface in OpticStudio.
-    """
+    """Sequential surface in OpticStudio."""
 
     _TYPE: str = "Standard"
 
@@ -81,6 +91,29 @@ class OpticStudioSurface(BaseSurface):
         material: MaterialModel | str | None = None,
         is_stop: bool | None = None,
     ):
+        """Create a new OpticStudio surface.
+
+        Parameters
+        ----------
+        comment : str
+            Comment for the surface.
+        radius : float
+            Radius of curvature of the surface, in mm. Defaults to infinity (flat surface).
+        thickness : float
+            Thickness of the surface, in mm. Defaults to 0.0 mm.
+        semi_diameter : float, optional
+            Semi-diameter of the surface aperture, in mm. Defaults to `None`, which means the semi-diameter will be
+            determined by OpticStudio.
+        conic : float
+            Conic constant of the surface. Defaults to 0.0 (spherical surface).
+        material : MaterialModel | str, optional
+            Material of the surface. This can be either a string representing the name of the material or a
+            MaterialModel instance. Defaults to `None`, which means no material is set.
+        is_stop : bool, optional
+            If `True`, the surface is treated as a stop. Defaults to `None`, which means the stop status will be
+            determined by OpticStudio. Note that setting the `IsStop` property in OpticStudio will always convert the
+            surface to a stop, regardless of the value. When set to `False`, this parameter will be ignored.
+        """
         self._comment = comment
         self._radius = radius
         self._thickness = thickness
@@ -132,6 +165,7 @@ class OpticStudioSurface(BaseSurface):
 
     @property
     def material(self) -> MaterialModel | str:
+        """Material of the surface."""
         return self._get_material()
 
     @material.setter

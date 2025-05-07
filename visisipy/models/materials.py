@@ -1,3 +1,7 @@
+"""Optical properties of materials used in eye models."""
+
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -49,10 +53,10 @@ class EyeMaterials:
         Refractive model of the vitreous humour.
     """
 
-    cornea: MaterialModel
-    aqueous: MaterialModel
-    lens: MaterialModel
-    vitreous: MaterialModel
+    cornea: MaterialModel | str
+    aqueous: MaterialModel | str
+    lens: MaterialModel | str
+    vitreous: MaterialModel | str
 
 
 def _material_model_factory(refractive_index, abbe_number, partial_dispersion) -> Callable[[], MaterialModel]:

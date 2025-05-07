@@ -24,6 +24,8 @@ def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
 
     yield OptilandBackend
 
+    # Reset settings to defaults
+    OptilandBackend.update_settings(**OPTILAND_DEFAULT_SETTINGS)
     OptilandBackend.clear_model()
 
 

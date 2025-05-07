@@ -1,3 +1,5 @@
+"""Calculate the Zernike standard coefficients for an eye model."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, overload
@@ -53,8 +55,9 @@ def zernike_standard_coefficients(
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> tuple[ZernikeCoefficients, Any]:
-    """
-    Calculates the Zernike standard coefficients at the retina surface.
+    """Calculates the Zernike standard coefficients at the retina surface.
+
+    Zernike standard coefficients are returned in the Noll notation.
 
     Parameters
     ----------
@@ -80,8 +83,8 @@ def zernike_standard_coefficients(
 
     Returns
     -------
-    AttrDict
-        ZOSPy Zernike standard coefficients analysis output.
+    ZernikeCoefficients
+        Zernike standard coefficients in Noll notation.
     """
     return backend.analysis.zernike_standard_coefficients(
         field_coordinate=field_coordinate,

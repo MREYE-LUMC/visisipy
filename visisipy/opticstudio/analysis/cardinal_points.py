@@ -1,3 +1,5 @@
+"""Cardinal points analysis for OpticStudio."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -44,11 +46,12 @@ def _build_cardinal_points_result(cardinal_points_result: ZOSPyCardinalPointsRes
 def cardinal_points(
     backend: OpticStudioBackend, surface_1: int | None = None, surface_2: int | None = None
 ) -> tuple[CardinalPointsResult, ZOSPyCardinalPointsResult]:
-    """
-    Get the cardinal points of the system between `surface_1` and `surface_2`.
+    """Get the cardinal points of the system between `surface_1` and `surface_2`.
 
     Parameters
     ----------
+    backend : type[OpticStudioBackend]
+        Reference to the OpticStudio backend.
     surface_1 : int | None, optional
         The first surface to be used in the analysis. If `None`, the first surface in the system will be used.
         Defaults to `None`.

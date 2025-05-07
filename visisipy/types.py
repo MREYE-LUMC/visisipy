@@ -1,3 +1,8 @@
+"""Types for use throughout visisipy.
+
+This module contains type definitions and utility classes for use throughout the visisipy package.
+"""
+
 from __future__ import annotations
 
 import re
@@ -15,8 +20,7 @@ RE_SAMPLE_SIZE = re.compile(r"^(?P<sampling>\d+)x(?P=sampling)$", re.IGNORECASE)
 
 
 class SampleSize:
-    """
-    Sample size.
+    """Sample size.
 
     This class represents a sample size used for various analyses.
     How the sample size is used depends on the backend. Sample sizes can be specified as integers or strings in the
@@ -40,8 +44,7 @@ class SampleSize:
     __slots__ = ("__sampling",)
 
     def __init__(self, sample_size: int | str | SampleSize):
-        """
-        Create a new sample size.
+        """Create a new sample size.
 
         The sample size can be specified as an integer or a string in the format "NxN", where N is an integer.
 

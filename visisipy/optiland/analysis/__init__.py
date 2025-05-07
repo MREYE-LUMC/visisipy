@@ -1,3 +1,5 @@
+"""Analyze optical eye models in Optiland."""
+
 from typing import TYPE_CHECKING
 
 from visisipy.backend import BaseAnalysisRegistry, _AnalysisMethod
@@ -13,9 +15,7 @@ __all__ = ("OptilandAnalysisRegistry",)
 
 
 class OptilandAnalysisRegistry(BaseAnalysisRegistry):
-    """
-    Analyses for the OpticStudio backend.
-    """
+    """Analyses for the OpticStudio backend."""
 
     def __init__(self, backend: "OptilandBackend"):
         super().__init__(backend)

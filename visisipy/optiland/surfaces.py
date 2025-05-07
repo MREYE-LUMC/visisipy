@@ -1,3 +1,5 @@
+"""Optical surfaces for Optiland."""
+
 from __future__ import annotations
 
 import weakref
@@ -27,6 +29,11 @@ PropertyType = TypeVar("PropertyType")
 
 
 class OptilandSurfaceProperty(Generic[PropertyType]):
+    """Descriptor for Optiland surface properties.
+
+    This descriptor is used to access and set properties of the Optiland surface.
+    """
+
     def __init__(self, name: str):
         self.name = name
         self.attrgetter = attrgetter(name)
@@ -89,6 +96,27 @@ class OptilandSurface(BaseSurface):
         material: MaterialModel | str | None = None,
         is_stop: bool | None = None,
     ):
+        """Create a new Optiland surface.
+
+        Parameters
+        ----------
+        comment : str
+            Comment for the surface.
+        radius : float
+            Radius of curvature of the surface, in mm. Defaults to infinity (flat surface).
+        thickness : float
+            Thickness of the surface, in mm. Defaults to 0.0 mm.
+        semi_diameter : float, optional
+            Semi-diameter of the surface aperture, in mm. Defaults to `None`, which means the semi-diameter will be
+            determined by Optiland.
+        conic : float
+            Conic constant of the surface. Defaults to 0.0 (spherical surface).
+        material : MaterialModel | str, optional
+            Material of the surface. This can be either a string representing the name of the material or a
+            MaterialModel instance. Defaults to `None`, which means the material is assumed to be air.
+        is_stop : bool, optional
+            If `True`, the surface is treated as a stop.
+        """
         self._comment = comment
         self._radius = radius
         self._thickness = thickness
@@ -124,16 +152,6 @@ class OptilandSurface(BaseSurface):
     def radius(self) -> float:
         """Radius of the surface."""
         return self._optic.surface_group.radii[self._index]  # type: ignore
-
-    # @radius.setter
-    # def radius(self, value: float) -> None:
-    #     if hasattr(self.surface.geometry, "radius"): # type: ignore
-    #         self.surface.geometry.radius = value # type: ignore
-
-    #     else:
-    #         raise AttributeError(
-    #             "Cannot set radius for this surface type."
-    #         )
 
     @_built_only_property
     def thickness(self) -> float:
