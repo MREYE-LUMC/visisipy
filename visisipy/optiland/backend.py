@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, cast
 
+import optiland.backend
 from optiland.fileio import save_optiland_file
 from optiland.optic import Optic
 
@@ -16,12 +17,53 @@ if TYPE_CHECKING:
     from visisipy import EyeModel
 
 
-OPTILAND_DEFAULT_SETTINGS: BackendSettings = {
+__all__ = (
+    "OptilandBackend",
+    "OptilandSettings",
+)
+
+
+ComputationBackend = Literal["numpy", "torch"]
+TorchDevice = Literal["cpu", "cuda"]
+TorchPrecision = Literal["float32", "float64"]
+
+
+class OptilandSettings(BackendSettings, total=False):
+    """Backend settings that are specific to the Optiland backend."""
+
+    computation_backend: ComputationBackend
+    """
+    Backend used for numerical operations. Must be one of 'numpy' or 'torch'. See
+    https://optiland.readthedocs.io/en/latest/developers_guide/configurable_backend.html for more details.
+
+    When using 'torch', the 'torch' package must be installed manually.
+    """
+
+    torch_device: TorchDevice
+    """Device to use for torch backend. Must be one of 'cpu' or 'cuda'. Only used if computation_backend is 'torch'."""
+
+    torch_precision: TorchPrecision
+    """
+    Precision to use for torch backend. Must be one of 'float32' or 'float64'.
+    Only used if computation_backend is 'torch'.
+    """
+
+    torch_use_grad_mode: bool
+    """
+    Globally enable or disable autodifferentiation for the 'torch' backend.
+    """
+
+
+OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
     "field_type": "angle",
     "fields": [(0, 0)],
     "wavelengths": [0.543],
     "aperture_type": "entrance_pupil_diameter",
     "aperture_value": 1,
+    "computation_backend": "numpy",
+    "torch_device": "cpu",
+    "torch_precision": "float32",
+    "torch_use_grad_mode": False,
 }
 
 OPTILAND_APERTURES = {
@@ -35,7 +77,7 @@ OPTILAND_APERTURES = {
 class OptilandBackend(BaseBackend):
     optic: Optic | None = None
     model: OptilandEye | None = None
-    settings: BackendSettings = BackendSettings(**OPTILAND_DEFAULT_SETTINGS)
+    settings: OptilandSettings = OptilandSettings(**OPTILAND_DEFAULT_SETTINGS)
     _analysis: OptilandAnalysisRegistry | None = None
 
     @_classproperty
@@ -46,14 +88,14 @@ class OptilandBackend(BaseBackend):
         return cls._analysis
 
     @classmethod
-    def initialize(cls, **settings: Unpack[BackendSettings]) -> None:
+    def initialize(cls, **settings: Unpack[OptilandSettings]) -> None:
         if len(settings) > 0:
             cls.settings.update(settings)
 
         cls.new_model()
 
     @classmethod
-    def update_settings(cls, **settings: Unpack[BackendSettings]) -> None:
+    def update_settings(cls, **settings: Unpack[OptilandSettings]) -> None:
         if len(settings) > 0:
             cls.settings.update(settings)
 
@@ -64,6 +106,12 @@ class OptilandBackend(BaseBackend):
                 coordinates=cls.get_setting("fields"),
             )
             cls.set_wavelengths(cls.get_setting("wavelengths"))
+            cls.set_computation_backend(
+                cls.get_setting("computation_backend"),
+                torch_device=cls.get_setting("torch_device"),
+                torch_precision=cls.get_setting("torch_precision"),
+                torch_use_grad_mode=cls.get_setting("torch_use_grad_mode"),
+            )
 
     @classmethod
     def new_model(
@@ -230,3 +278,47 @@ class OptilandBackend(BaseBackend):
         """
         for i, w in enumerate(cls.get_optic().wavelengths.wavelengths):
             yield i, w.value
+
+    @classmethod
+    def set_computation_backend(
+        cls,
+        backend: ComputationBackend,
+        *,
+        torch_device: TorchDevice = "cpu",
+        torch_precision: TorchPrecision = "float32",
+        torch_use_grad_mode: bool = False,
+    ) -> None:
+        """Set the computation backend for Optiland.
+
+        Parameters
+        ----------
+        backend : ComputationBackend
+            The computation backend to use. Must be one of 'numpy' or 'torch'.
+        torch_device : str, optional
+            The device to use for the 'torch' backend. Must be one of 'cpu' or 'cuda'. Defaults to 'cpu'.
+        torch_precision : str, optional
+            The precision to use for the 'torch' backend. Must be one of 'float32' or 'float64'. Defaults to 'float32'.
+        torch_use_grad_mode : bool, optional
+            Whether to enable gradient mode for the 'torch' backend. Defaults to False.
+        """
+        if backend not in {"numpy", "torch"}:
+            raise ValueError("computation_backend must be either 'numpy' or 'torch'.")
+
+        if torch_device not in {"cpu", "cuda"}:
+            raise ValueError("torch_device must be either 'cpu' or 'cuda'.")
+
+        if torch_precision not in {"float32", "float64"}:
+            raise ValueError("torch_precision must be either 'float32' or 'float64'.")
+
+        if optiland.backend.get_backend() != backend:
+            optiland.backend.set_backend(backend)
+
+        if backend == "torch":
+            if optiland.backend.get_device() != torch_device:
+                optiland.backend.set_device(torch_device)
+            if optiland.backend.get_precision() != torch_precision:
+                optiland.backend.set_precision(torch_precision)
+            if torch_use_grad_mode and not optiland.backend.grad_mode.requires_grad:
+                optiland.backend.grad_mode.enable()
+            elif not torch_use_grad_mode and optiland.backend.grad_mode.requires_grad:
+                optiland.backend.grad_mode.disable()
