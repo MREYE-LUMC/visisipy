@@ -1,3 +1,5 @@
+"""Build eye models in Optiland."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -11,8 +13,20 @@ if TYPE_CHECKING:
     from visisipy import EyeModel
 
 
+__all__ = ("OptilandEye",)
+
+
 class OptilandEye(BaseEye):
+    """Eye model in Optiland."""
+
     def __init__(self, eye_model: EyeModel) -> None:
+        """Create a new Optiland eye model.
+
+        Parameters
+        ----------
+        eye_model : EyeModel
+            Eye model specification frin which the Optiland eye model is created.
+        """
         self._eye_model = eye_model
 
         self._cornea_front = make_surface(eye_model.geometry.cornea_front, eye_model.materials.cornea, "cornea front")
@@ -30,6 +44,7 @@ class OptilandEye(BaseEye):
 
     @property
     def eye_model(self) -> EyeModel:
+        """Eye model specification from which the Optiland eye model is created."""
         return self._eye_model
 
     @property

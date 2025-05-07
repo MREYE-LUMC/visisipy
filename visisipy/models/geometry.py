@@ -1,3 +1,5 @@
+"""Models for the ocular geometry."""
+
 from __future__ import annotations
 
 from abc import ABC

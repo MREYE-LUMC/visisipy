@@ -1,3 +1,5 @@
+"""OpticStudio backend for Visisipy."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -60,6 +62,8 @@ OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
 
 
 class OpticStudioBackend(BaseBackend):
+    """OpticStudio backend."""
+
     zos: ZOS | None = None
     oss: OpticStudioSystem | None = None
     model: BaseOpticStudioEye | None = None
@@ -68,21 +72,20 @@ class OpticStudioBackend(BaseBackend):
 
     @_classproperty
     def analysis(cls) -> OpticStudioAnalysisRegistry:  # noqa: N805
-        """
-        Provides access to the `OpticStudioAnalysis` instance.
+        """Provides access to the `OpticStudioAnalysisRegistry` instance.
 
-        This property provides access to the `OpticStudioAnalysis` instance for performing various analyses on the optical
+        This property provides access to the `OpticStudioAnalysisRegistry` instance for performing various analyses on the optical
         system.
+
+        Returns
+        -------
+        OpticStudioAnalysisRegistry
+            The `OpticStudioAnalysisRegistry` instance.
 
         Raises
         ------
         RuntimeError
             If the OpticStudio backend has not been initialized.
-
-        Returns
-        -------
-        OpticStudioAnalysisRegistry
-            The `OpticStudioAnalysis` instance.
         """
         if cls.oss is None:
             raise RuntimeError("The opticstudio backend has not been initialized.")
@@ -96,8 +99,7 @@ class OpticStudioBackend(BaseBackend):
         cls,
         **settings: Unpack[OpticStudioSettings],
     ) -> None:
-        """
-        Initializes the OpticStudio backend.
+        """Initialize the OpticStudio backend.
 
         This method connects to the OpticStudio backend and initializes a new optical system.
 
@@ -127,8 +129,7 @@ class OpticStudioBackend(BaseBackend):
 
     @classmethod
     def update_settings(cls, **settings: Unpack[OpticStudioSettings]) -> None:
-        """
-        Applies the provided settings to the OpticStudio backend.
+        """Apply the provided settings to the OpticStudio backend.
 
         This method applies the provided settings to the OpticStudio backend.
         """
@@ -152,10 +153,9 @@ class OpticStudioBackend(BaseBackend):
         *,
         save_old_model: bool = False,
     ) -> None:
-        """
-        Initializes a new optical system model.
+        """Initialize a new optical system.
 
-        This method initializes a new optical system model.
+        This method initializes a new, empty optical system.
         """
         cls.get_oss().new(saveifneeded=save_old_model)
 
@@ -171,8 +171,7 @@ class OpticStudioBackend(BaseBackend):
         object_distance: float = float("inf"),
         **kwargs,
     ) -> OpticStudioEye:
-        """
-        Builds an optical system based on the provided eye model.
+        """Builds an optical system based on the provided eye model.
 
         This method creates an OpticStudioEye instance from the provided eye model and builds the optical system.
         If `replace_existing` is True, any existing model is updated instead of building a completely new system.
@@ -181,8 +180,13 @@ class OpticStudioBackend(BaseBackend):
         ----------
         model : EyeModel
             The eye model to be used for building the optical system model.
+        start_from_index : int, optional
+            The index of the surface after which the eye model will be built. The cornea front surface will be located
+            at `start_from_index + 1`.
         replace_existing : bool, optional
             Whether to replace any existing model before building the new one. Defaults to False.
+        object_distance : float
+            Distance between the cornea front and the surface preceding the eye model.
         **kwargs
             Additional keyword arguments to be passed to the OpticStudioEye build method.
 
@@ -209,8 +213,7 @@ class OpticStudioBackend(BaseBackend):
 
     @classmethod
     def clear_model(cls) -> None:
-        """
-        Clears the current optical system model.
+        """Clear the current optical system model.
 
         This method initializes a new optical system, discarding any existing model.
         """
@@ -219,10 +222,9 @@ class OpticStudioBackend(BaseBackend):
 
     @classmethod
     def save_model(cls, path: str | PathLike | None = None) -> None:
-        """
-        Saves the current optical system model.
+        """Save the current optical system model.
 
-        This method saves the current optical system model to the specified path. If no path is provided,
+        This method saves the current optical system to the specified path. If no path is provided,
         it saves the model to the current working directory with the default name.
 
         Parameters
@@ -237,8 +239,7 @@ class OpticStudioBackend(BaseBackend):
 
     @classmethod
     def disconnect(cls) -> None:
-        """
-        Disconnects the OpticStudio backend.
+        """Disconnects the OpticStudio backend.
 
         This method closes the current optical system, sets the system and ZOS instances to None,
         and disconnects the ZOS instance.
@@ -342,8 +343,7 @@ class OpticStudioBackend(BaseBackend):
         coordinates: Iterable[tuple[float, float]],
         field_type: Literal["angle", "object_height"] = "angle",
     ) -> None:
-        """
-        Set the fields for the optical system.
+        """Set the fields for the optical system.
 
         This method removes any existing fields and adds the new ones provided.
 
@@ -380,8 +380,7 @@ class OpticStudioBackend(BaseBackend):
 
     @classmethod
     def set_wavelengths(cls, wavelengths: Iterable[float]) -> None:
-        """
-        Sets the wavelengths for the optical system.
+        """Set the wavelengths for the optical system.
 
         This method removes any existing wavelengths and adds the new ones provided.
         The weight for each wavelength is set to 1.0.
@@ -404,7 +403,7 @@ class OpticStudioBackend(BaseBackend):
 
         Parameters
         ----------
-        wavelength: float
+        wavelength : float
             The wavelength to find.
 
         Returns

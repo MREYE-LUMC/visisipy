@@ -1,3 +1,8 @@
+"""Optical eye models.
+
+This module provides the base classes for eye models and surfaces.
+"""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -36,6 +41,33 @@ __all__ = (
 
 @dataclass
 class EyeModel:
+    """Optical model of the eye.
+
+    Visisipy's eye models consist of two parts: the geometry and the material model. The geometry defines the shape of
+    the eye, while the material model defines the optical properties of the materials in the eye. By default, this model
+    uses the geometry and materials of the Navarro wide-field eye model [1]_. The default material model has been
+    fitted to the refractive indices reported by Escudero-Sanz and Navarro [1]_. This model will work with all visible
+    wavelengths, but could deviate slightly from the values provided in the literature for the specified wavelengths.
+
+    Attributes
+    ----------
+    geometry : EyeGeometry
+        Geometry of the eye. Defaults to the geometry of the Navarro eye model.
+    materials : EyeMaterials
+        Properties of the materials of the eye. Defaults to the materials of the Navarro eye model.
+
+    See Also
+    --------
+    NavarroGeometry : Geometry of the Navarro eye model.
+    NavarroMaterials : Materials of the Navarro eye model.
+
+    References
+    ----------
+    .. [1] Escudero-Sanz, I., & Navarro, R. (1999).
+       Off-axis aberrations of a wide-angle schematic eye model.
+       JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
+    """
+
     geometry: EyeGeometry = field(default_factory=NavarroGeometry)
     materials: EyeMaterials = field(default_factory=NavarroMaterials)
     _built: BaseEye | None = field(default=None, init=False, repr=False)
@@ -48,6 +80,23 @@ class EyeModel:
         object_distance: float = float("inf"),
         **kwargs,
     ) -> BaseEye:
+        """Build the eye model in the backend.
+
+        If no backend has yet been initialized, the default backend is used. The eye model is built in the backend
+        starting from the surface at index `start_from_index`. The cornea front surface will be located at
+        `start_from_index + 1`. If `replace_existing` is set to `True`, the existing model in the backend will be
+        overwritten. The `object_distance` parameter is used to set the distance between the cornea front and the
+        surface preceding the eye model.
+
+        Parameters
+        ----------
+        start_from_index : int
+            Index of the surface after which the eye model will be built.
+        replace_existing : bool
+            If `True`, the existing model in the backend will be overwritten.
+        object_distance : float
+            Distance between the cornea front and the surface preceding the eye model.
+        """
         backend = _backend.get_backend()
         self._built = backend.build_model(
             self,
@@ -61,11 +110,22 @@ class EyeModel:
 
     @staticmethod
     def clear() -> None:
+        """Clear the model in the backend."""
         backend = _backend.get_backend()
         backend.clear_model()
 
     @staticmethod
     def save(filename: str | PathLike | None = None) -> None:
+        """Save the model definition to a file.
+
+        Saving is done by the backend. As a consequence, the file format depends on the backend used.
+
+        Parameters
+        ----------
+        filename : str | PathLike | None
+            Name of the file to save the model. If `None`, the model will be saved in the default location.
+            The file format depends on the backend used.
+        """
         backend = _backend.get_backend()
         backend.save_model(filename)
 
@@ -111,8 +171,23 @@ class BaseEye(ABC):
         object_distance: float = float("inf"),
         **kwargs,
     ):
-        """Build the eye model in the backend."""
-        ...
+        """Build the eye model in the backend.
+
+        If no backend has yet been initialized, the default backend is used. The eye model is built in the backend
+        starting from the surface at index `start_from_index`. The cornea front surface will be located at
+        `start_from_index + 1`. If `replace_existing` is set to `True`, the existing model in the backend will be
+        overwritten. The `object_distance` parameter is used to set the distance between the cornea front and the
+        surface preceding the eye model.
+
+        Parameters
+        ----------
+        start_from_index : int
+            Index of the surface after which the eye model will be built.
+        replace_existing : bool
+            If `True`, the existing model in the backend will be overwritten.
+        object_distance : float
+            Distance between the cornea front and the surface preceding the eye model.
+        """
 
     @property
     @abstractmethod
@@ -140,7 +215,6 @@ class BaseEye(ABC):
 
         Returns
         -------
-
         """
         surfaces = [self.surfaces[s] for s in surface_names] if surface_names is not None else self.surfaces.values()
 

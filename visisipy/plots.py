@@ -1,3 +1,5 @@
+"""Visualization tools for Visisipy."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable
@@ -31,6 +33,11 @@ def plot_surface(
     The segment is cut off at the x-coordinate specified by `cutoff`.
     The orientation of the surface is controlled with the sign of `radius`.
 
+    Returns
+    -------
+    Path
+        A `matplotlib.path.Path` object with the surface.
+
     Arguments
     ---------
     position : float
@@ -44,11 +51,6 @@ def plot_surface(
         Position coordinate at which the surface is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-
-    Returns
-    -------
-    Path
-        A `matplotlib.path.Path` object with the surface.
     """
     if conic > -1:
         return plot_ellipse(position, radius, conic, cutoff, return_endpoint=return_endpoint)
@@ -77,6 +79,18 @@ def plot_ellipse(
     Creates an `Arc` patch for an ellipse. The radius of curvature at the apex is specified as `radius`.
     The ellipse is cut off at the x-coordinate specified by `cutoff`.
 
+    Returns
+    -------
+    Path
+        A `matplotlib.path.Path` object with the ellipse segment.
+    float
+        y-coordinate of the segment's end point.
+
+    Raises
+    ------
+    ValueError
+        If the cutoff is located outside the ellipse.
+
     Arguments
     ---------
     position : float
@@ -89,18 +103,6 @@ def plot_ellipse(
         x-coordinate at which the ellipse is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-
-    Returns
-    -------
-    Path
-        A `matplotlib.path.Path` object with the ellipse segment.
-    float
-        y-coordinate of the segment's end point.
-
-    Raises
-    ------
-    ValueError
-        If the cutoff is located outside the ellipse.
     """
     rx, ry = _get_ellipse_sizes(radius, conic)
 
@@ -133,17 +135,6 @@ def plot_parabola(
     Creates a `Path` for a parabola. The radius of curvature at the apex is specified as `radius`.
     The parabola is cut off at the x-coordinate specified by `cutoff`.
 
-    Arguments
-    ---------
-    position : float
-        Coordinate of the ellipse apex.
-    radius : float
-        Radius of curvature at the apex.
-    cutoff : float
-        x-coordinate at which the ellipse is cut off.
-    return_endpoint : bool
-        If true, returns a the y coordinate of the arc endpoint.
-
     Returns
     -------
     Path
@@ -155,6 +146,17 @@ def plot_parabola(
     ------
     ValueError
         If the cutoff is located outside the parabola.
+
+    Arguments
+    ---------
+    position : float
+        Coordinate of the ellipse apex.
+    radius : float
+        Radius of curvature at the apex.
+    cutoff : float
+        x-coordinate at which the ellipse is cut off.
+    return_endpoint : bool
+        If true, returns a the y coordinate of the arc endpoint.
     """
     a = radius / 2  # The radius of curvature of a parabola is twice its focal length
 
@@ -181,17 +183,6 @@ def plot_hyperbola(position: float, radius: float, conic: float, cutoff: float) 
     Creates a `Path` for a hyperbola. The radius of curvature at the apex is specified as `radius`.
     The hyperbola is cut off at the x-coordinate specified by `cutoff`.
 
-    Arguments
-    ---------
-    position : float
-        Coordinate of the hyperbola apex.
-    radius : float
-        Radius of curvature at the apex.
-    conic : float
-        Conic constant (asphericity) of the hyperbola. Must be < -1.
-    cutoff
-        x-coordinate at which the hyperbola is cut off.
-
     Returns
     -------
     Path
@@ -203,6 +194,17 @@ def plot_hyperbola(position: float, radius: float, conic: float, cutoff: float) 
     ------
     ValueError
         If the cutoff is located outside the parabola.
+
+    Arguments
+    ---------
+    position : float
+        Coordinate of the hyperbola apex.
+    radius : float
+        Radius of curvature at the apex.
+    conic : float
+        Conic constant (asphericity) of the hyperbola. Must be < -1.
+    cutoff
+        x-coordinate at which the hyperbola is cut off.
     """
     a, b = _get_hyperbola_sizes(radius, conic)
 

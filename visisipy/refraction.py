@@ -25,7 +25,6 @@ class FourierPowerVectorRefraction:
            statistical analysis of refractive error. Optometry and vision science: official publication of the American
            Academy of Optometry. 1997 Jun;74(6):367-75.
 
-
     Attributes
     ----------
     M : float
@@ -156,7 +155,7 @@ class SpheroCylindricalRefraction:
 
         Parameters
         ----------
-        to: str
+        to : str
             Indicates if the conversion should be done towards negative cylinder form ("negative") or positive cylinder
             form ("positive").
 

@@ -1,3 +1,5 @@
+"""Visisipy: VISion Simulations In PYthon."""
+
 from __future__ import annotations
 
 import platform
@@ -12,6 +14,7 @@ from visisipy.models import (
     EyeModel,
     NavarroGeometry,
     NavarroMaterials,
+    create_geometry,
 )
 
 __all__ = [
@@ -21,6 +24,7 @@ __all__ = [
     "NavarroGeometry",
     "NavarroMaterials",
     "analysis",
+    "create_geometry",
     "get_backend",
     "models",
     "optiland",

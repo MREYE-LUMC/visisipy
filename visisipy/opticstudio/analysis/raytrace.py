@@ -1,3 +1,5 @@
+"""Ray trace analysis for OpticStudio."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -35,8 +37,7 @@ def raytrace(
     field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
 ) -> tuple[pd.DataFrame, list[SingleRayTraceResult]]:
-    """
-    Perform a ray trace analysis using the given parameters.
+    """Perform a ray trace analysis using the given parameters.
     The ray trace is performed for each wavelength and field in the system, using the Single Ray Trace analysis
     in OpticStudio.
 
@@ -52,6 +53,8 @@ def raytrace(
 
     Parameters
     ----------
+    backend : type[OpticStudioBackend]
+        Reference to the OpticStudio backend.
     coordinates : Iterable[tuple[float, float]], optional
         An iterable of tuples representing the coordinates for the ray trace.
         If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.

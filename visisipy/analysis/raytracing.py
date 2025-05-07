@@ -1,3 +1,5 @@
+"""Perform raytracing on an eye model."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, overload
@@ -41,7 +43,7 @@ def raytrace(
 
 @analysis
 def raytrace(
-    model: EyeModel | None,  # noqa: ARG001
+    model: EyeModel | None = None,  # noqa: ARG001
     coordinates: Iterable[tuple[float, float]] | None = None,
     wavelengths: Iterable[float] | None = None,
     field_type: Literal["angle", "object"] = "angle",
@@ -50,8 +52,7 @@ def raytrace(
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> tuple[DataFrame, Any]:
-    """
-    Performs a ray trace analysis using the given parameters.
+    """Performs a ray trace analysis using the given parameters.
     The analysis returns a Dataframe with the following columns:
 
     - field: The field coordinates for the ray trace.

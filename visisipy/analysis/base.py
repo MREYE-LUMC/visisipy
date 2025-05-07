@@ -1,3 +1,8 @@
+"""Base functionality for optical analyses.
+
+This module provides the `analysis` decorator for optical analyses.
+"""
+
 from __future__ import annotations
 
 import inspect
@@ -8,6 +13,8 @@ from visisipy.backend import BaseBackend, get_backend
 
 if TYPE_CHECKING:
     from visisipy.models import EyeModel
+
+__all__ = ("_AUTOMATIC_BACKEND", "analysis")
 
 
 _AUTOMATIC_BACKEND = cast(type[BaseBackend], object())
@@ -21,8 +28,7 @@ checker happy, it is not a valid backend value and is only intended for internal
 
 
 def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> None:
-    """
-    Validate the signature of an analysis function.
+    """Validate the signature of an analysis function.
 
     The first parameter must be 'model' with type 'EyeModel | None'. The last parameter must be 'return_raw_result'
     with type 'bool'.
@@ -78,8 +84,7 @@ def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> No
 
 
 def _build_model(model: EyeModel, backend: type[BaseBackend]) -> None:
-    """
-    Build the model in OpticStudio if it is not already built.
+    """Build the model in OpticStudio if it is not already built.
 
     Parameters
     ----------
@@ -95,11 +100,20 @@ T2 = TypeVar("T2")
 
 
 def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
-    """
-    Decorator for analysis functions.
+    """Decorator for analysis functions.
 
     This decorator is used to mark a function as an analysis function. Analysis functions are used to perform various
-    analyses on the optical system.
+    analyses on the optical system. This decorator passes the model and backend to the function and ensures the
+    model is built. Furthermore, it validates the function signature to ensure it has the correct parameters.
+
+    Every analysis must have at least the following parameters:
+
+    - `model: EyeModel | None` must be the first parameter. If not specified by the user, the eye model that is currently
+        built in the backend will be used.
+    - `return_raw_result: bool` must be a keyword-only parameter. If `True`, the function will return a tuple with the
+        result and the raw result returned by the backend.
+    - `backend: type[BaseBackend]` must be a keyword-only parameter. If not specified by the user, the currently configured
+        backend will be used.
 
     Parameters
     ----------
@@ -110,6 +124,11 @@ def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
     -------
     Callable
         The analysis function.
+
+    Raises
+    ------
+    ValueError
+        If the signature of the analysis function is invalid.
     """
     _validate_analysis_signature(function)
 
