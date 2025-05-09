@@ -99,8 +99,8 @@ extend-ignore = [
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"docs/*" = ["INP001", "T20"]
-"examples/*" = ["INP001", "T20"]
+"docs/*" = ["I002", "INP001", "T20"]
+"examples/*" = ["I002", "INP001", "T20"]
 "scripts/*" = ["S101"]
 "tests/*" = ["ARG001", "ARG002", "FBT001", "PLC2701"]
 "tests/opticstudio/*" = ["SLF001"]
@@ -108,6 +108,10 @@ extend-ignore = [
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+
 
 [tool.pydocstringformatter]
 style = "numpydoc"

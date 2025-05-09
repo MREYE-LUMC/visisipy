@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from visisipy.models.materials import EyeMaterials, MaterialModel, NavarroMaterials
 
 
