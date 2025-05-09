@@ -13,6 +13,7 @@ from matplotlib.colors import TABLEAU_COLORS
 from matplotlib.lines import Line2D
 from optiland.materials import AbbeMaterial
 from scipy.optimize import curve_fit
+
 from visisipy.models.materials import (
     NavarroMaterials458,
     NavarroMaterials543,
@@ -49,13 +50,11 @@ def create_model(oss: OpticStudioSystem, *, fit_dispersion: bool = False) -> Non
         else:
             oss.SystemData.Wavelengths.AddWavelength(w, 1)
 
-    assert oss.SystemData.Wavelengths.NumberOfWavelengths == len(
-        NAVARRO_MATERIAL_MODELS
-    ), f"Number of wavelengths should be {len(NAVARRO_MATERIAL_MODELS)}"
-
-    oss.SystemData.Aperture.ApertureType = (
-        zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
+    assert oss.SystemData.Wavelengths.NumberOfWavelengths == len(NAVARRO_MATERIAL_MODELS), (
+        f"Number of wavelengths should be {len(NAVARRO_MATERIAL_MODELS)}"
     )
+
+    oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
 
     aperture = oss.LDE.GetSurfaceAt(1)
     aperture.SemiDiameter = 5
@@ -85,9 +84,7 @@ def _get_wavelength_number(oss: OpticStudioSystem, wavelength: float) -> int:
     raise ValueError(f"Wavelength {wavelength} not found in system.")
 
 
-def build_merit_function(
-    oss: OpticStudioSystem, refractive_indices: dict[float, float]
-) -> None:
+def build_merit_function(oss: OpticStudioSystem, refractive_indices: dict[float, float]) -> None:
     oss.MFE.ShowEditor()
     oss.MFE.DeleteAllRows()
 
@@ -99,9 +96,7 @@ def build_merit_function(
         operand = oss.MFE.InsertNewOperandAt(oss.MFE.NumberOfOperands + 1)
         operand.ChangeType(zp.constants.Editors.MFE.MeritOperandType.INDX)
         operand.GetCellAt(2).Value = str(2)  # Surface number
-        operand.GetCellAt(3).Value = str(
-            _get_wavelength_number(oss, wavelength)
-        )  # Wavelength number
+        operand.GetCellAt(3).Value = str(_get_wavelength_number(oss, wavelength))  # Wavelength number
         operand.Target = refractive_index
         operand.Weight = 1.0
 
@@ -128,13 +123,9 @@ def run_optimization(
         oss.Tools.CurrentTool.Close()
 
     local_optimization = oss.Tools.OpenLocalOptimization()
-    local_optimization.Algorithm = (
-        zp.constants.Tools.Optimization.OptimizationAlgorithm.DampedLeastSquares
-    )
+    local_optimization.Algorithm = zp.constants.Tools.Optimization.OptimizationAlgorithm.DampedLeastSquares
     local_optimization.NumberOfCores = 20
-    local_optimization.Cycles = (
-        zp.constants.Tools.Optimization.OptimizationCycles.Automatic
-    )
+    local_optimization.Cycles = zp.constants.Tools.Optimization.OptimizationCycles.Automatic
 
     local_optimization.RunAndWaitForCompletion()
 
@@ -151,9 +142,7 @@ def run_optimization(
     for i in range(1, oss.MFE.NumberOfOperands + 1):
         operand = oss.MFE.GetOperandAt(i)
         if operand.TypeName == "INDX":
-            wavelength = oss.SystemData.Wavelengths.GetWavelength(
-                operand.GetCellAt(3).IntegerValue
-            ).Wavelength
+            wavelength = oss.SystemData.Wavelengths.GetWavelength(operand.GetCellAt(3).IntegerValue).Wavelength
             target = operand.Target
             value = operand.Value
 
@@ -162,8 +151,8 @@ def run_optimization(
     solve_data = oss.LDE.GetSurfaceAt(2).MaterialCell.GetSolveData()
 
     return MaterialModel(
-        solve_data._S_MaterialModel.IndexNd,
-        solve_data._S_MaterialModel.AbbeVd,
+        solve_data._S_MaterialModel.IndexNd,  # noqa: SLF001
+        solve_data._S_MaterialModel.AbbeVd,  # noqa: SLF001
         solve_data._S_MaterialModel.dPgF,  # noqa: SLF001
     ), result
 
@@ -176,7 +165,7 @@ def fit_opticstudio_model(
 ) -> tuple[MaterialModel, dict[float, OptimizationResult]]:
     create_model(oss, fit_dispersion=fit_dispersion)
 
-    zp.analyses.systemviewers.cross_section(oss)
+    zp.analyses.systemviewers.CrossSection().run(oss)
 
     build_merit_function(oss, refractive_indices)
 
@@ -187,9 +176,7 @@ def fit_optiland_model(
     refractive_indices: dict[float, float], *, fit_dispersion: bool = False
 ) -> tuple[MaterialModel, dict[float, OptimizationResult]]:
     if fit_dispersion:
-        raise NotImplementedError(
-            "Partial dispersion fitting is not supported in OptiLand."
-        )
+        raise NotImplementedError("Partial dispersion fitting is not supported in OptiLand.")
 
     def model(wavelength, n, abbe):
         return AbbeMaterial(n, abbe).n(wavelength)
@@ -203,9 +190,7 @@ def fit_optiland_model(
 
     fit_model = AbbeMaterial(popt[0], popt[1])
 
-    return MaterialModel(*popt), {
-        w: OptimizationResult(n, fit_model.n(w)) for w, n in refractive_indices.items()
-    }
+    return MaterialModel(*popt), {w: OptimizationResult(n, fit_model.n(w)) for w, n in refractive_indices.items()}
 
 
 def opticstudio_calculate_refractive_indices(
@@ -235,9 +220,7 @@ def opticstudio_calculate_refractive_indices(
     refractive_indices = np.zeros(len(wavelengths))
 
     for i, wavelength in enumerate(wavelengths):
-        oss.SystemData.Wavelengths.GetWavelength(
-            wavelength_number
-        ).Wavelength = wavelength
+        oss.SystemData.Wavelengths.GetWavelength(wavelength_number).Wavelength = wavelength
 
         oss.MFE.CalculateMeritFunction()
         refractive_indices[i] = operand.Value
@@ -248,9 +231,7 @@ def opticstudio_calculate_refractive_indices(
 def optiland_calculate_refractive_indices(
     wavelengths: np.ndarray | list[float], material_model: MaterialModel
 ) -> np.ndarray:
-    optiland_model = AbbeMaterial(
-        material_model.refractive_index, material_model.abbe_number
-    )
+    optiland_model = AbbeMaterial(material_model.refractive_index, material_model.abbe_number)
 
     return np.array([optiland_model.n(wavelength) for wavelength in wavelengths])
 
@@ -262,15 +243,9 @@ def plot_refractive_indices(
 ) -> None:
     fig, ax = plt.subplots()
 
-    for (structure, material_model), color in zip(
-        material_models.items(), TABLEAU_COLORS
-    ):
-        refractive_indices_opticstudio = opticstudio_calculate_refractive_indices(
-            oss, wavelengths, material_model
-        )
-        refractive_indices_optiland = optiland_calculate_refractive_indices(
-            wavelengths, material_model
-        )
+    for (structure, material_model), color in zip(material_models.items(), TABLEAU_COLORS, strict=False):
+        refractive_indices_opticstudio = opticstudio_calculate_refractive_indices(oss, wavelengths, material_model)
+        refractive_indices_optiland = optiland_calculate_refractive_indices(wavelengths, material_model)
 
         ax.plot(
             wavelengths,
@@ -328,9 +303,7 @@ def save_fit_results(
             for structure, model in material_models.items()
         },
         "mean_absolute_errors": {
-            structure: np.mean(
-                np.abs([result.difference for result in results.values()])
-            )
+            structure: np.mean(np.abs([result.difference for result in results.values()]))
             for structure, results in optimization_results.items()
         },
     }
@@ -375,10 +348,7 @@ def main(args: argparse.Namespace) -> None:
                 f"dPgF = {material_model.partial_dispersion:.4f}"
             )
         else:
-            print(
-                f"{structure}: n = {material_model.refractive_index:.4f}, "
-                f"Vd = {material_model.abbe_number:.4f}"
-            )
+            print(f"{structure}: n = {material_model.refractive_index:.4f}, Vd = {material_model.abbe_number:.4f}")
 
         for wavelength, result in optimization_result.items():
             print(
@@ -408,9 +378,7 @@ if __name__ == "__main__":
     # Restore default rcparams
     plt.rcdefaults()
 
-    parser = argparse.ArgumentParser(
-        description="Fit material models to refractive indices."
-    )
+    parser = argparse.ArgumentParser(description="Fit material models to refractive indices.")
     parser.add_argument(
         "--backend",
         choices=["optiland", "opticstudio"],
@@ -423,9 +391,7 @@ if __name__ == "__main__":
         default=False,
         help="Fit dispersion (only supported in OpticStudio)",
     )
-    parser.add_argument(
-        "--output", type=Path, default=None, help="Output file for fit results"
-    )
+    parser.add_argument("--output", type=Path, default=None, help="Output file for fit results")
 
     args = parser.parse_args()
     main(args)
