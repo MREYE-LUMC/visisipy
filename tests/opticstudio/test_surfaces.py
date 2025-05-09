@@ -143,7 +143,9 @@ class TestOpticStudioSurface:
         )
 
         assert surface._is_built is False
-        surface.build(oss, position=2)
+        surface_index = surface.build(oss, position=2)
+
+        assert surface_index == 2
         assert surface._is_built is True
 
         assert surface.surface.SurfaceNumber == 2
@@ -247,6 +249,11 @@ class TestOpticStudioSurface:
         surface.build(oss, position=1)
 
         assert surface.surface.TypeName == "ABCD"
+
+    def test_build_returns_index(self, oss):
+        surface = OpticStudioSurface(comment="Test")
+
+        assert surface.build(oss, position=1) == 1
 
 
 class TestBaseOpticStudioZernikeSurface:
@@ -355,7 +362,9 @@ class TestOpticStudioZernikeStandardSagSurface:
         )
 
         assert surface._is_built is False
-        surface.build(oss, position=1)
+        surface_index = surface.build(oss, position=1)
+
+        assert surface_index == 1
         assert surface._is_built is True
         assert str(surface.surface.Type) == "ZernikeStandardSag"
 
@@ -429,7 +438,9 @@ class TestOpticStudioZernikeStandardPhaseSurface:
         )
 
         assert surface._is_built is False
-        surface.build(oss, position=1)
+        surface_index = surface.build(oss, position=1)
+
+        assert surface_index == 1
         assert surface._is_built is True
         assert str(surface.surface.Type) == "ZernikeStandardPhase"
 

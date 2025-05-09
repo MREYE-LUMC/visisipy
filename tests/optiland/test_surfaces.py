@@ -108,7 +108,7 @@ class TestBuiltOnlyProperty:
             mock_surface.comment = "New comment"
 
 
-def build_surface(optic: Optic, surface: OptilandSurface) -> None:
+def build_surface(optic: Optic, surface: OptilandSurface) -> int:
     """Build a surface with `surface_settings` to the optic system, between an object and image surface."""
     optic.add_surface(
         index=0,
@@ -116,7 +116,7 @@ def build_surface(optic: Optic, surface: OptilandSurface) -> None:
         comment="Object",
     )
 
-    surface.build(optic, position=1)
+    index = surface.build(optic, position=1)
 
     optic.add_surface(
         index=2,
@@ -125,6 +125,8 @@ def build_surface(optic: Optic, surface: OptilandSurface) -> None:
         conic=0.0,
         comment="Image",
     )
+
+    return index
 
 
 class TestOptilandSurface:
@@ -145,8 +147,10 @@ class TestOptilandSurface:
         assert surface._optic is None
         assert surface._index is None
 
-        build_surface(optic, surface)
+        surface_index = build_surface(optic, surface)
 
+        assert surface_index == 1
+        assert surface.surface is not None
         assert surface._is_built is True
         assert surface._optic == optic
         assert surface._index == 1
@@ -171,8 +175,9 @@ class TestOptilandSurface:
             is_stop=True,
         )
 
-        build_surface(optic, surface)
+        surface_index = build_surface(optic, surface)
 
+        assert surface_index == 1
         assert surface.material == material
         assert isinstance(surface.surface.material_post, optiland.materials.IdealMaterial)
         assert surface.surface.material_post.index == material.refractive_index
@@ -190,8 +195,9 @@ class TestOptilandSurface:
             is_stop=True,
         )
 
-        build_surface(optic, surface)
+        surface_index = build_surface(optic, surface)
 
+        assert surface_index == 1
         assert surface.material == material
         assert isinstance(surface.surface.material_post, optiland.materials.AbbeMaterial)
         assert surface.surface.material_post.index == material.refractive_index
@@ -209,8 +215,9 @@ class TestOptilandSurface:
             is_stop=True,
         )
 
-        build_surface(optic, surface)
+        surface_index = build_surface(optic, surface)
 
+        assert surface_index == 1
         assert surface.material == material
         assert isinstance(surface.surface.material_post, optiland.materials.Material)
         assert surface.surface.material_post.name == material

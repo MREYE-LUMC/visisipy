@@ -187,7 +187,7 @@ class OpticStudioSurface(BaseSurface):
         if self.surface is not None and self.surface.Type != surface_type:
             zp.functions.lde.surface_change_type(self.surface, self._TYPE)
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
         Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
@@ -202,6 +202,11 @@ class OpticStudioSurface(BaseSurface):
             Index at which the surface is located, starting at 0 for the object surface.
         replace_existing : bool
             If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be added after this index.
         """
         self._surface = oss.LDE.GetSurfaceAt(position) if replace_existing else oss.LDE.InsertNewSurfaceAt(position)
 
@@ -228,6 +233,8 @@ class OpticStudioSurface(BaseSurface):
             )
 
         self._is_built = True
+
+        return self.surface.SurfaceNumber
 
     def relink_surface(self, oss: OpticStudioSystem) -> bool:
         """Link an OpticStudio surface based on its comment.
@@ -354,7 +361,7 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
 
         self.surface.SurfaceData.SetNthZernikeCoefficient(n, value)
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
         Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
@@ -369,14 +376,21 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
             Index at which the surface is located, starting at 0 for the object surface.
         replace_existing : bool
             If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be added after this index.
         """
-        super().build(oss, position=position, replace_existing=replace_existing)
+        index = super().build(oss, position=position, replace_existing=replace_existing)
 
         self.number_of_terms = self._number_of_terms
         self.norm_radius = self._norm_radius
 
         for n, value in self._zernike_coefficients.items():
             self.set_zernike_coefficient(n, value)
+
+        return index
 
 
 class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
@@ -422,7 +436,7 @@ class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
     zernike_decenter_x: float = OpticStudioSurfaceDataProperty("ZernikeDecenter_X")
     zernike_decenter_y: float = OpticStudioSurfaceDataProperty("ZernikeDecenter_Y")
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
         Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
@@ -437,12 +451,19 @@ class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
             Index at which the surface is located, starting at 0 for the object surface.
         replace_existing : bool
             If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be added after this index.
         """
-        super().build(oss, position=position, replace_existing=replace_existing)
+        index = super().build(oss, position=position, replace_existing=replace_existing)
 
         self.extrapolate = self._extrapolate
         self.zernike_decenter_x = self._zernike_decenter_x
         self.zernike_decenter_y = self._zernike_decenter_y
+
+        return index
 
 
 class OpticStudioZernikeStandardPhaseSurface(BaseOpticStudioZernikeSurface):
@@ -485,7 +506,7 @@ class OpticStudioZernikeStandardPhaseSurface(BaseOpticStudioZernikeSurface):
     extrapolate: int = OpticStudioSurfaceDataProperty("Extrapolate")
     diffract_order: float = OpticStudioSurfaceDataProperty("DiffractOrder")
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False):
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
         Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
@@ -500,11 +521,18 @@ class OpticStudioZernikeStandardPhaseSurface(BaseOpticStudioZernikeSurface):
             Index at which the surface is located, starting at 0 for the object surface.
         replace_existing : bool
             If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be added after this index.
         """
-        super().build(oss, position=position, replace_existing=replace_existing)
+        index = super().build(oss, position=position, replace_existing=replace_existing)
 
         self.extrapolate = self._extrapolate
         self.diffract_order = self._diffract_order
+
+        return index
 
 
 @singledispatch

@@ -151,7 +151,7 @@ class BaseSurface(ABC):
     def surface(self) -> Any: ...
 
     @abstractmethod
-    def build(self, *args, **kwargs):
+    def build(self, *args, **kwargs) -> int:
         """Build the surface in the backend."""
         ...
 
