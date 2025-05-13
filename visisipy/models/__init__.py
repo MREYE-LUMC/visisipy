@@ -151,9 +151,23 @@ class BaseSurface(ABC):
     def surface(self) -> Any: ...
 
     @abstractmethod
-    def build(self, *args, **kwargs) -> int:
+    def build(self, *args, position: int, replace_existing: bool = False) -> int:
         """Build the surface in the backend."""
         ...
+
+
+class NoSurface(BaseSurface):
+    """Dummy surface class for when no surface is needed."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @property
+    def surface(self) -> None:
+        return None
+
+    def build(self, *args, position: int, **kwargs) -> int:  # noqa: ARG002, PLR6301
+        return position - 1
 
 
 class BaseEye(ABC):

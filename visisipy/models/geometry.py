@@ -14,6 +14,7 @@ from visisipy.wavefront import ZernikeCoefficients
 __all__ = (
     "EyeGeometry",
     "NavarroGeometry",
+    "NoSurface",
     "StandardSurface",
     "Stop",
     "Surface",
@@ -206,6 +207,16 @@ class ZernikeStandardPhaseSurface(StandardSurface):
             raise ValueError("The Zernike coefficients contain terms that are greater than the maximum term.")
 
         self.zernike_coefficients = ZernikeCoefficients(self.zernike_coefficients)
+
+
+@dataclass
+class NoSurface(Surface):
+    """A surface that does not exist.
+
+    This surface is used to indicate that a surface is not present in the optical system.
+    """
+
+    thickness: int = field(default=0, init=False)
 
 
 class EyeGeometry:

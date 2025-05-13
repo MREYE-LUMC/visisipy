@@ -11,7 +11,9 @@ import optiland.materials
 from optiland.materials import AbbeMaterial, IdealMaterial, Material
 
 from visisipy.models import BaseSurface
+from visisipy.models import NoSurface as OptilandNoSurface
 from visisipy.models.geometry import (
+    NoSurface,
     StandardSurface,
     Stop,
     Surface,
@@ -341,3 +343,12 @@ def _make_surface(
     comment: str = "",
 ) -> OptilandSurface:
     raise NotImplementedError("ZernikeStandardPhaseSurface is not supported in Optiland.")
+
+
+@make_surface.register
+def _make_surface(
+    surface: NoSurface,  # noqa: ARG001
+    material: None = None,  # noqa: ARG001
+    comment: str = "",  # noqa: ARG001
+) -> OptilandNoSurface:
+    return OptilandNoSurface()

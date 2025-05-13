@@ -10,7 +10,9 @@ from warnings import warn
 import zospy as zp
 
 from visisipy.models import BaseSurface
+from visisipy.models import NoSurface as OpticStudioNoSurface
 from visisipy.models.geometry import (
+    NoSurface,
     StandardSurface,
     Stop,
     Surface,
@@ -629,3 +631,12 @@ def _make_surface(
         number_of_terms=surface.maximum_term,
         norm_radius=surface.norm_radius,
     )
+
+
+@make_surface.register
+def _make_surface(
+    surface: NoSurface,  # noqa: ARG001
+    material: None = None,  # noqa: ARG001
+    comment: str = "",  # noqa: ARG001
+) -> OpticStudioNoSurface:
+    return OpticStudioNoSurface()
