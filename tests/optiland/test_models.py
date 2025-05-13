@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from optiland.optic import Optic
 
 
-
 class TestOptilandEye:
     def test_init(self, eye_model):
         opticstudio_eye = OptilandEye(eye_model)

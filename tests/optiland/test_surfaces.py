@@ -9,8 +9,8 @@ import pytest
 from visisipy.models.geometry import NoSurface, StandardSurface, Stop, Surface
 from visisipy.models.materials import MaterialModel
 from visisipy.optiland.surfaces import (
-    OptilandSurface,
     OptilandNoSurface,
+    OptilandSurface,
     _built_only_property,
     make_surface,
 )

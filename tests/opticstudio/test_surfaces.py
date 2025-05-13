@@ -15,10 +15,16 @@ from visisipy.models.geometry import (
     ZernikeStandardSagSurface,
 )
 from visisipy.models.materials import MaterialModel
-from visisipy.opticstudio.surfaces import (BaseOpticStudioZernikeSurface, OpticStudioNoSurface, OpticStudioSurface,
-                                           OpticStudioSurfaceDataProperty, OpticStudioSurfaceProperty,
-                                           OpticStudioZernikeStandardPhaseSurface, OpticStudioZernikeStandardSagSurface,
-                                           make_surface)
+from visisipy.opticstudio.surfaces import (
+    BaseOpticStudioZernikeSurface,
+    OpticStudioNoSurface,
+    OpticStudioSurface,
+    OpticStudioSurfaceDataProperty,
+    OpticStudioSurfaceProperty,
+    OpticStudioZernikeStandardPhaseSurface,
+    OpticStudioZernikeStandardSagSurface,
+    make_surface,
+)
 from visisipy.wavefront import ZernikeCoefficients
 
 pytestmark = [pytest.mark.needs_opticstudio]
