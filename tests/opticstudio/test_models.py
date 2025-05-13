@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from visisipy import EyeGeometry
+from visisipy.models import EyeModel
+from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.opticstudio import OpticStudioEye
 
 # pyright: reportOptionalMemberAccess=false
@@ -225,3 +228,25 @@ class TestOpticStudioEye:
         assert opticstudio_eye.lens_back.comment == "lens back / vitreous"
         assert opticstudio_eye.retina.surface.SurfaceNumber == 7
         assert opticstudio_eye.retina.comment == "retina"
+
+
+def test_model_with_no_surface(oss):
+    geometry = EyeGeometry(
+        cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
+        cornea_back=NoSurface(),
+        pupil=Stop(semi_diameter=1.348),
+        lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
+        lens_back=StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
+        retina=StandardSurface(radius=-12.0, asphericity=0),
+    )
+    eye_model = EyeModel(geometry)
+    opticstudio_eye = OpticStudioEye(eye_model)
+    opticstudio_eye.build(oss)
+
+    assert oss.LDE.NumberOfSurfaces == 6
+    assert opticstudio_eye.cornea_front.surface.SurfaceNumber == 1
+    assert opticstudio_eye.pupil.surface.SurfaceNumber == 2
+    assert opticstudio_eye.lens_front.surface.SurfaceNumber == 3
+    assert opticstudio_eye.lens_back.surface.SurfaceNumber == 4
+    assert opticstudio_eye.retina.surface.SurfaceNumber == 5
+    assert opticstudio_eye.cornea_back.surface is None

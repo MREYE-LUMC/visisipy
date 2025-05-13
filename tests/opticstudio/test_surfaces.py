@@ -7,6 +7,7 @@ import pytest
 from zospy.solvers import material_model as solve_material_model
 
 from visisipy.models.geometry import (
+    NoSurface,
     StandardSurface,
     Stop,
     Surface,
@@ -14,15 +15,10 @@ from visisipy.models.geometry import (
     ZernikeStandardSagSurface,
 )
 from visisipy.models.materials import MaterialModel
-from visisipy.opticstudio.surfaces import (
-    BaseOpticStudioZernikeSurface,
-    OpticStudioSurface,
-    OpticStudioSurfaceDataProperty,
-    OpticStudioSurfaceProperty,
-    OpticStudioZernikeStandardPhaseSurface,
-    OpticStudioZernikeStandardSagSurface,
-    make_surface,
-)
+from visisipy.opticstudio.surfaces import (BaseOpticStudioZernikeSurface, OpticStudioNoSurface, OpticStudioSurface,
+                                           OpticStudioSurfaceDataProperty, OpticStudioSurfaceProperty,
+                                           OpticStudioZernikeStandardPhaseSurface, OpticStudioZernikeStandardSagSurface,
+                                           make_surface)
 from visisipy.wavefront import ZernikeCoefficients
 
 pytestmark = [pytest.mark.needs_opticstudio]
@@ -479,6 +475,19 @@ class TestOpticStudioZernikeStandardPhaseSurface:
         assert surface.surface.SurfaceData.Extrapolate == extrapolate
 
 
+class TestNoSurface:
+    def test_build(self, oss):
+        surface = OpticStudioNoSurface()
+
+        n_surfaces = oss.LDE.NumberOfSurfaces
+
+        return_index = surface.build(oss, position=1)
+
+        assert return_index == 0
+        assert surface.surface is None
+        assert n_surfaces == oss.LDE.NumberOfSurfaces
+
+
 class TestMakeSurface:
     def test_make_surface(self):
         surface = Surface(thickness=1)
@@ -591,3 +600,9 @@ class TestMakeSurface:
         assert opticstudio_surface._extrapolate == 1
         assert opticstudio_surface._zernike_coefficients == {1: 1.0, 2: 2.0, 3: 3.0}
         assert opticstudio_surface._material == "BK7"
+
+    def test_make_no_surface(self):
+        surface = NoSurface()
+        opticstudio_surface = make_surface(surface)
+
+        assert isinstance(opticstudio_surface, OpticStudioNoSurface)

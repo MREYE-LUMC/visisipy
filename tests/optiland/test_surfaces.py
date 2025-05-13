@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING
 import optiland.materials
 import pytest
 
-from visisipy.models.geometry import StandardSurface, Stop, Surface
+from visisipy.models.geometry import NoSurface, StandardSurface, Stop, Surface
 from visisipy.models.materials import MaterialModel
 from visisipy.optiland.surfaces import (
     OptilandSurface,
+    OptilandNoSurface,
     _built_only_property,
     make_surface,
 )
@@ -229,6 +230,19 @@ class TestOptilandSurface:
             build_surface(optic, surface)
 
 
+class TestNoSurface:
+    def test_build(self, optic):
+        surface = OptilandNoSurface()
+
+        n_surfaces = optic.surface_group.num_surfaces
+
+        return_index = surface.build(optic, position=1)
+
+        assert return_index == 0
+        assert surface.surface is None
+        assert n_surfaces == optic.surface_group.num_surfaces
+
+
 class TestMakeSurface:
     def test_make_surface(self):
         surface = Surface(thickness=1)
@@ -287,3 +301,9 @@ class TestMakeSurface:
         assert optiland_surface._semi_diameter == semi_diameter
         assert optiland_surface._material == material
         assert optiland_surface._is_stop is True
+
+    def test_make_no_surface(self):
+        surface = NoSurface()
+        opticstudio_surface = make_surface(surface)
+
+        assert isinstance(opticstudio_surface, OptilandNoSurface)

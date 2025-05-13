@@ -4,12 +4,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from visisipy import EyeGeometry, EyeModel
+from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.optiland import OptilandEye
 
 if TYPE_CHECKING:
     from optiland.optic import Optic
 
-    from visisipy import EyeModel
 
 
 class TestOptilandEye:
@@ -197,3 +198,25 @@ class TestOptilandEye:
         assert optiland_eye.lens_front.comment != "new comment"
         assert optiland_eye.lens_back.comment == "new comment"
         assert optiland_eye.retina.comment != "new comment"
+
+
+def test_model_with_no_surface(optic):
+    geometry = EyeGeometry(
+        cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
+        cornea_back=NoSurface(),
+        pupil=Stop(semi_diameter=1.348),
+        lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
+        lens_back=StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
+        retina=StandardSurface(radius=-12.0, asphericity=0),
+    )
+    eye_model = EyeModel(geometry)
+    optiland_eye = OptilandEye(eye_model)
+    optiland_eye.build(optic)
+
+    assert optic.surface_group.num_surfaces == 6
+    assert optiland_eye.cornea_front.surface == optic.surface_group.surfaces[1]
+    assert optiland_eye.pupil.surface == optic.surface_group.surfaces[2]
+    assert optiland_eye.lens_front.surface == optic.surface_group.surfaces[3]
+    assert optiland_eye.lens_back.surface == optic.surface_group.surfaces[4]
+    assert optiland_eye.retina.surface == optic.surface_group.surfaces[5]
+    assert optiland_eye.cornea_back.surface is None

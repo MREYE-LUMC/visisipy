@@ -160,7 +160,7 @@ class NoSurface(BaseSurface):
     """Dummy surface class for when no surface is needed."""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        pass
 
     @property
     def surface(self) -> None:
