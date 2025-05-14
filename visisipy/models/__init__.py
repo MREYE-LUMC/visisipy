@@ -157,7 +157,10 @@ class BaseSurface(ABC):
 
 
 class NoSurface(BaseSurface):
-    """Dummy surface class for when no surface is needed."""
+    """Dummy surface class for when no surface is needed.
+
+    This is a generic implementation that works with all backends, because it does not modify the optical system.
+    """
 
     def __init__(self, *args, **kwargs):
         pass
