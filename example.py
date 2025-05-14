@@ -1,4 +1,6 @@
 # %%
+from __future__ import annotations
+
 from operator import itemgetter
 from typing import NamedTuple
 
