@@ -5,6 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "visisipy"
 description = "Accessible vision simulations in Python."
+readme = "README.md"
 authors = [
     { name = "Corné Haasjes" },
     { name = "Jan-Willem Beenakker" },
