@@ -151,9 +151,26 @@ class BaseSurface(ABC):
     def surface(self) -> Any: ...
 
     @abstractmethod
-    def build(self, *args, **kwargs):
+    def build(self, *args, position: int, replace_existing: bool = False) -> int:
         """Build the surface in the backend."""
         ...
+
+
+class NoSurface(BaseSurface):
+    """Dummy surface class for when no surface is needed.
+
+    This is a generic implementation that works with all backends, because it does not modify the optical system.
+    """
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    @property
+    def surface(self) -> None:
+        return None
+
+    def build(self, *args, position: int, **kwargs) -> int:  # noqa: ARG002, PLR6301
+        return position - 1
 
 
 class BaseEye(ABC):

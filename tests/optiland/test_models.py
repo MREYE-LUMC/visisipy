@@ -197,3 +197,16 @@ class TestOptilandEye:
         assert optiland_eye.lens_front.comment != "new comment"
         assert optiland_eye.lens_back.comment == "new comment"
         assert optiland_eye.retina.comment != "new comment"
+
+
+def test_model_with_no_surface(optic, three_surface_eye_model):
+    optiland_eye = OptilandEye(three_surface_eye_model)
+    optiland_eye.build(optic)
+
+    assert optic.surface_group.num_surfaces == 6
+    assert optiland_eye.cornea_front.surface == optic.surface_group.surfaces[1]
+    assert optiland_eye.pupil.surface == optic.surface_group.surfaces[2]
+    assert optiland_eye.lens_front.surface == optic.surface_group.surfaces[3]
+    assert optiland_eye.lens_back.surface == optic.surface_group.surfaces[4]
+    assert optiland_eye.retina.surface == optic.surface_group.surfaces[5]
+    assert optiland_eye.cornea_back.surface is None

@@ -214,12 +214,16 @@ class OpticStudioEye(BaseOpticStudioEye):
         if object_distance != float("inf"):
             oss.LDE.GetSurfaceAt(start_from_index).Thickness = object_distance
 
-        self.cornea_front.build(oss, position=start_from_index + 1, replace_existing=replace_existing)
-        self.cornea_back.build(oss, position=start_from_index + 2, replace_existing=replace_existing)
-        self.pupil.build(oss, position=start_from_index + 3, replace_existing=True)
-        self.lens_front.build(oss, position=start_from_index + 4, replace_existing=replace_existing)
-        self.lens_back.build(oss, position=start_from_index + 5, replace_existing=replace_existing)
-        self.retina.build(oss, position=start_from_index + 6, replace_existing=True)
+        cornea_front_index = self.cornea_front.build(
+            oss, position=start_from_index + 1, replace_existing=replace_existing
+        )
+        cornea_back_index = self.cornea_back.build(
+            oss, position=cornea_front_index + 1, replace_existing=replace_existing
+        )
+        pupil_index = self.pupil.build(oss, position=cornea_back_index + 1, replace_existing=True)
+        lens_front_index = self.lens_front.build(oss, position=pupil_index + 1, replace_existing=replace_existing)
+        lens_back_index = self.lens_back.build(oss, position=lens_front_index + 1, replace_existing=replace_existing)
+        self.retina.build(oss, position=lens_back_index + 1, replace_existing=True)
 
         # Sanity checks
         if not self.pupil.surface.IsStop:

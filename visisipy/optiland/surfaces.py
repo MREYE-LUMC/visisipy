@@ -11,7 +11,9 @@ import optiland.materials
 from optiland.materials import AbbeMaterial, IdealMaterial, Material
 
 from visisipy.models import BaseSurface
+from visisipy.models import NoSurface as OptilandNoSurface
 from visisipy.models.geometry import (
+    NoSurface,
     StandardSurface,
     Stop,
     Surface,
@@ -226,7 +228,7 @@ class OptilandSurface(BaseSurface):
 
         raise TypeError("'material' must be MaterialModel or str.")
 
-    def build(self, optic: Optic, *, position: int, replace_existing: bool = False):
+    def build(self, optic: Optic, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in Optiland.
 
         Create the surface in the provided `Optic` object at the specified `position`.
@@ -241,6 +243,11 @@ class OptilandSurface(BaseSurface):
             The index at which the surface will be added, starting at 0 for the object surface.
         replace_existing : bool
             If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be after this index.
         """
         optic.add_surface(
             index=position,
@@ -263,6 +270,8 @@ class OptilandSurface(BaseSurface):
         self._optic = weakref.proxy(optic)
         self._index = position
         self._is_built = True
+
+        return position
 
 
 @singledispatch
@@ -334,3 +343,12 @@ def _make_surface(
     comment: str = "",
 ) -> OptilandSurface:
     raise NotImplementedError("ZernikeStandardPhaseSurface is not supported in Optiland.")
+
+
+@make_surface.register
+def _make_surface(
+    surface: NoSurface,  # noqa: ARG001
+    material: None = None,  # noqa: ARG001
+    comment: str = "",  # noqa: ARG001
+) -> OptilandNoSurface:
+    return OptilandNoSurface()

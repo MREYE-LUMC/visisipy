@@ -6,7 +6,7 @@ from typing import Literal
 import pytest
 
 from visisipy import EyeGeometry, EyeMaterials, EyeModel
-from visisipy.models.geometry import StandardSurface, Stop
+from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.models.materials import MaterialModel
 
 # Only run the OpticStudio tests on Windows
@@ -109,3 +109,21 @@ def eye_model():
     )
 
     return EyeModel(geometry=geometry, materials=materials)
+
+
+@pytest.fixture
+def three_surface_eye_model():
+    """Eye model with three optical surfaces.
+
+    The cornea back surface is omitted using a `NoSurface` object.
+    """
+    geometry = EyeGeometry(
+        cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
+        cornea_back=NoSurface(),
+        pupil=Stop(semi_diameter=1.348),
+        lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
+        lens_back=StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
+        retina=StandardSurface(radius=-12.0, asphericity=0),
+    )
+
+    return EyeModel(geometry)

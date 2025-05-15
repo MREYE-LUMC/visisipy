@@ -119,16 +119,20 @@ class OptilandEye(BaseEye):
             message = "'start_from_index' can be at most the index of the last surface in the system."
             raise ValueError(message)
 
-        self.cornea_front.build(optic, position=start_from_index + 1, replace_existing=replace_existing)
-        self.cornea_back.build(optic, position=start_from_index + 2, replace_existing=replace_existing)
-        _pupil_index = start_from_index + 3
-        self.pupil.build(optic, position=_pupil_index, replace_existing=replace_existing)
-        self.lens_front.build(optic, position=start_from_index + 4, replace_existing=replace_existing)
-        self.lens_back.build(optic, position=start_from_index + 5, replace_existing=replace_existing)
-        self.retina.build(optic, position=start_from_index + 6, replace_existing=replace_existing)
+        cornea_front_index = self.cornea_front.build(
+            optic, position=start_from_index + 1, replace_existing=replace_existing
+        )
+        cornea_back_index = self.cornea_back.build(
+            optic, position=cornea_front_index + 1, replace_existing=replace_existing
+        )
+        pupil_index = cornea_back_index + 1
+        pupil_index = self.pupil.build(optic, position=pupil_index, replace_existing=replace_existing)
+        lens_front_index = self.lens_front.build(optic, position=pupil_index + 1, replace_existing=replace_existing)
+        lens_back_index = self.lens_back.build(optic, position=lens_front_index + 1, replace_existing=replace_existing)
+        self.retina.build(optic, position=lens_back_index + 1, replace_existing=replace_existing)
 
         # Sanity checks
-        if optic.surface_group.stop_index != _pupil_index:
+        if optic.surface_group.stop_index != pupil_index:
             message = "The pupil is not located at the stop position."
             raise ValueError(message)
 

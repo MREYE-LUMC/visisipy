@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING
 import optiland.materials
 import pytest
 
-from visisipy.models.geometry import StandardSurface, Stop, Surface
+from visisipy.models.geometry import NoSurface, StandardSurface, Stop, Surface
 from visisipy.models.materials import MaterialModel
 from visisipy.optiland.surfaces import (
+    OptilandNoSurface,
     OptilandSurface,
     _built_only_property,
     make_surface,
@@ -108,7 +109,7 @@ class TestBuiltOnlyProperty:
             mock_surface.comment = "New comment"
 
 
-def build_surface(optic: Optic, surface: OptilandSurface) -> None:
+def build_surface(optic: Optic, surface: OptilandSurface) -> int:
     """Build a surface with `surface_settings` to the optic system, between an object and image surface."""
     optic.add_surface(
         index=0,
@@ -116,7 +117,7 @@ def build_surface(optic: Optic, surface: OptilandSurface) -> None:
         comment="Object",
     )
 
-    surface.build(optic, position=1)
+    index = surface.build(optic, position=1)
 
     optic.add_surface(
         index=2,
@@ -125,6 +126,8 @@ def build_surface(optic: Optic, surface: OptilandSurface) -> None:
         conic=0.0,
         comment="Image",
     )
+
+    return index
 
 
 class TestOptilandSurface:
@@ -145,8 +148,10 @@ class TestOptilandSurface:
         assert surface._optic is None
         assert surface._index is None
 
-        build_surface(optic, surface)
+        surface_index = build_surface(optic, surface)
 
+        assert surface_index == 1
+        assert surface.surface is not None
         assert surface._is_built is True
         assert surface._optic == optic
         assert surface._index == 1
@@ -171,8 +176,9 @@ class TestOptilandSurface:
             is_stop=True,
         )
 
-        build_surface(optic, surface)
+        surface_index = build_surface(optic, surface)
 
+        assert surface_index == 1
         assert surface.material == material
         assert isinstance(surface.surface.material_post, optiland.materials.IdealMaterial)
         assert surface.surface.material_post.index == material.refractive_index
@@ -190,8 +196,9 @@ class TestOptilandSurface:
             is_stop=True,
         )
 
-        build_surface(optic, surface)
+        surface_index = build_surface(optic, surface)
 
+        assert surface_index == 1
         assert surface.material == material
         assert isinstance(surface.surface.material_post, optiland.materials.AbbeMaterial)
         assert surface.surface.material_post.index == material.refractive_index
@@ -209,8 +216,9 @@ class TestOptilandSurface:
             is_stop=True,
         )
 
-        build_surface(optic, surface)
+        surface_index = build_surface(optic, surface)
 
+        assert surface_index == 1
         assert surface.material == material
         assert isinstance(surface.surface.material_post, optiland.materials.Material)
         assert surface.surface.material_post.name == material
@@ -220,6 +228,19 @@ class TestOptilandSurface:
 
         with pytest.raises(TypeError, match="'material' must be MaterialModel or str"):
             build_surface(optic, surface)
+
+
+class TestNoSurface:
+    def test_build(self, optic):
+        surface = OptilandNoSurface()
+
+        n_surfaces = optic.surface_group.num_surfaces
+
+        return_index = surface.build(optic, position=1)
+
+        assert return_index == 0
+        assert surface.surface is None
+        assert n_surfaces == optic.surface_group.num_surfaces
 
 
 class TestMakeSurface:
@@ -280,3 +301,9 @@ class TestMakeSurface:
         assert optiland_surface._semi_diameter == semi_diameter
         assert optiland_surface._material == material
         assert optiland_surface._is_stop is True
+
+    def test_make_no_surface(self):
+        surface = NoSurface()
+        opticstudio_surface = make_surface(surface)
+
+        assert isinstance(opticstudio_surface, OptilandNoSurface)

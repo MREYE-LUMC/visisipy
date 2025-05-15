@@ -225,3 +225,16 @@ class TestOpticStudioEye:
         assert opticstudio_eye.lens_back.comment == "lens back / vitreous"
         assert opticstudio_eye.retina.surface.SurfaceNumber == 7
         assert opticstudio_eye.retina.comment == "retina"
+
+
+def test_model_with_no_surface(oss, three_surface_eye_model):
+    opticstudio_eye = OpticStudioEye(three_surface_eye_model)
+    opticstudio_eye.build(oss)
+
+    assert oss.LDE.NumberOfSurfaces == 6
+    assert opticstudio_eye.cornea_front.surface.SurfaceNumber == 1
+    assert opticstudio_eye.pupil.surface.SurfaceNumber == 2
+    assert opticstudio_eye.lens_front.surface.SurfaceNumber == 3
+    assert opticstudio_eye.lens_back.surface.SurfaceNumber == 4
+    assert opticstudio_eye.retina.surface.SurfaceNumber == 5
+    assert opticstudio_eye.cornea_back.surface is None
