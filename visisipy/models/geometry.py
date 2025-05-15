@@ -214,8 +214,15 @@ class NoSurface(Surface):
     """A surface that does not exist.
 
     This surface is used to indicate that a surface is not present in the optical system.
+    It can be used to define three-surface schematic eyes and reduced eye models.
+
+    .. note::
+       This surface does not modify the optical system, i.e. surfaces of the `NoSurface` type are not built
+       when calling `EyeModel.build`. This means the properties of the preceding surface, e.g. the refractive index,
+       will propagate to the next surface.
     """
 
+    # Thickness is present on all surface instances, but cannot be set from the constructor.
     thickness: int = field(default=0, init=False)
 
 
