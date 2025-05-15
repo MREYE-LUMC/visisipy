@@ -2,9 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from visisipy import EyeGeometry
-from visisipy.models import EyeModel
-from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.opticstudio import OpticStudioEye
 
 # pyright: reportOptionalMemberAccess=false
@@ -230,17 +227,8 @@ class TestOpticStudioEye:
         assert opticstudio_eye.retina.comment == "retina"
 
 
-def test_model_with_no_surface(oss):
-    geometry = EyeGeometry(
-        cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
-        cornea_back=NoSurface(),
-        pupil=Stop(semi_diameter=1.348),
-        lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
-        lens_back=StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
-        retina=StandardSurface(radius=-12.0, asphericity=0),
-    )
-    eye_model = EyeModel(geometry)
-    opticstudio_eye = OpticStudioEye(eye_model)
+def test_model_with_no_surface(oss, three_surface_eye_model):
+    opticstudio_eye = OpticStudioEye(three_surface_eye_model)
     opticstudio_eye.build(oss)
 
     assert oss.LDE.NumberOfSurfaces == 6
