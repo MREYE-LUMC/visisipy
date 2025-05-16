@@ -161,7 +161,7 @@ class TestEyeGeometry:
 class TestCreateGeometry:
     def test_create_geometry(self, base_geometry, example_geometry_parameters, example_geometry):
         class SentinelFloat(float):
-            """Custom float class to mark floats as set by a unit test"""
+            """Custom float class to mark floats as set by a unit test."""
 
         geometry = create_geometry(
             base=base_geometry,
