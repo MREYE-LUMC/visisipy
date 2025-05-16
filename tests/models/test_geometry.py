@@ -145,6 +145,9 @@ class TestEyeGeometry:
     def test_anterior_chamber_depth(self, example_geometry_parameters, example_geometry):
         assert example_geometry.anterior_chamber_depth == example_geometry_parameters["anterior_chamber_depth"]
 
+    def test_pupil_lens_distance(self, example_geometry_parameters, example_geometry):
+        assert example_geometry.pupil_lens_distance == example_geometry_parameters["pupil_lens_distance"]
+
     def test_lens_thickness(self, example_geometry_parameters, example_geometry):
         assert example_geometry.lens_thickness == example_geometry_parameters["lens_thickness"]
 
@@ -152,6 +155,7 @@ class TestEyeGeometry:
         vitreous_thickness = example_geometry_parameters["axial_length"] - (
             example_geometry_parameters["cornea_thickness"]
             + example_geometry_parameters["anterior_chamber_depth"]
+            + example_geometry_parameters["pupil_lens_distance"]
             + example_geometry_parameters["lens_thickness"]
         )
         assert example_geometry.vitreous_thickness == vitreous_thickness
