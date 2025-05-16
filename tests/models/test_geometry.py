@@ -180,6 +180,7 @@ class TestCreateGeometry:
         assert isinstance(geometry.cornea_back.thickness, SentinelFloat)
 
         assert isinstance(geometry.pupil.semi_diameter, SentinelFloat)
+        assert isinstance(geometry.pupil.thickness, SentinelFloat)
 
         assert isinstance(geometry.lens_front.thickness, SentinelFloat)
         assert isinstance(geometry.lens_front.radius, SentinelFloat)
