@@ -247,7 +247,7 @@ class TestCreateGeometry:
             {"retina_axial_half_axis": 12, "retina_radial_half_axis": 12},
         ],
     )
-    def test_supplying_retina_parameters_and_half_axes_raises_valeuerror(
+    def test_supplying_retina_parameters_and_half_axes_raises_valueerror(
         self, base_geometry, parameters_a, parameters_b
     ):
         parameters = parameters_a | parameters_b
