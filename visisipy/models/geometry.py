@@ -9,6 +9,7 @@ from warnings import warn
 
 import numpy as np
 
+from visisipy.types import TypedDict, Unpack
 from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
@@ -455,20 +456,14 @@ def _update_attribute_if_specified(obj: Surface, attribute: str, value: Any):
         setattr(obj, attribute, value)
 
 
-def _calculate_vitreous_thickness(
-    geometry: EyeGeometry,
-    axial_length: float | None = None,
-    cornea_thickness: float | None = None,
-    anterior_chamber_depth: float | None = None,
-    lens_thickness: float | None = None,
-) -> float:
+def _calculate_vitreous_thickness(geometry: EyeGeometry, parameters: GeometryParameters) -> float:
     """Calculate the thickness of the vitreous body for a partially initialized eye geometry."""
-    _axial_length = geometry.axial_length if axial_length is None else axial_length
-    _cornea_thickness = geometry.cornea_thickness if cornea_thickness is None else cornea_thickness
-    _anterior_chamber_depth = (
-        geometry.anterior_chamber_depth if anterior_chamber_depth is None else anterior_chamber_depth
-    )
-    _lens_thickness = geometry.lens_thickness if lens_thickness is None else lens_thickness
+
+    # Axial length may be undefined, so parameters.get will not work here.
+    _axial_length = parameters["axial_length"] if "axial_length" in parameters else geometry.axial_length
+    _cornea_thickness = parameters.get("cornea_thickness", geometry.cornea_thickness)
+    _anterior_chamber_depth = parameters.get("anterior_chamber_depth", geometry.anterior_chamber_depth)
+    _lens_thickness = parameters.get("lens_thickness", geometry.lens_thickness)
 
     if None in {
         _axial_length,
@@ -484,31 +479,41 @@ def _calculate_vitreous_thickness(
 GeometryType = TypeVar("GeometryType", bound=EyeGeometry)
 
 
+class GeometryParameters(TypedDict, total=False):
+    """Parameters for the geometry of the eye."""
+
+    axial_length: float
+    cornea_thickness: float
+    cornea_front_radius: float
+    cornea_front_asphericity: float
+    cornea_back_radius: float
+    cornea_back_asphericity: float
+    anterior_chamber_depth: float
+    pupil_radius: float
+    lens_thickness: float
+    lens_back_radius: float
+    lens_back_asphericity: float
+    lens_front_radius: float
+    lens_front_asphericity: float
+    retina_radius: float
+    retina_asphericity: float
+    retina_axial_half_axis: float
+    retina_radial_half_axis: float
+
+
 def create_geometry(
     base: type[GeometryType] = NavarroGeometry,
-    axial_length: float | None = None,
-    cornea_thickness: float | None = None,
-    cornea_front_radius: float | None = None,
-    cornea_front_asphericity: float | None = None,
-    cornea_back_radius: float | None = None,
-    cornea_back_asphericity: float | None = None,
-    anterior_chamber_depth: float | None = None,
-    pupil_radius: float | None = None,
-    lens_thickness: float | None = None,
-    lens_back_radius: float | None = None,
-    lens_back_asphericity: float | None = None,
-    lens_front_radius: float | None = None,
-    lens_front_asphericity: float | None = None,
-    retina_radius: float | None = None,
-    retina_asphericity: float | None = None,
     *,
     estimate_cornea_back: bool = False,
+    **parameters: Unpack[GeometryParameters],
 ) -> GeometryType:
     """Create a geometry instance from clinically used parameters.
 
     All parameters are optional, and if not provided, the default values will be used.
     Sizes are specified in mm. If `estimate_cornea_back` is True, the back cornea radius will be estimated from the
     front cornea radius as `cornea_back_radius = 0.81 * cornea_front_radius`.
+    The retina can be specified either by its radius and asphericity or by its axial and radial half axes. If both
+    methods are specified, a ValueError will be raised.
 
     Parameters
     ----------
@@ -544,6 +549,10 @@ def create_geometry(
         Radius of curvature of the retina.
     retina_asphericity : float, optional
         Asphericity of the retina.
+    retina_axial_half_axis : float, optional
+        Axial half axis of the retina (along the z-direction).
+    retina_radial_half_axis : float, optional
+        Radial half axis of the retina (perpendicular to the z-direction).
     estimate_cornea_back : bool, optional
         If True, the back cornea radius will be estimated from the front cornea radius. Default is `False`.
 
@@ -556,6 +565,10 @@ def create_geometry(
     ------
     ValueError
         If the base geometry is not a class or if it is not a subclass of EyeGeometry.
+        If the retina radius/asphericity and axial/radial half axes are both specified.
+        If only one of the retina half axes is specified.
+        If the sum of the cornea thickness, anterior chamber depth and lens thickness is greater than or equal to the
+        axial length.
     """
     if not isinstance(base, type):
         raise TypeError("The base geometry must be a class. Did you put parentheses after the class name?")
@@ -563,31 +576,40 @@ def create_geometry(
     if not issubclass(base, EyeGeometry):
         raise TypeError("The base geometry must be a subclass of EyeGeometry.")
 
-    if estimate_cornea_back and cornea_back_radius is not None:
+    if estimate_cornea_back and parameters.get("cornea_back_radius") is not None:
         warn("The cornea back radius was provided, but it will be ignored because estimate_cornea_back is True.")
+
+    has_retina_radius_or_asphericity = ("retina_radius" in parameters) or ("retina_asphericity" in parameters)
+    has_retina_half_axis = ("retina_axial_half_axis" in parameters) or ("retina_radial_half_axis" in parameters)
+
+    if has_retina_radius_or_asphericity and has_retina_half_axis:
+        raise ValueError("Cannot specify both retina radius/asphericity and axial/radial half axes.")
+
+    if has_retina_half_axis and not all(
+        key in parameters for key in ("retina_axial_half_axis", "retina_radial_half_axis")
+    ):
+        raise ValueError("If the retina half axes are specified, both axial and radial half axes must be provided.")
 
     geometry = base()
 
-    _update_attribute_if_specified(geometry.cornea_front, "thickness", cornea_thickness)
-    _update_attribute_if_specified(geometry.cornea_front, "radius", cornea_front_radius)
-    _update_attribute_if_specified(geometry.cornea_front, "asphericity", cornea_front_asphericity)
+    _update_attribute_if_specified(geometry.cornea_front, "thickness", parameters.get("cornea_thickness"))
+    _update_attribute_if_specified(geometry.cornea_front, "radius", parameters.get("cornea_front_radius"))
+    _update_attribute_if_specified(geometry.cornea_front, "asphericity", parameters.get("cornea_front_asphericity"))
 
     if estimate_cornea_back:
-        cornea_back_radius = 0.81 * geometry.cornea_front.radius
+        parameters["cornea_back_radius"] = 0.81 * geometry.cornea_front.radius
 
-    _update_attribute_if_specified(geometry.cornea_back, "thickness", anterior_chamber_depth)
-    _update_attribute_if_specified(geometry.cornea_back, "radius", cornea_back_radius)
-    _update_attribute_if_specified(geometry.cornea_back, "asphericity", cornea_back_asphericity)
+    _update_attribute_if_specified(geometry.cornea_back, "thickness", parameters.get("anterior_chamber_depth"))
+    _update_attribute_if_specified(geometry.cornea_back, "radius", parameters.get("cornea_back_radius"))
+    _update_attribute_if_specified(geometry.cornea_back, "asphericity", parameters.get("cornea_back_asphericity"))
 
-    _update_attribute_if_specified(geometry.pupil, "semi_diameter", pupil_radius)
+    _update_attribute_if_specified(geometry.pupil, "semi_diameter", parameters.get("pupil_radius"))
 
-    _update_attribute_if_specified(geometry.lens_front, "thickness", lens_thickness)
-    _update_attribute_if_specified(geometry.lens_front, "radius", lens_front_radius)
-    _update_attribute_if_specified(geometry.lens_front, "asphericity", lens_front_asphericity)
+    _update_attribute_if_specified(geometry.lens_front, "thickness", parameters.get("lens_thickness"))
+    _update_attribute_if_specified(geometry.lens_front, "radius", parameters.get("lens_front_radius"))
+    _update_attribute_if_specified(geometry.lens_front, "asphericity", parameters.get("lens_front_asphericity"))
 
-    vitreous_thickness = _calculate_vitreous_thickness(
-        geometry, axial_length, cornea_thickness, anterior_chamber_depth, lens_thickness
-    )
+    vitreous_thickness = _calculate_vitreous_thickness(geometry, parameters)
 
     if vitreous_thickness <= 0:
         raise ValueError(
@@ -596,10 +618,18 @@ def create_geometry(
         )
 
     _update_attribute_if_specified(geometry.lens_back, "thickness", vitreous_thickness)
-    _update_attribute_if_specified(geometry.lens_back, "radius", lens_back_radius)
-    _update_attribute_if_specified(geometry.lens_back, "asphericity", lens_back_asphericity)
+    _update_attribute_if_specified(geometry.lens_back, "radius", parameters.get("lens_back_radius"))
+    _update_attribute_if_specified(geometry.lens_back, "asphericity", parameters.get("lens_back_asphericity"))
 
-    _update_attribute_if_specified(geometry.retina, "radius", retina_radius)
-    _update_attribute_if_specified(geometry.retina, "asphericity", retina_asphericity)
+    if has_retina_radius_or_asphericity:
+        _update_attribute_if_specified(geometry.retina, "radius", parameters.get("retina_radius"))
+        _update_attribute_if_specified(geometry.retina, "asphericity", parameters.get("retina_asphericity"))
+    elif has_retina_half_axis:
+        retina_radius = parameters.get("retina_radial_half_axis") ** 2 / parameters.get("retina_axial_half_axis")
+        retina_asphericity = (
+            parameters.get("retina_radial_half_axis") ** 2 / parameters.get("retina_axial_half_axis") ** 2 - 1
+        )
+        _update_attribute_if_specified(geometry.retina, "radius", retina_radius)
+        _update_attribute_if_specified(geometry.retina, "asphericity", retina_asphericity)
 
     return geometry

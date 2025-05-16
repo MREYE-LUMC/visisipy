@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 
 from visisipy.models import EyeGeometry, NavarroGeometry, create_geometry
-from visisipy.models.geometry import StandardSurface, Stop
+from visisipy.models.geometry import StandardSurface, Stop, GeometryParameters
 
 
 @pytest.fixture
-def example_geometry_parameters():
+def example_geometry_parameters() -> GeometryParameters:
     return {
         "axial_length": 20,
         "cornea_thickness": 0.5,
@@ -154,13 +154,37 @@ class TestEyeGeometry:
 @pytest.mark.parametrize("base_geometry", [NavarroGeometry])
 class TestCreateGeometry:
     def test_create_geometry(self, base_geometry, example_geometry_parameters, example_geometry):
+        class SentinelFloat(float):
+            """Custom float class to mark floats as set by a unit test"""
+
         geometry = create_geometry(
             base=base_geometry,
-            **example_geometry_parameters,
+            **{k: SentinelFloat(v) for k, v in example_geometry_parameters.items()},
             estimate_cornea_back=False,
         )
 
         assert geometry.__dict__ == example_geometry.__dict__
+
+        assert isinstance(geometry.cornea_front.thickness, SentinelFloat)
+        assert isinstance(geometry.cornea_front.radius, SentinelFloat)
+        assert isinstance(geometry.cornea_front.asphericity, SentinelFloat)
+
+        assert isinstance(geometry.cornea_back.radius, SentinelFloat)
+        assert isinstance(geometry.cornea_back.asphericity, SentinelFloat)
+        assert isinstance(geometry.cornea_back.thickness, SentinelFloat)
+
+        assert isinstance(geometry.pupil.semi_diameter, SentinelFloat)
+
+        assert isinstance(geometry.lens_front.thickness, SentinelFloat)
+        assert isinstance(geometry.lens_front.radius, SentinelFloat)
+        assert isinstance(geometry.lens_front.asphericity, SentinelFloat)
+
+        # Note: the lens back thickness is a calculated value, so it is not a SentinelFloat
+        assert isinstance(geometry.lens_back.radius, SentinelFloat)
+        assert isinstance(geometry.lens_back.asphericity, SentinelFloat)
+
+        assert isinstance(geometry.retina.radius, SentinelFloat)
+        assert isinstance(geometry.retina.asphericity, SentinelFloat)
 
     def test_create_geometry_estimate_cornea_back(self, base_geometry, example_geometry_parameters):
         with pytest.warns(
@@ -195,6 +219,46 @@ class TestCreateGeometry:
                 estimate_cornea_back=True,
                 **example_geometry_parameters,
             )
+
+    @pytest.mark.parametrize(
+        "parameters_a",
+        [
+            {"retina_radius": 12},
+            {"retina_asphericity": 0},
+            {"retina_radius": 12, "retina_asphericity": 0},
+        ],
+    )
+    @pytest.mark.parametrize(
+        "parameters_b",
+        [
+            {"retina_axial_half_axis": 12},
+            {"retina_radial_half_axis": 12},
+            {"retina_axial_half_axis": 12, "retina_radial_half_axis": 12},
+        ],
+    )
+    def test_supplying_retina_parameters_and_half_axes_raises_valeuerror(
+        self, base_geometry, parameters_a, parameters_b
+    ):
+        parameters = parameters_a | parameters_b
+
+        with pytest.raises(
+            ValueError, match="Cannot specify both retina radius/asphericity and axial/radial half axes"
+        ):
+            create_geometry(base=base_geometry, **parameters)
+
+    @pytest.mark.parametrize(
+        "parameters",
+        [
+            {"retina_axial_half_axis": 12},
+            {"retina_radial_half_axis": 12},
+        ],
+    )
+    def test_supplying_single_half_axis_raises_valueerror(self, base_geometry, parameters):
+        with pytest.raises(
+            ValueError,
+            match="If the retina half axes are specified, both axial and radial half axes must be provided",
+        ):
+            create_geometry(base=base_geometry, **parameters)
 
     def test_incomplete_thickness_raises_valueerror(self, base_geometry, monkeypatch):
         # Mock the __init__ method to avoid setting the thickness of the cornea front
@@ -234,3 +298,9 @@ class TestCreateGeometry:
                 anterior_chamber_depth=4,
                 lens_thickness=5,
             )
+
+    def test_set_retina_half_axes(self, base_geometry):
+        geometry = create_geometry(base=base_geometry, retina_axial_half_axis=12.34, retina_radial_half_axis=10)
+
+        assert pytest.approx(geometry.retina.half_axes.axial) == 12.34
+        assert pytest.approx(geometry.retina.half_axes.radial) == 10
