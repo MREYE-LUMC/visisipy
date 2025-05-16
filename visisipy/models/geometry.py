@@ -367,6 +367,7 @@ class EyeGeometry:
         return (
             self.cornea_front.thickness
             + self.cornea_back.thickness
+            + self.pupil.thickness
             + self.lens_front.thickness
             + self.lens_back.thickness
         )
@@ -380,6 +381,11 @@ class EyeGeometry:
     def anterior_chamber_depth(self) -> float:
         """Depth of the anterior chamber, in mm."""
         return self.cornea_back.thickness
+
+    @property
+    def pupil_lens_distance(self) -> float:
+        """Distance between the pupil and the lens, in mm."""
+        return self.pupil.thickness
 
     @property
     def lens_thickness(self) -> float:
@@ -463,17 +469,19 @@ def _calculate_vitreous_thickness(geometry: EyeGeometry, parameters: GeometryPar
     _axial_length = parameters["axial_length"] if "axial_length" in parameters else geometry.axial_length
     _cornea_thickness = parameters.get("cornea_thickness", geometry.cornea_thickness)
     _anterior_chamber_depth = parameters.get("anterior_chamber_depth", geometry.anterior_chamber_depth)
+    _pupil_lens_distance = parameters.get("pupil_lens_distance", geometry.pupil_lens_distance)
     _lens_thickness = parameters.get("lens_thickness", geometry.lens_thickness)
 
     if None in {
         _axial_length,
         _cornea_thickness,
         _anterior_chamber_depth,
+        _pupil_lens_distance,
         _lens_thickness,
     }:
         raise ValueError("Cannot calculate vitreous thickness from the supplied parameters.")
 
-    return _axial_length - (_cornea_thickness + _anterior_chamber_depth + _lens_thickness)
+    return _axial_length - (_cornea_thickness + _anterior_chamber_depth + _pupil_lens_distance + _lens_thickness)
 
 
 GeometryType = TypeVar("GeometryType", bound=EyeGeometry)
@@ -490,6 +498,7 @@ class GeometryParameters(TypedDict, total=False):
     cornea_back_asphericity: float
     anterior_chamber_depth: float
     pupil_radius: float
+    pupil_lens_distance: float
     lens_thickness: float
     lens_back_radius: float
     lens_back_asphericity: float
@@ -535,6 +544,8 @@ def create_geometry(
         Depth of the anterior chamber.
     pupil_radius : float, optional
         Radius of the pupil.
+    pupil_lens_distance : float, optional
+        Distance between the pupil and the lens.
     lens_thickness : float, optional
         Thickness of the crystalline lens.
     lens_back_radius : float, optional
@@ -604,6 +615,7 @@ def create_geometry(
     _update_attribute_if_specified(geometry.cornea_back, "asphericity", parameters.get("cornea_back_asphericity"))
 
     _update_attribute_if_specified(geometry.pupil, "semi_diameter", parameters.get("pupil_radius"))
+    _update_attribute_if_specified(geometry.pupil, "thickness", parameters.get("pupil_lens_distance"))
 
     _update_attribute_if_specified(geometry.lens_front, "thickness", parameters.get("lens_thickness"))
     _update_attribute_if_specified(geometry.lens_front, "radius", parameters.get("lens_front_radius"))
@@ -613,8 +625,8 @@ def create_geometry(
 
     if vitreous_thickness <= 0:
         raise ValueError(
-            "The sum of the cornea thickness, anterior chamber depth and lens thickness is greater than "
-            "or equal to the axial length."
+            "The sum of the cornea thickness, anterior chamber depth, pupil-lens distance and lens thickness is "
+            "greater than or equal to the axial length."
         )
 
     _update_attribute_if_specified(geometry.lens_back, "thickness", vitreous_thickness)

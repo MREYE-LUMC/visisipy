@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from visisipy.models import EyeGeometry, NavarroGeometry, create_geometry
-from visisipy.models.geometry import StandardSurface, Stop, GeometryParameters
+from visisipy.models.geometry import GeometryParameters, StandardSurface, Stop
 
 
 @pytest.fixture
@@ -25,6 +25,7 @@ def example_geometry_parameters() -> GeometryParameters:
         "retina_radius": -12,
         "retina_asphericity": 0,
         "pupil_radius": 1.0,
+        "pupil_lens_distance": 0.4,
     }
 
 
@@ -41,7 +42,10 @@ def example_geometry(example_geometry_parameters):
             asphericity=example_geometry_parameters["cornea_back_asphericity"],
             thickness=example_geometry_parameters["anterior_chamber_depth"],
         ),
-        pupil=Stop(semi_diameter=example_geometry_parameters["pupil_radius"]),
+        pupil=Stop(
+            semi_diameter=example_geometry_parameters["pupil_radius"],
+            thickness=example_geometry_parameters["pupil_lens_distance"],
+        ),
         lens_front=StandardSurface(
             radius=example_geometry_parameters["lens_front_radius"],
             asphericity=example_geometry_parameters["lens_front_asphericity"],
@@ -50,11 +54,13 @@ def example_geometry(example_geometry_parameters):
         lens_back=StandardSurface(
             radius=example_geometry_parameters["lens_back_radius"],
             asphericity=example_geometry_parameters["lens_back_asphericity"],
-            thickness=(
+            thickness=round(
                 example_geometry_parameters["axial_length"]
                 - example_geometry_parameters["cornea_thickness"]
                 - example_geometry_parameters["anterior_chamber_depth"]
-                - example_geometry_parameters["lens_thickness"]
+                - example_geometry_parameters["pupil_lens_distance"]
+                - example_geometry_parameters["lens_thickness"],
+                7,
             ),
         ),
         retina=StandardSurface(
@@ -288,8 +294,8 @@ class TestCreateGeometry:
     def test_invalid_vitreous_thickness_raises_valueerror(self, base_geometry, geometry_parameters):
         with pytest.raises(
             ValueError,
-            match="The sum of the cornea thickness, anterior chamber depth and lens thickness is greater than "
-            "or equal to the axial length.",
+            match="The sum of the cornea thickness, anterior chamber depth, pupil-lens distance and lens thickness is "
+            "greater than or equal to the axial length.",
         ):
             create_geometry(
                 base=base_geometry,
