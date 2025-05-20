@@ -120,3 +120,9 @@ max-line-length = 120
 max-summary-lines = 1
 summary-quotes-same-line = true
 linewrap-full-docstring = true
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+    "pytest>=8.3.5",
+]
