@@ -5,11 +5,13 @@ from typing import TYPE_CHECKING, Any, Literal
 
 import pytest
 
-from tests.test_backend import OpticStudioBackend
 from visisipy import EyeGeometry, EyeMaterials, EyeModel
 from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.models.materials import MaterialModel
-from visisipy.opticstudio import OpticStudioSettings
+
+if platform.system() == "Windows":
+    from visisipy.opticstudio import OpticStudioBackend, OpticStudioSettings
+
 from visisipy.optiland import OptilandBackend
 from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS
 
