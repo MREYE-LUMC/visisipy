@@ -4,15 +4,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, overload
 
+import numpy as np
+
 from visisipy.analysis.base import _AUTOMATIC_BACKEND, analysis
-from visisipy.types import SampleSize
+from visisipy.types import FieldType, SampleSize
+from visisipy.wavefront import min_max_noll_index
 
 if TYPE_CHECKING:
     from visisipy.backend import BaseBackend
     from visisipy.models import EyeModel
     from visisipy.wavefront import ZernikeCoefficients
 
-__all__ = ("zernike_standard_coefficients",)
+__all__ = (
+    "rms_hoa",
+    "zernike_standard_coefficients",
+)
 
 
 @overload
@@ -93,3 +99,81 @@ def zernike_standard_coefficients(
         sampling=SampleSize(sampling),
         maximum_term=maximum_term,
     )
+
+
+@overload
+def rms_hoa(
+    model: EyeModel | None = None,
+    min_order: int = 3,
+    max_order: int = 6,
+    field_coordinate: tuple[float, float] | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    sampling: SampleSize | str | int = 64,
+    maximum_term: int | None = None,
+    *,
+    return_raw_result: Literal[False] = False,
+    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+) -> float: ...
+
+
+@overload
+def rms_hoa(
+    model: EyeModel | None = None,
+    min_order: int = 3,
+    max_order: int = 6,
+    field_coordinate: tuple[float, float] | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    sampling: SampleSize | str | int = 64,
+    maximum_term: int | None = None,
+    *,
+    return_raw_result: Literal[True] = True,
+    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+) -> tuple[float, Any]: ...
+
+
+def rms_hoa(
+    model: EyeModel | None = None,  # noqa: ARG001
+    min_order: int = 3,
+    max_order: int = 8,
+    field_coordinate: tuple[float, float] | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    sampling: SampleSize | str | int = 64,
+    maximum_term: int | None = None,
+    *,
+    return_raw_result: Literal[True] = True,  # noqa: ARG001
+    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+) -> tuple[float, Any]:
+    """Calculates the root-mean-square (RMS) of higher-order aberrations (HOA) in the eye model.
+
+    By default,
+
+    Parameters
+    ----------
+    """
+    if min_order < 0 or max_order < 0:
+        raise ValueError("min_order and max_order must be greater than or equal to 0")
+
+    if max_order <= min_order:
+        raise ValueError("max_order must be greater than min_order")
+
+    min_index, max_index = min_max_noll_index(min_order, max_order)
+
+    if maximum_term is None:
+        maximum_term = max_order
+    elif maximum_term < max_index:
+        raise ValueError(f"maximum_term must be greater than or equal to the largest term of max_order: {max_index}")
+
+    zernikes, raw_result = backend.analysis.zernike_standard_coefficients(
+        field_coordinate=field_coordinate,
+        wavelength=wavelength,
+        field_type=field_type,
+        sampling=SampleSize(sampling),
+        maximum_term=maximum_term,
+    )
+
+    rms_aberrations = float(np.sqrt(sum(zernikes[i] ** 2 for i in range(min_index, max_index + 1))))
+
+    return rms_aberrations, raw_result

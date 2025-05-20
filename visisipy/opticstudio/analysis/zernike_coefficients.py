@@ -12,8 +12,8 @@ from visisipy.wavefront import ZernikeCoefficients
 if TYPE_CHECKING:
     from zospy.analyses.wavefront.zernike_standard_coefficients import ZernikeStandardCoefficientsResult
 
-    from visisipy.backend import FieldCoordinate, FieldType
     from visisipy.opticstudio.backend import OpticStudioBackend
+    from visisipy.types import FieldCoordinate, FieldType
 
 
 def _build_zernike_result(zernike_result: ZernikeStandardCoefficientsResult, maximum_term: int) -> ZernikeCoefficients:

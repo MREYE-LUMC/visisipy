@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from contextlib import nullcontext as does_not_raise
+
+import pytest
+
 import visisipy
 import visisipy.backend
 
@@ -74,3 +78,49 @@ def test_refraction_analysis(monkeypatch):
 
     assert visisipy.analysis.refraction() is None
     assert visisipy.analysis.refraction(return_raw_result=True) == (None, None)
+
+
+class TestRMSHOAAnalysis:
+    @pytest.fixture(params=["opticstudio", "optiland"])
+    def backend(self, request):
+        fixture_name = request.param + "_backend"
+
+        return request.getfixturevalue(fixture_name)
+
+    @pytest.mark.parametrize(
+        "min_order,max_order,maximum_term,expectation",
+        [
+            (3, 8, None, does_not_raise()),
+            (
+                -1,
+                8,
+                None,
+                pytest.raises(ValueError, match="min_order and max_order must be greater than or equal to 0"),
+            ),
+            (
+                0,
+                -1,
+                None,
+                pytest.raises(ValueError, match="min_order and max_order must be greater than or equal to 0"),
+            ),
+            (0, 0, None, pytest.raises(ValueError, match="max_order must be greater than min_order")),
+            (
+                3,
+                9,
+                45,
+                pytest.raises(
+                    ValueError, match="maximum_term must be greater than or equal to the largest term of max_order"
+                ),
+            ),
+        ],
+    )
+    def test_rms_hoa_analysis(self, min_order, max_order, maximum_term, expectation, backend, eye_model):
+        backend.build_model(eye_model)
+
+        with expectation:
+            visisipy.analysis.rms_hoa(
+                min_order=min_order,
+                max_order=max_order,
+                maximum_term=maximum_term,
+                backend=backend,
+            )

@@ -15,9 +15,9 @@ from visisipy.types import SampleSize
 if TYPE_CHECKING:
     from zospy.analyses.wavefront.zernike_standard_coefficients import ZernikeStandardCoefficientsResult
 
-    from visisipy.backend import FieldCoordinate, FieldType
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.refraction import FourierPowerVectorRefraction
+    from visisipy.types import FieldCoordinate, FieldType
 
 
 def refraction(

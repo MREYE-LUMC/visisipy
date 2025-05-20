@@ -11,9 +11,6 @@ from zospy.zpcore import OpticStudioSystem
 from visisipy.backend import (
     BackendSettings,
     BaseBackend,
-    FieldCoordinate,
-    NotRequired,
-    Unpack,
     _classproperty,
 )
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
@@ -27,6 +24,7 @@ if TYPE_CHECKING:
     from zospy.zpcore import ZOS
 
     from visisipy import EyeModel
+    from visisipy.types import FieldCoordinate, NotRequired, Unpack
 
 
 __all__ = ("OpticStudioBackend", "OpticStudioSettings")
