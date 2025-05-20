@@ -7,11 +7,12 @@ from __future__ import annotations
 
 import re
 import sys
+from typing import Literal
 
 if sys.version_info < (3, 11):
     from typing_extensions import NotRequired, TypedDict, Unpack
 else:
-    from typing import Literal, NotRequired, TypedDict, Unpack
+    from typing import NotRequired, TypedDict, Unpack
 
 
 __all__ = ("ApertureType", "FieldCoordinate", "FieldType", "NotRequired", "SampleSize", "TypedDict", "Unpack")
