@@ -32,8 +32,8 @@ class TestZernikeCoefficients:
             (1, 0.0, does_not_raise()),
             (0, 0.0, pytest.raises(ValueError, match="The coefficient must be larger than 0")),
             (-1, 0.0, pytest.raises(ValueError, match="The coefficient must be larger than 0")),
-            ("x", 0.0, pytest.raises(TypeError, match="The key must be an integer")),
-            (1.5, 0.0, pytest.raises(TypeError, match="The key must be an integer")),
+            ("x", 0.0, pytest.raises(TypeError, match="The coefficient must be an integer or a tuple of two integers")),
+            (1.5, 0.0, pytest.raises(TypeError, match="The coefficient must be an integer or a tuple of two integers")),
         ],
     )
     def test_setitem(self, n: int, value: float, expectation):

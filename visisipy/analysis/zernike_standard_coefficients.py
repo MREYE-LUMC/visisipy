@@ -133,6 +133,7 @@ def rms_hoa(
 ) -> tuple[float, Any]: ...
 
 
+@analysis
 def rms_hoa(
     model: EyeModel | None = None,  # noqa: ARG001
     min_order: int = 3,
@@ -143,7 +144,7 @@ def rms_hoa(
     sampling: SampleSize | str | int = 64,
     maximum_term: int | None = None,
     *,
-    return_raw_result: Literal[True] = True,  # noqa: ARG001
+    return_raw_result: bool = True,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> tuple[float, Any]:
     """Calculates the root-mean-square (RMS) of higher-order aberrations (HOA) in the eye model.

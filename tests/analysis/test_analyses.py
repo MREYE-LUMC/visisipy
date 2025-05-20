@@ -6,6 +6,7 @@ import pytest
 
 import visisipy
 import visisipy.backend
+from visisipy.wavefront import ZernikeCoefficients
 
 
 class MockAnalysis:
@@ -26,7 +27,7 @@ class MockAnalysis:
         return None, None
 
     def zernike_standard_coefficients(self, field_coordinate, wavelength, field_type, sampling, maximum_term):
-        return None, None
+        return ZernikeCoefficients({1: 0, 2: 0, 3: 0}), None
 
     def refraction(
         self,
@@ -66,9 +67,9 @@ def test_raytracing_analysis(monkeypatch):
 def test_zernike_standard_coefficients_analysis(monkeypatch):
     monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
 
-    assert visisipy.analysis.zernike_standard_coefficients() is None
+    assert visisipy.analysis.zernike_standard_coefficients() == ZernikeCoefficients({1: 0, 2: 0, 3: 0})
     assert visisipy.analysis.zernike_standard_coefficients(return_raw_result=True) == (
-        None,
+        ZernikeCoefficients({1: 0, 2: 0, 3: 0}),
         None,
     )
 
@@ -78,6 +79,13 @@ def test_refraction_analysis(monkeypatch):
 
     assert visisipy.analysis.refraction() is None
     assert visisipy.analysis.refraction(return_raw_result=True) == (None, None)
+
+
+def test_rms_hoa_analysis(monkeypatch):
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+
+    assert visisipy.analysis.rms_hoa() == 0
+    assert visisipy.analysis.rms_hoa(return_raw_result=True) == (0, None)
 
 
 class TestRMSHOAAnalysis:
