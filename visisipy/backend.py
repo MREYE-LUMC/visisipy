@@ -30,7 +30,7 @@ from collections.abc import Callable, Sequence
 from enum import Enum
 from pathlib import Path
 from types import MethodType
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
+from typing import Any, ClassVar, Generic, Literal, TYPE_CHECKING, TypeVar, cast, overload
 from warnings import warn
 
 from visisipy.types import NotRequired, TypedDict, Unpack
@@ -150,6 +150,18 @@ class BaseAnalysisRegistry(ABC):
         *,
         use_higher_order_aberrations: bool = True,
     ) -> tuple[FourierPowerVectorRefraction, Any]: ...
+
+    @abstractmethod
+    def rms_hoa(
+        self,
+        min_order: int = 3,
+        max_order: int = 6,
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 64,
+        maximum_term: int = 45,
+    ) -> tuple[float, Any]: ...
 
     @abstractmethod
     def zernike_standard_coefficients(
