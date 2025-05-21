@@ -36,9 +36,10 @@ class Surface(ABC):  # noqa: B024
     thickness: float = 0
 
 
-class _HalfAxes2D(NamedTuple):
-    axial: float
-    radial: float
+class _EllipsoidRadii(NamedTuple):
+    z: float
+    y: float
+    x: float
 
 
 @dataclass
@@ -80,17 +81,16 @@ class StandardSurface(Surface):
     is_stop: bool = False
 
     @property
-    def half_axes(self) -> _HalfAxes2D:
-        """Calculates and returns the half axes of the surface.
+    def ellipsoid_radii(self) -> _EllipsoidRadii:
+        """Calculates and returns the ellipsoid radii (semi-axes) of the surface.
 
         This works only if the surface is an ellipsoid (asphericity > -1), otherwise a NotImplementedError is raised.
-        A tuple of the axial and radial half axes is returned, with the axial axis being parallel to the optical axis
-        and the radial axis perpendicular to it.
+        A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.
 
         Returns
         -------
-        tuple[float, float]
-            The axial and radial half axes of the surface.
+        tuple[float, float, float]
+            The ellipsoid radii (semi-axes) of the surface.
 
         Raises
         ------
@@ -98,13 +98,16 @@ class StandardSurface(Surface):
             If the surface is not an ellipsoid (asphericity <= -1).
         """
         if self.asphericity > -1:
-            return _HalfAxes2D(
-                axial=(self.radius / (self.asphericity + 1)),
-                radial=abs(self.radius / np.sqrt(self.asphericity + 1)),
+            axial = self.radius / (self.asphericity + 1)
+            radial = abs(self.radius / np.sqrt(self.asphericity + 1))
+            return _EllipsoidRadii(
+                z=axial,
+                y=radial,
+                x=radial,
             )
 
         raise NotImplementedError(
-            f"Half axes are only defined for ellipses (asphericity > -1), got {self.asphericity=}"
+            f"Half axes are only defined for ellipsoids (asphericity > -1), got {self.asphericity=}"
         )
 
 
@@ -506,8 +509,8 @@ class GeometryParameters(TypedDict, total=False):
     lens_front_asphericity: float
     retina_radius: float
     retina_asphericity: float
-    retina_axial_half_axis: float
-    retina_radial_half_axis: float
+    retina_ellipsoid_z_radius: float
+    retina_ellipsoid_y_radius: float
 
 
 def create_geometry(
@@ -560,10 +563,11 @@ def create_geometry(
         Radius of curvature of the retina.
     retina_asphericity : float, optional
         Asphericity of the retina.
-    retina_axial_half_axis : float, optional
-        Axial half axis of the retina (along the z-direction).
-    retina_radial_half_axis : float, optional
-        Radial half axis of the retina (perpendicular to the z-direction).
+    retina_ellipsoid_z_radius : float, optional
+        Radius (semi-axis length) of the retina ellipsoid in the z-direction.
+    retina_ellipsoid_y_radius : float, optional
+        Radius (semi-axis length) of the retina ellipsoid in the y-direction. For rotationally symmetric retinas,
+        this is also the radius in the x-direction.
     estimate_cornea_back : bool, optional
         If True, the back cornea radius will be estimated from the front cornea radius. Default is `False`.
 
@@ -591,15 +595,15 @@ def create_geometry(
         warn("The cornea back radius was provided, but it will be ignored because estimate_cornea_back is True.")
 
     has_retina_radius_or_asphericity = ("retina_radius" in parameters) or ("retina_asphericity" in parameters)
-    has_retina_half_axis = ("retina_axial_half_axis" in parameters) or ("retina_radial_half_axis" in parameters)
+    has_retina_ellipsoid_radii = ("retina_ellipsoid_z_radius" in parameters) or ("retina_ellipsoid_y_radius" in parameters)
 
-    if has_retina_radius_or_asphericity and has_retina_half_axis:
-        raise ValueError("Cannot specify both retina radius/asphericity and axial/radial half axes.")
+    if has_retina_radius_or_asphericity and has_retina_ellipsoid_radii:
+        raise ValueError("Cannot specify both retina radius/asphericity and ellipsoid radii.")
 
-    if has_retina_half_axis and not all(
-        key in parameters for key in ("retina_axial_half_axis", "retina_radial_half_axis")
+    if has_retina_ellipsoid_radii and not all(
+        key in parameters for key in ("retina_ellipsoid_z_radius", "retina_ellipsoid_y_radius")
     ):
-        raise ValueError("If the retina half axes are specified, both axial and radial half axes must be provided.")
+        raise ValueError("If the retina ellipsoid radii are specified, both the z and y radius must be provided.")
 
     geometry = base()
 
@@ -636,10 +640,10 @@ def create_geometry(
     if has_retina_radius_or_asphericity:
         _update_attribute_if_specified(geometry.retina, "radius", parameters.get("retina_radius"))
         _update_attribute_if_specified(geometry.retina, "asphericity", parameters.get("retina_asphericity"))
-    elif has_retina_half_axis:
-        retina_radius = parameters.get("retina_radial_half_axis") ** 2 / parameters.get("retina_axial_half_axis")
+    elif has_retina_ellipsoid_radii:
+        retina_radius = parameters["retina_ellipsoid_y_radius"] ** 2 / parameters["retina_ellipsoid_z_radius"]
         retina_asphericity = (
-            parameters.get("retina_radial_half_axis") ** 2 / parameters.get("retina_axial_half_axis") ** 2 - 1
+            parameters["retina_ellipsoid_y_radius"] ** 2 / parameters["retina_ellipsoid_z_radius"] ** 2 - 1
         )
         _update_attribute_if_specified(geometry.retina, "radius", retina_radius)
         _update_attribute_if_specified(geometry.retina, "asphericity", retina_asphericity)

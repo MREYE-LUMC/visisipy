@@ -72,26 +72,27 @@ def example_geometry(example_geometry_parameters):
 
 class TestStandardSurface:
     @pytest.mark.parametrize(
-        "radius,asphericity,axial_half_axis,radial_half_axis",
+        "radius,asphericity,z_radius,y_radius",
         [
             (12, 0, 12, 12),
             (12, 1, 6, 12 / np.sqrt(2)),
             (12, -0.5, 24, 12 / np.sqrt(0.5)),
         ],
     )
-    def test_half_axes(self, radius, asphericity, axial_half_axis, radial_half_axis):
+    def test_ellipsoid_radii(self, radius, asphericity, z_radius, y_radius):
         surface = StandardSurface(radius=radius, asphericity=asphericity)
 
-        assert surface.half_axes == pytest.approx((axial_half_axis, radial_half_axis))
-        assert surface.half_axes.axial == pytest.approx(axial_half_axis)
-        assert surface.half_axes.radial == pytest.approx(radial_half_axis)
+        assert surface.ellipsoid_radii == pytest.approx((z_radius, y_radius, y_radius))
+        assert surface.ellipsoid_radii.z == pytest.approx(z_radius)
+        assert surface.ellipsoid_radii.y == pytest.approx(y_radius)
+        assert surface.ellipsoid_radii.x == pytest.approx(y_radius)
 
     @pytest.mark.parametrize("asphericity", [-1, -1.5])
-    def test_half_axes_raises_notimplementederror(self, asphericity):
+    def test_ellipsoid_radii_raises_notimplementederror(self, asphericity):
         surface = StandardSurface(radius=12, asphericity=asphericity)
 
         with pytest.raises(NotImplementedError):
-            _ = surface.half_axes
+            _ = surface.ellipsoid_radii
 
 
 class TestStop:
@@ -242,9 +243,9 @@ class TestCreateGeometry:
     @pytest.mark.parametrize(
         "parameters_b",
         [
-            {"retina_axial_half_axis": 12},
-            {"retina_radial_half_axis": 12},
-            {"retina_axial_half_axis": 12, "retina_radial_half_axis": 12},
+            {"retina_ellipsoid_z_radius": 12},
+            {"retina_ellipsoid_y_radius": 12},
+            {"retina_ellipsoid_z_radius": 12, "retina_ellipsoid_y_radius": 12},
         ],
     )
     def test_supplying_retina_parameters_and_half_axes_raises_valueerror(
@@ -253,21 +254,21 @@ class TestCreateGeometry:
         parameters = parameters_a | parameters_b
 
         with pytest.raises(
-            ValueError, match="Cannot specify both retina radius/asphericity and axial/radial half axes"
+            ValueError, match="Cannot specify both retina radius/asphericity and ellipsoid radii"
         ):
             create_geometry(base=base_geometry, **parameters)
 
     @pytest.mark.parametrize(
         "parameters",
         [
-            {"retina_axial_half_axis": 12},
-            {"retina_radial_half_axis": 12},
+            {"retina_ellipsoid_z_radius": 12},
+            {"retina_ellipsoid_y_radius": 12},
         ],
     )
     def test_supplying_single_half_axis_raises_valueerror(self, base_geometry, parameters):
         with pytest.raises(
             ValueError,
-            match="If the retina half axes are specified, both axial and radial half axes must be provided",
+            match="If the retina ellipsoid radii are specified, both the z and y radius must be provided",
         ):
             create_geometry(base=base_geometry, **parameters)
 
@@ -310,8 +311,9 @@ class TestCreateGeometry:
                 lens_thickness=5,
             )
 
-    def test_set_retina_half_axes(self, base_geometry):
-        geometry = create_geometry(base=base_geometry, retina_axial_half_axis=12.34, retina_radial_half_axis=10)
+    def test_set_retina_ellipsoid_radii(self, base_geometry):
+        geometry = create_geometry(base=base_geometry, retina_ellipsoid_z_radius=12.34, retina_ellipsoid_y_radius=10)
 
-        assert pytest.approx(geometry.retina.half_axes.axial) == 12.34
-        assert pytest.approx(geometry.retina.half_axes.radial) == 10
+        assert pytest.approx(geometry.retina.ellipsoid_radii.z) == 12.34
+        assert pytest.approx(geometry.retina.ellipsoid_radii.y) == 10
+        assert pytest.approx(geometry.retina.ellipsoid_radii.x) == 10

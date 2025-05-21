@@ -77,7 +77,7 @@ class InputOutputAngles(NamedTuple):
 
 location_np2 = 7.45 - (model.geometry.cornea_thickness + model.geometry.anterior_chamber_depth)
 location_retina_center = (
-    model.geometry.lens_thickness + model.geometry.vitreous_thickness - abs(model.geometry.retina.half_axes.axial)
+    model.geometry.lens_thickness + model.geometry.vitreous_thickness - abs(model.geometry.retina.ellipsoid_radii.z)
 )
 
 angles = pd.DataFrame(
