@@ -595,7 +595,9 @@ def create_geometry(
         warn("The cornea back radius was provided, but it will be ignored because estimate_cornea_back is True.")
 
     has_retina_radius_or_asphericity = ("retina_radius" in parameters) or ("retina_asphericity" in parameters)
-    has_retina_ellipsoid_radii = ("retina_ellipsoid_z_radius" in parameters) or ("retina_ellipsoid_y_radius" in parameters)
+    has_retina_ellipsoid_radii = ("retina_ellipsoid_z_radius" in parameters) or (
+        "retina_ellipsoid_y_radius" in parameters
+    )
 
     if has_retina_radius_or_asphericity and has_retina_ellipsoid_radii:
         raise ValueError("Cannot specify both retina radius/asphericity and ellipsoid radii.")

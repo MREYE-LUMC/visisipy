@@ -253,9 +253,7 @@ class TestCreateGeometry:
     ):
         parameters = parameters_a | parameters_b
 
-        with pytest.raises(
-            ValueError, match="Cannot specify both retina radius/asphericity and ellipsoid radii"
-        ):
+        with pytest.raises(ValueError, match="Cannot specify both retina radius/asphericity and ellipsoid radii"):
             create_geometry(base=base_geometry, **parameters)
 
     @pytest.mark.parametrize(
