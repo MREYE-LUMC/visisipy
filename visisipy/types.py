@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 import sys
+from typing import Literal
 
 if sys.version_info < (3, 11):
     from typing_extensions import NotRequired, TypedDict, Unpack
@@ -14,7 +15,17 @@ else:
     from typing import NotRequired, TypedDict, Unpack
 
 
-__all__ = ("NotRequired", "SampleSize", "TypedDict", "Unpack")
+__all__ = ("ApertureType", "FieldCoordinate", "FieldType", "NotRequired", "SampleSize", "TypedDict", "Unpack")
+
+ApertureType = Literal[
+    "float_by_stop_size",
+    "entrance_pupil_diameter",
+    "image_f_number",
+    "object_numeric_aperture",
+]
+FieldType = Literal["angle", "object_height"]
+FieldCoordinate = tuple[float, float]
+
 
 RE_SAMPLE_SIZE = re.compile(r"^(?P<sampling>\d+)x(?P=sampling)$", re.IGNORECASE)
 

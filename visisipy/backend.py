@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from visisipy.analysis.cardinal_points import CardinalPointsResult
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
-    from visisipy.types import SampleSize
+    from visisipy.types import ApertureType, FieldCoordinate, FieldType, SampleSize
     from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
@@ -160,16 +160,6 @@ class BaseAnalysisRegistry(ABC):
         sampling: SampleSize | str | int = 64,
         maximum_term: int = 45,
     ) -> tuple[ZernikeCoefficients, Any]: ...
-
-
-ApertureType = Literal[
-    "float_by_stop_size",
-    "entrance_pupil_diameter",
-    "image_f_number",
-    "object_numeric_aperture",
-]
-FieldType = Literal["angle", "object_height"]
-FieldCoordinate = tuple[float, float]
 
 
 class BackendSettings(TypedDict, total=False):
