@@ -1,13 +1,22 @@
 from __future__ import annotations
 
 import platform
-from typing import Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import pytest
 
 from visisipy import EyeGeometry, EyeMaterials, EyeModel
 from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.models.materials import MaterialModel
+
+if platform.system() == "Windows":
+    from visisipy.opticstudio import OpticStudioBackend, OpticStudioSettings
+
+from visisipy.optiland import OptilandBackend
+from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 # Only run the OpticStudio tests on Windows
 if platform.system() != "Windows":
@@ -88,6 +97,44 @@ def skip_opticstudio(request, opticstudio_available):
 def skip_windows_only(request, opticstudio_available):
     if request.node.get_closest_marker("windows_only") and platform.system() != "Windows":
         pytest.skip("Running on a non-Windows platform.")
+
+
+@pytest.fixture
+def opticstudio_backend(opticstudio_connection_mode, request, opticstudio_available):
+    if not opticstudio_available:
+        pytest.skip("OpticStudio is not available.")
+
+    if platform.system() != "Windows":
+        pytest.skip("Running on a non-Windows platform.")
+
+    OpticStudioBackend.initialize(**OpticStudioSettings(mode=opticstudio_connection_mode))
+
+    if opticstudio_connection_mode == "extension":
+        # Disable UI updates using command line option, making the tests run faster
+        OpticStudioBackend.zos.Application.ShowChangesInUI = request.config.getoption("--os-update-ui")
+
+    yield OpticStudioBackend
+
+    if OpticStudioBackend.zos is not None and OpticStudioBackend.oss is not None:
+        OpticStudioBackend.disconnect()
+
+
+@pytest.fixture
+def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
+    """Fixture to initialize the Optiland backend for testing.
+
+    Returns
+    -------
+    OptilandBackend
+        The initialized Optiland backend.
+    """
+    OptilandBackend.initialize(**OPTILAND_DEFAULT_SETTINGS)
+
+    yield OptilandBackend
+
+    # Reset settings to defaults
+    OptilandBackend.update_settings(**OPTILAND_DEFAULT_SETTINGS)
+    OptilandBackend.clear_model()
 
 
 @pytest.fixture

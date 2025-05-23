@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
     from zospy.analyses.raysandspots.single_ray_trace import SingleRayTraceResult
 
-    from visisipy.backend import FieldCoordinate, FieldType
     from visisipy.opticstudio.backend import OpticStudioBackend
+    from visisipy.types import FieldCoordinate, FieldType
 
 
 def _build_raytrace_result(raytrace_results: list[pd.DataFrame]) -> pd.DataFrame:

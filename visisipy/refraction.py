@@ -19,7 +19,7 @@ class FourierPowerVectorRefraction:
     """Ocular refraction in Fourier power vector form.
 
     This is the default representation of refractions in visisipy. This class contains several methods to convert the
-    refraction to other forms, using the conversions defined in [1].
+    refraction to other forms, using the conversions defined in [1]_.
 
     .. [1] Thibos LN, Wheeler W, Horner D. Power vectors: an application of Fourier analysis to the description and
            statistical analysis of refractive error. Optometry and vision science: official publication of the American
