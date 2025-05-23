@@ -1,0 +1,94 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Literal, overload
+
+from visisipy.analysis.base import _AUTOMATIC_BACKEND, analysis
+
+if TYPE_CHECKING:
+    from pandas import DataFrame
+
+    from visisipy import EyeModel
+    from visisipy.backend import BaseBackend
+    from visisipy.types import FieldCoordinate, FieldType, SampleSize
+
+
+@overload
+def fft_psf(
+    model: EyeModel | None = None,
+    field_coordinate: FieldCoordinate | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    sampling: SampleSize | str | int = 64,
+    psf_type: Literal["linear", "logarithmic"] = "linear",
+    *,
+    return_raw_result: Literal[False] = False,
+    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+) -> DataFrame: ...
+
+
+@overload
+def fft_psf(
+    model: EyeModel | None = None,
+    field_coordinate: FieldCoordinate | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    sampling: SampleSize | str | int = 64,
+    psf_type: Literal["linear", "logarithmic"] = "linear",
+    *,
+    return_raw_result: Literal[True] = True,
+    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+) -> tuple[DataFrame, Any]: ...
+
+
+@analysis
+def fft_psf(
+    model: EyeModel | None = None,  # noqa: ARG001
+    field_coordinate: FieldCoordinate | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    sampling: SampleSize | str | int = 64,
+    psf_type: Literal["linear", "logarithmic"] = "linear",
+    *,
+    return_raw_result: bool = False,  # noqa: ARG001
+    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+) -> tuple[DataFrame, Any]:
+    """Calculate the FFT Point Spread Function (PSF) at the retina surface.
+
+    Parameters
+    ----------
+    model : EyeModel | None
+        The eye model to be used in the ray trace. If `None`, the current eye model will be used.
+    field_coordinate : FieldCoordinate | None
+        The field coordinate at which the PSF is calculated. If `None`, the first field coordinate in the backend is
+        used.
+    wavelength : float | None
+        The wavelength at which the PSF is calculated. If `None`, the first wavelength in the backend is used.
+    field_type : FieldType
+        The field type to be used in the analysis. Can be either "angle" or "object_height". Defaults to "angle".
+        This parameter is only used when `field_coordinate` is specified.
+    sampling : SampleSize | str | int
+        The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where N
+        is an integer. Only symmetric sample sizes are supported. Defaults to 64.
+    psf_type : Literal["linear", "logarithmic"]
+        The PSF normalization type. Can be either "linear" or "logarithmic". Defaults to "linear".
+    return_raw_result : bool, optional
+        Return the raw analysis result from the backend. Defaults to `False`.
+    backend : type[BaseBackend]
+        The backend to be used for the analysis. If not provided, the default backend is used.
+
+    Returns
+    -------
+    DataFrame
+        The PSF data as a DataFrame. The DataFrame contains the PSF values at the specified field coordinate and
+        wavelength.
+    """
+    if psf_type not in {"linear", "logarithmic"}:
+        raise ValueError("psf_type must be either 'linear' or 'logarithmic'.")
+
+    return backend.analysis.fft_psf(
+        field_coordinate=field_coordinate,
+        wavelength=wavelength,
+        field_type=field_type,
+        sampling=sampling,
+        psf_type=psf_type,
+    )

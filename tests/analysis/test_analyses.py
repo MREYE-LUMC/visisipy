@@ -17,6 +17,9 @@ class MockAnalysis:
     ):
         return None, None
 
+    def fft_psf(self, field_coordinate, wavelength, field_type, sampling, psf_type):
+        return None, None
+
     def raytrace(
         self,
         coordinates,
@@ -52,6 +55,21 @@ def test_cardinal_points_analysis(monkeypatch):
 
     assert visisipy.analysis.cardinal_points() is None
     assert visisipy.analysis.cardinal_points(return_raw_result=True) == (None, None)
+
+
+@pytest.mark.parametrize(
+    "psf_type,expectation",
+    [
+        ("linear", does_not_raise()),
+        ("logarithmic", does_not_raise()),
+        ("invalid", pytest.raises(ValueError, match="psf_type must be either 'linear' or 'logarithmic'")),
+    ],
+)
+def test_fft_psf_analysis(monkeypatch, psf_type, expectation):
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+
+    assert visisipy.analysis.fft_psf() is None
+    assert visisipy.analysis.fft_psf(return_raw_result=True) == (None, None)
 
 
 def test_raytracing_analysis(monkeypatch):
