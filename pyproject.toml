@@ -20,8 +20,7 @@ dependencies = [
     "optiland>=0.4.1",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
-    "zospy",
-    "zospy>=2.0.2; sys_platform == 'win32'",
+    "zospy>=2.1.0; sys_platform == 'win32'",
 ]
 requires-python = ">=3.9, <3.14"
 dynamic = ["version"]
@@ -121,6 +120,3 @@ max-line-length = 120
 max-summary-lines = 1
 summary-quotes-same-line = true
 linewrap-full-docstring = true
-
-[tool.uv.sources]
-zospy = { git = "https://github.com/MREYE-LUMC/ZOSPy", rev = "main" }

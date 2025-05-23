@@ -23,7 +23,7 @@ class TestFFTPSFAnalysis:
                 "object_height",
                 64,
                 "quadratic",
-                pytest.raises(ValueError, match=re.escape("Invalid PSF type. Choose 'linear' or 'logarithmic'")),
+                pytest.raises(ValueError, match=re.escape("Invalid PSF type. Must be 'linear' or 'logarithmic'")),
             ),
         ],
     )
