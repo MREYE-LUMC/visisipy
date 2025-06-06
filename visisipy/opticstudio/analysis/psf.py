@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import zospy as zp
 
@@ -18,7 +18,6 @@ def fft_psf(
     wavelength: float | None = None,
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
-    psf_type: Literal["linear", "logarithmic"] = "linear",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Calculate the FFT Point Spread Function (PSF) at the retina surface.
 
@@ -35,8 +34,6 @@ def fft_psf(
         `field_coordinate` is not `None`.
     sampling : SampleSize | str | int, optional
         The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 64.
-    psf_type : Literal["linear", "logarithmic"], optional
-        The PSF normalization type. Either "linear" or "logarithmic". Defaults to "linear".
 
     Returns
     -------
@@ -48,12 +45,6 @@ def fft_psf(
     ValueError
         If the `psf_type` is not "linear" or "logarithmic".
     """
-    if psf_type == "linear":
-        psf_type = zp.constants.Analysis.Settings.Psf.FftPsfType.Linear
-    elif psf_type == "logarithmic":
-        psf_type = zp.constants.Analysis.Settings.Psf.FftPsfType.Log
-    else:
-        raise ValueError("Invalid PSF type. Must be 'linear' or 'logarithmic'.")
 
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
@@ -73,7 +64,7 @@ def fft_psf(
         display=str(2 * sampling),
         wavelength=wavelength_number,
         field=1,
-        psf_type=psf_type,
+        psf_type=zp.constants.Analysis.Settings.Psf.FftPsfType.Linear,
         surface="Image",
         normalize=True,
     ).run(backend.get_oss())

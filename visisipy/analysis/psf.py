@@ -19,7 +19,6 @@ def fft_psf(
     wavelength: float | None = None,
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
-    psf_type: Literal["linear", "logarithmic"] = "linear",
     *,
     return_raw_result: Literal[False] = False,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -33,7 +32,6 @@ def fft_psf(
     wavelength: float | None = None,
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
-    psf_type: Literal["linear", "logarithmic"] = "linear",
     *,
     return_raw_result: Literal[True] = True,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -47,7 +45,6 @@ def fft_psf(
     wavelength: float | None = None,
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
-    psf_type: Literal["linear", "logarithmic"] = "linear",
     *,
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -69,8 +66,6 @@ def fft_psf(
     sampling : SampleSize | str | int
         The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where N
         is an integer. Only symmetric sample sizes are supported. Defaults to 64.
-    psf_type : Literal["linear", "logarithmic"]
-        The PSF normalization type. Can be either "linear" or "logarithmic". Defaults to "linear".
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
     backend : type[BaseBackend]
@@ -82,13 +77,9 @@ def fft_psf(
         The PSF data as a DataFrame. The DataFrame contains the PSF values at the specified field coordinate and
         wavelength.
     """
-    if psf_type not in {"linear", "logarithmic"}:
-        raise ValueError("psf_type must be either 'linear' or 'logarithmic'.")
-
     return backend.analysis.fft_psf(
         field_coordinate=field_coordinate,
         wavelength=wavelength,
         field_type=field_type,
         sampling=sampling,
-        psf_type=psf_type,
     )
