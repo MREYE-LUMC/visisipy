@@ -53,7 +53,6 @@ def fft_psf(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
 ) -> tuple[pd.DataFrame, FFTPSF]:
-
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
@@ -76,13 +75,9 @@ def fft_psf(
         grid_size=int(2 * sampling),
     )
 
-    (psf_extent_x, *_), (psf_extent_y, *_) = psf._get_psf_units(psf.psf)
-    index = np.linspace(
-        -psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0]
-    )
-    columns = np.linspace(
-        -psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1]
-    )
+    (psf_extent_x, *_), (psf_extent_y, *_) = psf._get_psf_units(psf.psf)  # noqa: SLF001
+    index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
+    columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
     df = pd.DataFrame(psf.psf, index=index, columns=columns)
 
