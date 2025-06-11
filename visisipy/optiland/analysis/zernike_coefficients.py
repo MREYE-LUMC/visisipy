@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from optiland.wavefront import ZernikeOPD
 
+from visisipy.optiland.analysis.helpers import set_field, set_wavelength
 from visisipy.types import SampleSize
 from visisipy.wavefront import ZernikeCoefficients
 
@@ -56,15 +57,8 @@ def zernike_standard_coefficients(
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
-    if field_coordinate is not None:
-        backend.set_fields([field_coordinate], field_type=field_type)
-
-    if wavelength is None:
-        wavelength = backend.get_wavelengths()[0]
-    else:
-        backend.set_wavelengths([wavelength])
-
-    normalized_field = backend.get_optic().fields.get_field_coords()[0]
+    wavelength = set_wavelength(backend, wavelength)
+    normalized_field = set_field(backend, field_coordinate=field_coordinate, field_type=field_type)
 
     zernike_opd = ZernikeOPD(
         backend.optic,

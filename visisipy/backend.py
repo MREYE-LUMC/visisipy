@@ -44,6 +44,7 @@ if TYPE_CHECKING:
     from zospy.zpcore import OpticStudioSystem
 
     from visisipy.analysis.cardinal_points import CardinalPointsResult
+    from visisipy.analysis.mtf import MTFResult
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
     from visisipy.types import ApertureType, FieldCoordinate, FieldType, SampleSize
@@ -129,6 +130,16 @@ class BaseAnalysisRegistry(ABC):
         surface_1: int | None = None,
         surface_2: int | None = None,
     ) -> tuple[CardinalPointsResult, Any]: ...
+
+    @abstractmethod
+    def fft_mtf(
+        self,
+        sampling: SampleSize | str | int = 64,
+        field_coordinate: FieldCoordinate | None = None,
+        field_type: FieldType = "angle",
+        wavelength: float | None = None,
+        maximum_frequency: float | Literal["default"] = "default",
+    ) -> tuple[MTFResult, Any]: ...
 
     @abstractmethod
     def raytrace(

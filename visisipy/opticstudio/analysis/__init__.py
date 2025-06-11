@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from visisipy.backend import BaseAnalysisRegistry, _AnalysisMethod
 from visisipy.opticstudio.analysis.cardinal_points import cardinal_points
+from visisipy.opticstudio.analysis.mtf import fft_mtf
 from visisipy.opticstudio.analysis.raytrace import raytrace
 from visisipy.opticstudio.analysis.refraction import refraction
 from visisipy.opticstudio.analysis.zernike_coefficients import (
@@ -26,6 +27,7 @@ class OpticStudioAnalysisRegistry(BaseAnalysisRegistry):
         self._oss = backend.oss
 
     cardinal_points = _AnalysisMethod(cardinal_points)
+    fft_mtf = _AnalysisMethod(fft_mtf)
     raytrace = _AnalysisMethod(raytrace)
-    zernike_standard_coefficients = _AnalysisMethod(zernike_standard_coefficients)
     refraction = _AnalysisMethod(refraction)
+    zernike_standard_coefficients = _AnalysisMethod(zernike_standard_coefficients)
