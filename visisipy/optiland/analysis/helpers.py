@@ -56,6 +56,5 @@ def set_field(
     """
     if field_coordinate is not None:
         backend.set_fields([field_coordinate], field_type=field_type)
-        return field_coordinate
 
     return backend.get_optic().fields.get_field_coords()[0]

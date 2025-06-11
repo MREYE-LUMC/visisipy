@@ -17,6 +17,16 @@ class MockAnalysis:
     ):
         return None, None
 
+    def fft_mtf(
+        self,
+        field_coordinate,
+        wavelength,
+        field_type,
+        sampling,
+        maximum_frequency,
+    ) -> tuple[None, None]:
+        return None, None
+
     def raytrace(
         self,
         coordinates,
@@ -52,6 +62,13 @@ def test_cardinal_points_analysis(monkeypatch):
 
     assert visisipy.analysis.cardinal_points() is None
     assert visisipy.analysis.cardinal_points(return_raw_result=True) == (None, None)
+
+
+def test_fft_mtf_analysis(monkeypatch):
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+
+    assert visisipy.analysis.fft_mtf() is None
+    assert visisipy.analysis.fft_mtf(return_raw_result=True) == (None, None)
 
 
 def test_raytracing_analysis(monkeypatch):
