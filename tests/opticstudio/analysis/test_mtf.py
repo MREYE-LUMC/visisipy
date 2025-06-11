@@ -33,7 +33,9 @@ class TestFFTMTFAnalysis:
         opticstudio_backend,
         opticstudio_analysis,
     ):
-        opticstudio_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        opticstudio_backend.build_model(
+            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             non_null_defaults={"field_type", "sampling", "maximum_frequency"},
@@ -50,7 +52,9 @@ class TestFFTMTFAnalysis:
     def test_mtf_result_structure(self, opticstudio_backend, opticstudio_analysis):
         opticstudio_backend.build_model(EyeModel())
 
-        result, _ = opticstudio_analysis.fft_mtf(field_coordinate=(0, 0), wavelength=0.550, field_type="angle", sampling=64)
+        result, _ = opticstudio_analysis.fft_mtf(
+            field_coordinate=(0, 0), wavelength=0.550, field_type="angle", sampling=64
+        )
 
         assert result.tangential.name == "Tangential MTF"
         assert result.sagittal.name == "Sagittal MTF"

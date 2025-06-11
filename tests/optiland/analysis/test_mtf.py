@@ -48,7 +48,9 @@ class TestFFTMTFAnalysis:
     def test_mtf_result_structure(self, optiland_backend, optiland_analysis):
         optiland_backend.build_model(EyeModel())
 
-        result, _ = optiland_analysis.fft_mtf(field_coordinate=(0, 0), wavelength=0.550, field_type="angle", sampling=64)
+        result, _ = optiland_analysis.fft_mtf(
+            field_coordinate=(0, 0), wavelength=0.550, field_type="angle", sampling=64
+        )
 
         assert result.tangential.name == "Tangential MTF"
         assert result.sagittal.name == "Sagittal MTF"
