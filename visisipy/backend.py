@@ -137,7 +137,6 @@ class BaseAnalysisRegistry(ABC):
         wavelength: float | None = None,
         field_type: FieldType = "angle",
         sampling: SampleSize | str | int = 128,
-        psf_type: Literal["linear", "logarithmic"] = "linear",
     ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
