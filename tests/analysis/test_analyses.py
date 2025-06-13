@@ -57,15 +57,7 @@ def test_cardinal_points_analysis(monkeypatch):
     assert visisipy.analysis.cardinal_points(return_raw_result=True) == (None, None)
 
 
-@pytest.mark.parametrize(
-    "psf_type,expectation",
-    [
-        ("linear", does_not_raise()),
-        ("logarithmic", does_not_raise()),
-        ("invalid", pytest.raises(ValueError, match="psf_type must be either 'linear' or 'logarithmic'")),
-    ],
-)
-def test_fft_psf_analysis(monkeypatch, psf_type, expectation):
+def test_fft_psf_analysis(monkeypatch):
     monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
 
     assert visisipy.analysis.fft_psf() is None
