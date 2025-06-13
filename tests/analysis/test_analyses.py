@@ -17,7 +17,7 @@ class MockAnalysis:
     ):
         return None, None
 
-    def fft_psf(self, field_coordinate, wavelength, field_type, sampling, psf_type):
+    def fft_psf(self, field_coordinate, wavelength, field_type, sampling):
         return None, None
 
     def raytrace(

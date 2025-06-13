@@ -9,7 +9,7 @@ pytestmark = [pytest.mark.needs_opticstudio]
 
 class TestFFTPSFAnalysis:
     @pytest.mark.parametrize(
-        "field_coordinate,wavelength,field_type,sampling,expectation",
+        "field_coordinate,wavelength,field_type,sampling",
         [
             (None, None, "angle", 32),
             (None, None, "object_height", 64),
