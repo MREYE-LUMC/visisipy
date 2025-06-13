@@ -136,7 +136,7 @@ class BaseAnalysisRegistry(ABC):
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
-        sampling: SampleSize | str | int = 64,
+        sampling: SampleSize | str | int = 128,
         psf_type: Literal["linear", "logarithmic"] = "linear",
     ) -> tuple[DataFrame, Any]: ...
 

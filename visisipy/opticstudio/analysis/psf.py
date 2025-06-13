@@ -17,7 +17,7 @@ def fft_psf(
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
-    sampling: SampleSize | str | int = 64,
+    sampling: SampleSize | str | int = 128,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Calculate the FFT Point Spread Function (PSF) at the retina surface.
 
@@ -39,11 +39,6 @@ def fft_psf(
     -------
     DataFrame
         The PSF data as a pandas DataFrame.
-
-    Raises
-    ------
-    ValueError
-        If the `psf_type` is not "linear" or "logarithmic".
     """
 
     if not isinstance(sampling, SampleSize):
@@ -66,7 +61,7 @@ def fft_psf(
         field=1,
         psf_type=zp.constants.Analysis.Settings.Psf.FftPsfType.Linear,
         surface="Image",
-        normalize=True,
+        normalize=False,
     ).run(backend.get_oss())
 
     return psf_result.data, psf_result.data

@@ -51,8 +51,31 @@ def fft_psf(
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
-    sampling: SampleSize | str | int = 64,
+    sampling: SampleSize | str | int = 128,
 ) -> tuple[pd.DataFrame, FFTPSF]:
+    """Calculate the FFT Point Spread Function (PSF) at the retina surface.
+
+    Parameters
+    ----------
+    backend : type[OptilandBackend]
+        Reference to the Optiland backend.
+    field_coordinate : tuple[float, float], optional
+        The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
+    wavelength : float, optional
+        The wavelength in μm. If `None`, the first wavelength in Optiland is used. Defaults to `None`.
+    field_type : Literal["angle", "object_height"], optional
+        The field type. Either "angle" or "object_height". Defaults to "angle". This parameter is only used if
+        `field_coordinate` is not `None`.
+    sampling : SampleSize | str | int, optional
+        The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 64.
+
+    Returns
+    -------
+    DataFrame
+        The PSF data as a pandas DataFrame.
+    FFTPSF
+        The Optiland FFTPSF object.
+    """
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
@@ -79,6 +102,7 @@ def fft_psf(
     index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
-    df = pd.DataFrame(psf.psf, index=index, columns=columns)
+    # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
+    df = pd.DataFrame(psf.psf[::-1, :] / 100, index=index, columns=columns)
 
     return df, psf
