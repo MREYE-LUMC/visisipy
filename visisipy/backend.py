@@ -140,6 +140,16 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
+    def huygens_psf(
+        self,
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        pupil_sampling: SampleSize | str | int = 128,
+        image_sampling: SampleSize | str | int = 128,
+    ) -> tuple[DataFrame, Any]: ...
+
+    @abstractmethod
     def raytrace(
         self,
         coordinates: Iterable[FieldCoordinate] | None = None,
