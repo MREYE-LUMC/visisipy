@@ -1,3 +1,5 @@
+"""Calculate the point spread function (PSF) of the eye."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, overload
