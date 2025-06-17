@@ -108,6 +108,8 @@ class BaseAnalysisRegistry(ABC):
     -------
     cardinal_points(surface_1, surface_2)
         Calculate the cardinal points of the optical system.
+    huygens_psf(field_coordinate, wavelength, field_type, pupil_sampling, image_sampling)
+        Calculate the Huygens Point Spread Function (PSF) at the retina surface.
     raytrace(coordinates, wavelengths, field_type, pupil)
         Perform a raytrace through the optical system.
     refraction(field_coordinate, wavelength, sampling, pupil_diameter, field_type)
