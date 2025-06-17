@@ -12,7 +12,7 @@ class TestFFTPSFAnalysis:
     @pytest.mark.parametrize(
         "field_coordinate,wavelength,field_type,sampling",
         [
-            (None, None, "angle", 32),
+            (None, None, None, None),
             (None, None, "object_height", 64),
             ((0, 0), 0.550, "angle", 128),
             ((10, 5), 0.400, "object_height", 256),
@@ -32,12 +32,16 @@ class TestFFTPSFAnalysis:
             EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
         )
 
-        assert opticstudio_analysis.fft_psf(
+        args = build_args(
             field_coordinate=field_coordinate,
             wavelength=wavelength,
             field_type=field_type,
             sampling=sampling,
+            non_null_defaults={"field_type", "pupil_sampling", "image_sampling"},
         )
+
+        assert opticstudio_analysis.fft_psf(**args)
+
 
 class TestHuygensPSFAnalysis:
     @pytest.mark.parametrize(

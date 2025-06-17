@@ -67,7 +67,7 @@ def fft_psf(
         This parameter is only used when `field_coordinate` is specified.
     sampling : SampleSize | str | int
         The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where N
-        is an integer. Only symmetric sample sizes are supported. Defaults to 64.
+        is an integer. Only symmetric sample sizes are supported. Defaults to 128.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
     backend : type[BaseBackend]
@@ -85,7 +85,6 @@ def fft_psf(
         field_type=field_type,
         sampling=sampling,
     )
-
 
 
 @overload

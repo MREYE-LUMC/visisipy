@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from optiland.psf import FFTPSF
+from optiland.psf import FFTPSF, HuygensPSF
 
+from visisipy.optiland.analysis.helpers import set_field, set_wavelength
 from visisipy.types import SampleSize
 
 if TYPE_CHECKING:
@@ -69,7 +70,7 @@ def fft_psf(
         The field type. Either "angle" or "object_height". Defaults to "angle". This parameter is only used if
         `field_coordinate` is not `None`.
     sampling : SampleSize | str | int, optional
-        The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 64.
+        The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
 
     Returns
     -------
@@ -81,15 +82,9 @@ def fft_psf(
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
-    if field_coordinate is not None:
-        backend.set_fields([field_coordinate], field_type=field_type)
+    normalized_field = set_field(backend, field_coordinate, field_type)
+    wavelength = set_wavelength(backend, wavelength)
 
-    if wavelength is None:
-        wavelength = backend.get_wavelengths()[0]
-    else:
-        backend.set_wavelengths([wavelength])
-
-    normalized_field = backend.get_optic().fields.get_field_coords()[0]
     num_rays = _effective_pupil_sampling(sampling)
 
     psf = FFTPSF(
@@ -108,9 +103,6 @@ def fft_psf(
     df = pd.DataFrame(psf.psf[::-1, :] / 100, index=index, columns=columns)
 
     return df, psf
-
-from optiland.psf import HuygensPSF
-from visisipy.optiland.analysis.helpers import set_field, set_wavelength
 
 
 def huygens_psf(
