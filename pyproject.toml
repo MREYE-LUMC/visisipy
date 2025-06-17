@@ -17,7 +17,7 @@ dependencies = [
     "matplotlib",
     "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
-    "optiland>=0.5.0",
+    "optiland>=0.5.1",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
     "zospy>=2.1.0; sys_platform == 'win32'",
