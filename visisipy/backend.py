@@ -108,12 +108,16 @@ class BaseAnalysisRegistry(ABC):
     -------
     cardinal_points(surface_1, surface_2)
         Calculate the cardinal points of the optical system.
+    fft_psf(field_coordinate, wavelength, field_type, sampling)
+        Calculate the FFT Point Spread Function (PSF) at the retina surface.
     huygens_psf(field_coordinate, wavelength, field_type, pupil_sampling, image_sampling)
         Calculate the Huygens Point Spread Function (PSF) at the retina surface.
     raytrace(coordinates, wavelengths, field_type, pupil)
         Perform a raytrace through the optical system.
     refraction(field_coordinate, wavelength, sampling, pupil_diameter, field_type)
         Calculate the spherical equivalent of refraction for the optical system.
+    strehl_ratio(field_coordinate, wavelength, field_type, sampling, psf_type)
+        Calculate the Strehl ratio of the optical system.
     zernike_standard_coefficients(field_coordinate, wavelength, field_type, sampling, maximum_term)
         Calculate the Zernike standard coefficients for the optical system.
     """
@@ -171,6 +175,16 @@ class BaseAnalysisRegistry(ABC):
         *,
         use_higher_order_aberrations: bool = True,
     ) -> tuple[FourierPowerVectorRefraction, Any]: ...
+
+    @abstractmethod
+    def strehl_ratio(
+        self,
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 128,
+        psf_type: Literal["fft", "huygens"] = "huygens",
+    ) -> tuple[float, Any]: ...
 
     @abstractmethod
     def zernike_standard_coefficients(

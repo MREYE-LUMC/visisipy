@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import zospy as zp
 
@@ -125,3 +125,50 @@ def huygens_psf(
     ).run(backend.get_oss())
 
     return psf_result.data.psf, psf_result.data
+
+
+def strehl_ratio(
+    backend: type[OpticStudioBackend],
+    field_coordinate: FieldCoordinate | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    sampling: SampleSize | str | int = 128,
+    psf_type: Literal["fft", "huygens"] = "huygens",
+) -> tuple[float, None]:
+    """Calculate the Strehl ratio of the optical system.
+
+    The Strehl ratio is calculated from the point spread function. Which PSF is used depends on the `psf_type` parameter.
+
+    Parameters
+    ----------
+    backend : type[OpticStudioBackend]
+        Reference to the OpticStudio backend.
+    field_coordinate : FieldCoordinate | None
+        The field coordinate at which the Strehl ratio is calculated. If `None`, the first field coordinate in
+        OpticStudio is used.
+    wavelength : float | None
+        The wavelength at which the Strehl ratio is calculated. If `None`, the first wavelength in OpticStudio is used.
+    field_type : FieldType
+        The field type to be used in the analysis. Can be either "angle" or "object_height". Defaults to "angle".
+        This parameter is only used when `field_coordinate` is specified.
+    sampling : SampleSize | str | int
+        The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where N
+        is an integer. Defaults to 128.
+    psf_type : Literal["fft", "huygens"]
+        The type of PSF to be used for the Strehl ratio calculation. Can be either "fft" or "huygens". Defaults to "huygens";
+        OpticStudio's FFT PSF does not support calculating the Strehl ratio, so only "huygens" is supported.
+
+    Returns
+    -------
+    float
+        The Strehl ratio of the optical system at the specified field coordinate and wavelength.
+    HuygensPSFResult
+        The PSF object used to calculate the Strehl ratio. The type of the object depends on the `psf_type` parameter.
+    """
+    if psf_type == "fft":
+        raise NotImplementedError("OpticStudio does not support obtaining the Strehl ratio from the FFT PSF.")
+
+    if psf_type == "huygens":
+        raise NotImplementedError(f"PSF type '{psf_type}' is not implemented. Only 'huygens' is supported.")
+
+    raise NotImplementedError(f"PSF type '{psf_type}' is not implemented. Only 'fft' is supported.")
