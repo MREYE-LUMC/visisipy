@@ -37,7 +37,7 @@ class TestFFTPSFAnalysis:
             wavelength=wavelength,
             field_type=field_type,
             sampling=sampling,
-            non_null_defaults={"field_type", "pupil_sampling", "image_sampling"},
+            non_null_defaults={"field_type", "sampling"},
         )
 
         assert opticstudio_analysis.fft_psf(**args)
