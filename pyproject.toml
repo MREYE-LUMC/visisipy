@@ -20,7 +20,7 @@ dependencies = [
     "optiland>=0.5.1",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
-    "zospy>=2.1.0; sys_platform == 'win32'",
+    "zospy>=2.1.2; sys_platform == 'win32'",
 ]
 requires-python = ">=3.9, <3.14"
 dynamic = ["version"]

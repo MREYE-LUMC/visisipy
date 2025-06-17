@@ -11,6 +11,7 @@ from visisipy.types import FieldCoordinate, FieldType, SampleSize
 
 if TYPE_CHECKING:
     import pandas as pd
+    from zospy.analyses.psf.huygens_psf import HuygensPSFResult
 
     from visisipy.opticstudio import OpticStudioBackend
 
@@ -73,7 +74,7 @@ def huygens_psf(
     field_type: FieldType = "angle",
     pupil_sampling: SampleSize | str | int = 128,
     image_sampling: SampleSize | str | int = 128,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, HuygensPSFResult]:
     """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
 
     Parameters
@@ -96,6 +97,8 @@ def huygens_psf(
     -------
     DataFrame
         The PSF data as a pandas DataFrame.
+    HuygensPSFData
+        The Huygens PSF result from OpticStudio.
     """
 
     if not isinstance(pupil_sampling, SampleSize):
@@ -107,7 +110,7 @@ def huygens_psf(
     wavelength_number = set_wavelength(backend, wavelength)
     field_number = set_field(backend, field_coordinate, field_type)
 
-    psf_result = zp.analyses.psf.HuygensPSF(
+    psf_result = zp.analyses.psf.HuygensPSFAndStrehlRatio(
         pupil_sampling=str(pupil_sampling),
         image_sampling=str(image_sampling),
         image_delta=0,
@@ -121,7 +124,4 @@ def huygens_psf(
         normalize=False,
     ).run(backend.get_oss())
 
-    if psf_result.data is None:
-        raise ValueError("Failed to run Huygens PSF analysis.")
-
-    return psf_result.data, psf_result.data
+    return psf_result.data.psf, psf_result.data
