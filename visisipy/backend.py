@@ -131,6 +131,15 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[CardinalPointsResult, Any]: ...
 
     @abstractmethod
+    def fft_psf(
+        self,
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 128,
+    ) -> tuple[DataFrame, Any]: ...
+
+    @abstractmethod
     def raytrace(
         self,
         coordinates: Iterable[FieldCoordinate] | None = None,
