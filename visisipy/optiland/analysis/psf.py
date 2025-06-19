@@ -1,11 +1,14 @@
+"""PSF analyses for Optiland."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from optiland.psf import FFTPSF
+from optiland.psf import FFTPSF, HuygensPSF
 
+from visisipy.optiland.analysis.helpers import set_field, set_wavelength
 from visisipy.types import SampleSize
 
 if TYPE_CHECKING:
@@ -13,7 +16,7 @@ if TYPE_CHECKING:
     from visisipy.types import FieldCoordinate, FieldType
 
 
-__all__ = ("fft_psf",)
+__all__ = ("fft_psf", "huygens_psf")
 
 
 FFT_PSF_MINIMUM_PUPIL_SAMPLING = 32
@@ -67,7 +70,7 @@ def fft_psf(
         The field type. Either "angle" or "object_height". Defaults to "angle". This parameter is only used if
         `field_coordinate` is not `None`.
     sampling : SampleSize | str | int, optional
-        The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 64.
+        The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
 
     Returns
     -------
@@ -79,15 +82,9 @@ def fft_psf(
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
-    if field_coordinate is not None:
-        backend.set_fields([field_coordinate], field_type=field_type)
+    normalized_field = set_field(backend, field_coordinate, field_type)
+    wavelength = set_wavelength(backend, wavelength)
 
-    if wavelength is None:
-        wavelength = backend.get_wavelengths()[0]
-    else:
-        backend.set_wavelengths([wavelength])
-
-    normalized_field = backend.get_optic().fields.get_field_coords()[0]
     num_rays = _effective_pupil_sampling(sampling)
 
     psf = FFTPSF(
@@ -96,6 +93,66 @@ def fft_psf(
         wavelength=wavelength,
         num_rays=num_rays,
         grid_size=int(2 * sampling),
+    )
+
+    (psf_extent_x, *_), (psf_extent_y, *_) = psf._get_psf_units(psf.psf)  # noqa: SLF001
+    index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
+    columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
+
+    # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
+    df = pd.DataFrame(psf.psf[::-1, :] / 100, index=index, columns=columns)
+
+    return df, psf
+
+
+def huygens_psf(
+    backend: type[OptilandBackend],
+    field_coordinate: FieldCoordinate | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    pupil_sampling: SampleSize | str | int = 128,
+    image_sampling: SampleSize | str | int = 128,
+) -> tuple[pd.DataFrame, HuygensPSF]:
+    """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
+
+    Parameters
+    ----------
+    backend : type[OptilandBackend]
+        Reference to the Optiland backend.
+    field_coordinate : tuple[float, float], optional
+        The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
+    wavelength : float, optional
+        The wavelength in μm. If `None`, the first wavelength in Optiland is used. Defaults to `None`.
+    field_type : Literal["angle", "object_height"], optional
+        The field type. Either "angle" or "object_height". Defaults to "angle". This parameter is only used if
+        `field_coordinate` is not `None`.
+    pupil_sampling : SampleSize | str | int, optional
+        The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
+    image_sampling : SampleSize | str | int, optional
+        The size of the PSF grid, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
+
+    Returns
+    -------
+    DataFrame
+        The PSF data as a pandas DataFrame.
+    HuygensPSF
+        The Optiland HuygensPSF object.
+    """
+    if not isinstance(pupil_sampling, SampleSize):
+        pupil_sampling = SampleSize(pupil_sampling)
+
+    if not isinstance(image_sampling, SampleSize):
+        image_sampling = SampleSize(image_sampling)
+
+    normalized_field = set_field(backend, field_coordinate, field_type)
+    wavelength = set_wavelength(backend, wavelength)
+
+    psf = HuygensPSF(
+        optic=backend.get_optic(),
+        field=normalized_field,
+        wavelength=wavelength,
+        num_rays=int(pupil_sampling),
+        image_size=int(image_sampling),
     )
 
     (psf_extent_x, *_), (psf_extent_y, *_) = psf._get_psf_units(psf.psf)  # noqa: SLF001
