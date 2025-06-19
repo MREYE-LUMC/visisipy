@@ -50,7 +50,7 @@ def fft_psf(
     *,
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
-) -> tuple[DataFrame, Any]:
+) -> DataFrame | tuple[DataFrame, Any]:
     """Calculate the FFT Point Spread Function (PSF) at the retina surface.
 
     Parameters
@@ -126,7 +126,7 @@ def huygens_psf(
     *,
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
-) -> tuple[DataFrame, Any]:
+) -> DataFrame | tuple[DataFrame, Any]:
     """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
 
     Parameters
@@ -195,6 +195,7 @@ def strehl_ratio(
 ) -> tuple[float, Any]: ...
 
 
+@analysis
 def strehl_ratio(
     model: EyeModel | None = None,  # noqa: ARG001
     field_coordinate: FieldCoordinate | None = None,

@@ -134,7 +134,7 @@ def strehl_ratio(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 128,
     psf_type: Literal["fft", "huygens"] = "huygens",
-) -> tuple[float, None]:
+) -> tuple[float, HuygensPSFResult]:
     """Calculate the Strehl ratio of the optical system.
 
     The Strehl ratio is calculated from the point spread function. Which PSF is used depends on the `psf_type` parameter.
@@ -169,6 +169,15 @@ def strehl_ratio(
         raise NotImplementedError("OpticStudio does not support obtaining the Strehl ratio from the FFT PSF.")
 
     if psf_type == "huygens":
-        raise NotImplementedError(f"PSF type '{psf_type}' is not implemented. Only 'huygens' is supported.")
+        _, psf = huygens_psf(
+            backend=backend,
+            field_coordinate=field_coordinate,
+            wavelength=wavelength,
+            field_type=field_type,
+            pupil_sampling=sampling,
+            image_sampling=sampling,
+        )
 
-    raise NotImplementedError(f"PSF type '{psf_type}' is not implemented. Only 'fft' is supported.")
+        return psf.strehl_ratio, psf
+
+    raise NotImplementedError(f"PSF type '{psf_type}' is not implemented. Only 'huygens' is supported.")

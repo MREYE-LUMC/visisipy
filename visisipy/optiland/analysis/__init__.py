@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from visisipy.backend import BaseAnalysisRegistry, _AnalysisMethod
 from visisipy.optiland.analysis.cardinal_points import cardinal_points
-from visisipy.optiland.analysis.psf import fft_psf, huygens_psf
+from visisipy.optiland.analysis.psf import fft_psf, huygens_psf, strehl_ratio
 from visisipy.optiland.analysis.raytrace import raytrace
 from visisipy.optiland.analysis.refraction import refraction
 from visisipy.optiland.analysis.zernike_coefficients import zernike_standard_coefficients
@@ -28,5 +28,6 @@ class OptilandAnalysisRegistry(BaseAnalysisRegistry):
     fft_psf = _AnalysisMethod(fft_psf)
     huygens_psf = _AnalysisMethod(huygens_psf)
     raytrace = _AnalysisMethod(raytrace)
-    zernike_standard_coefficients = _AnalysisMethod(zernike_standard_coefficients)
     refraction = _AnalysisMethod(refraction)
+    strehl_ratio = _AnalysisMethod(strehl_ratio)
+    zernike_standard_coefficients = _AnalysisMethod(zernike_standard_coefficients)

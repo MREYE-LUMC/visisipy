@@ -172,7 +172,7 @@ def strehl_ratio(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 128,
     psf_type: Literal["fft", "huygens"] = "huygens",
-) -> tuple[float, FFTPSF]:
+) -> tuple[float, FFTPSF | HuygensPSF]:
     """Calculate the Strehl ratio of the optical system.
 
     The Strehl ratio is calculated from the point spread function. Which PSF is used depends on the `psf_type` parameter.
@@ -209,6 +209,18 @@ def strehl_ratio(
             wavelength=wavelength,
             field_type=field_type,
             sampling=sampling,
+        )
+
+        return psf.strehl_ratio(), psf
+
+    if psf_type == "huygens":
+        _, psf = huygens_psf(
+            backend=backend,
+            field_coordinate=field_coordinate,
+            wavelength=wavelength,
+            field_type=field_type,
+            pupil_sampling=sampling,
+            image_sampling=sampling,
         )
 
         return psf.strehl_ratio(), psf

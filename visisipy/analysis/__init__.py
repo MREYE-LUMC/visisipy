@@ -17,7 +17,7 @@ The backend parameter is also optional; if no backend is provided, the current o
 from __future__ import annotations
 
 from visisipy.analysis.cardinal_points import cardinal_points
-from visisipy.analysis.psf import fft_psf, huygens_psf
+from visisipy.analysis.psf import fft_psf, huygens_psf, strehl_ratio
 from visisipy.analysis.raytracing import raytrace
 from visisipy.analysis.refraction import refraction
 from visisipy.analysis.zernike_standard_coefficients import rms_hoa, zernike_standard_coefficients
@@ -29,5 +29,6 @@ __all__ = (
     "raytrace",
     "refraction",
     "rms_hoa",
+    "strehl_ratio",
     "zernike_standard_coefficients",
 )
