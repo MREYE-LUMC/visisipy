@@ -20,6 +20,16 @@ class MockAnalysis:
     def fft_psf(self, field_coordinate, wavelength, field_type, sampling):
         return None, None
 
+    def huygens_psf(
+        self,
+        field_coordinate,
+        wavelength,
+        field_type,
+        pupil_sampling,
+        image_sampling,
+    ):
+        return None, None
+
     def raytrace(
         self,
         coordinates,
@@ -62,6 +72,13 @@ def test_fft_psf_analysis(monkeypatch):
 
     assert visisipy.analysis.fft_psf() is None
     assert visisipy.analysis.fft_psf(return_raw_result=True) == (None, None)
+
+
+def test_huygens_psf_analysis(monkeypatch):
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+
+    assert visisipy.analysis.huygens_psf() is None
+    assert visisipy.analysis.huygens_psf(return_raw_result=True) == (None, None)
 
 
 def test_raytracing_analysis(monkeypatch):
