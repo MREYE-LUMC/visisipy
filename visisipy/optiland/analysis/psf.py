@@ -225,4 +225,4 @@ def strehl_ratio(
 
         return psf.strehl_ratio(), psf
 
-    raise NotImplementedError(f"PSF type '{psf_type}' is not implemented. Only 'fft' is supported.")
+    raise NotImplementedError(f"PSF type '{psf_type}' is not implemented.")

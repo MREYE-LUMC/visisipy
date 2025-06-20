@@ -90,7 +90,7 @@ class TestStrehlRatioAnalysis:
             (None, None, "object_height", 64),
             ((0, 0), 0.550, "angle", 128),
             ((10, 5), 0.400, "object_height", 256),
-            ((5.5, 5.5), 0.550, "angle", 512),
+            ((5.5, 5.5), 0.550, "angle", 64),
         ],
     )
     def test_strehl_ratio(

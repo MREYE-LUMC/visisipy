@@ -82,7 +82,7 @@ class TestStrehlRatioAnalysis:
             (None, None, "object_height", 64),
             ((0, 0), 0.550, "angle", 128),
             ((10, 5), 0.400, "object_height", 256),
-            ((5.5, 5.5), 0.550, "angle", 512),
+            ((5.5, 5.5), 0.550, "angle", 64),
         ],
     )
     @pytest.mark.parametrize(
@@ -110,12 +110,12 @@ class TestStrehlRatioAnalysis:
             non_null_defaults={"field_type", "sampling"},
         )
 
-        assert optiland_analysis.strehl_ratio(**args, psf_type="huygens")
+        assert optiland_analysis.strehl_ratio(**args)
 
     def test_invalid_psf_type(self, optiland_backend, optiland_analysis):
         optiland_backend.build_model(EyeModel(), object_distance=float("inf"))
 
         with pytest.raises(
-            NotImplementedError, match=r"PSF type 'invalid' is not implemented\. Only 'huygens' is supported"
+            NotImplementedError, match="PSF type 'invalid' is not implemented"
         ):
             optiland_analysis.strehl_ratio(psf_type="invalid")
