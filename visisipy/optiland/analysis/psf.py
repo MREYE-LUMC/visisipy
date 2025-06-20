@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
@@ -163,3 +163,66 @@ def huygens_psf(
     df = pd.DataFrame(psf.psf[::-1, :] / 100, index=index, columns=columns)
 
     return df, psf
+
+
+def strehl_ratio(
+    backend: type[OptilandBackend],
+    field_coordinate: FieldCoordinate | None = None,
+    wavelength: float | None = None,
+    field_type: FieldType = "angle",
+    sampling: SampleSize | str | int = 128,
+    psf_type: Literal["fft", "huygens"] = "huygens",
+) -> tuple[float, FFTPSF | HuygensPSF]:
+    """Calculate the Strehl ratio of the optical system.
+
+    The Strehl ratio is calculated from the point spread function. Which PSF is used depends on the `psf_type` parameter.
+
+    Parameters
+    ----------
+    backend : type[OptilandBackend]
+        Reference to the Optiland backend.
+    field_coordinate : FieldCoordinate | None
+        The field coordinate at which the Strehl ratio is calculated. If `None`, the first field coordinate in
+        Optiland is used.
+    wavelength : float | None
+        The wavelength at which the Strehl ratio is calculated. If `None`, the first wavelength in Optiland is used.
+    field_type : FieldType
+        The field type to be used in the analysis. Can be either "angle" or "object_height". Defaults to "angle".
+        This parameter is only used when `field_coordinate` is specified.
+    sampling : SampleSize | str | int
+        The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where N
+        is an integer. Defaults to 128.
+    psf_type : Literal["fft", "huygens"]
+        The type of PSF to be used for the Strehl ratio calculation. Can be either "fft" or "huygens". Defaults to "huygens".
+
+    Returns
+    -------
+    float
+        The Strehl ratio of the optical system at the specified field coordinate and wavelength.
+    FFTPSF | HuygensPSF
+        The PSF object used to calculate the Strehl ratio. The type of the object depends on the `psf_type` parameter.
+    """
+    if psf_type == "fft":
+        _, psf = fft_psf(
+            backend=backend,
+            field_coordinate=field_coordinate,
+            wavelength=wavelength,
+            field_type=field_type,
+            sampling=sampling,
+        )
+
+        return psf.strehl_ratio(), psf
+
+    if psf_type == "huygens":
+        _, psf = huygens_psf(
+            backend=backend,
+            field_coordinate=field_coordinate,
+            wavelength=wavelength,
+            field_type=field_type,
+            pupil_sampling=sampling,
+            image_sampling=sampling,
+        )
+
+        return psf.strehl_ratio(), psf
+
+    raise NotImplementedError(f"PSF type '{psf_type}' is not implemented.")
