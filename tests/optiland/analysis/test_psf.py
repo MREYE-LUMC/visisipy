@@ -115,7 +115,5 @@ class TestStrehlRatioAnalysis:
     def test_invalid_psf_type(self, optiland_backend, optiland_analysis):
         optiland_backend.build_model(EyeModel(), object_distance=float("inf"))
 
-        with pytest.raises(
-            NotImplementedError, match="PSF type 'invalid' is not implemented"
-        ):
+        with pytest.raises(NotImplementedError, match="PSF type 'invalid' is not implemented"):
             optiland_analysis.strehl_ratio(psf_type="invalid")
