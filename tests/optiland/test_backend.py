@@ -183,11 +183,9 @@ class TestOptilandBackendSettings:
             ("object_numeric_aperture", 0.1, "objectNA", does_not_raise()),
             (
                 "float_by_stop_size",
-                None,
-                "FloatByStopSize",
-                pytest.raises(
-                    NotImplementedError, match="Aperture type 'float_by_stop_size' is not implemented in Optiland"
-                ),
+                1.348,
+                "float_by_stop_size",
+                does_not_raise(),
             ),
             (
                 "invalid_aperture_type",

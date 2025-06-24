@@ -58,7 +58,7 @@ OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
     "field_type": "angle",
     "fields": [(0, 0)],
     "wavelengths": [0.543],
-    "aperture_type": "entrance_pupil_diameter",
+    "aperture_type": "float_by_stop_size",
     "aperture_value": 1,
     "computation_backend": "numpy",
     "torch_device": "cpu",
@@ -68,7 +68,7 @@ OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
 """Default settings for the Optiland backend."""
 
 OPTILAND_APERTURES = {
-    "float_by_stop_size": NotImplemented,
+    "float_by_stop_size": "float_by_stop_size",
     "entrance_pupil_diameter": "EPD",
     "image_f_number": "imageFNO",
     "object_numeric_aperture": "objectNA",
