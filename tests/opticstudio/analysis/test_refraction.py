@@ -64,7 +64,6 @@ class TestRefractionAnalysis:
         opticstudio_backend.build_model(
             EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
         )
-        # monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -77,7 +76,6 @@ class TestRefractionAnalysis:
         )
 
         assert opticstudio_analysis.refraction(**args)
-
 
     @pytest.fixture
     @staticmethod
@@ -97,7 +95,9 @@ class TestRefractionAnalysis:
             (1.234, True),
         ],
     )
-    def test_refraction_change_pupil(self, opticstudio_backend, mock_update_pupil, opticstudio_analysis, pupil_diameter, change_pupil_diameter):
+    def test_change_pupil(
+        self, opticstudio_backend, mock_update_pupil, opticstudio_analysis, pupil_diameter, change_pupil_diameter
+    ):
         opticstudio_backend.update_settings(aperture_type="float_by_stop_size", aperture_value=1.0)
 
         assert opticstudio_backend.aperture_history == []
@@ -108,3 +108,24 @@ class TestRefractionAnalysis:
             assert opticstudio_backend.aperture_history == [pupil_diameter, 1.0]
         else:
             assert opticstudio_backend.aperture_history == []
+
+    @pytest.mark.parametrize(
+        "aperture_type,pupil_diameter",
+        [
+            ("entrance_pupil_diameter", 1.0),
+            ("image_f_number", 2.0),
+            ("object_numeric_aperture", 0.1),
+        ],
+    )
+    def test_change_pupil_warns_aperture(
+        self, pupil_diameter, aperture_type, opticstudio_backend, opticstudio_analysis
+    ):
+        opticstudio_backend.build_model(
+            EyeModel(), object_distance=10 if aperture_type == "object_numeric_aperture" else float("inf")
+        )
+        opticstudio_backend.update_settings(aperture_type=aperture_type)
+
+        with pytest.warns(
+            UserWarning, match="When updating the pupil size for aperture types other than 'float_by_stop_size'"
+        ):
+            opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)

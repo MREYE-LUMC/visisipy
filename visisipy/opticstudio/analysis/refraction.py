@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from warnings import warn
 
 import zospy as zp
 
@@ -68,6 +69,13 @@ def refraction(
     # Temporarily change the pupil diameter
     old_pupil_value = None
     if pupil_diameter is not None:
+        if backend.get_setting("aperture_type") != "float_by_stop_size":
+            message = (
+                "When updating the pupil size for aperture types other than 'float_by_stop_size', "
+                "the pupil_diameter parameter changes the aperture value instead of the pupil size."
+            )
+            warn(message, UserWarning, stacklevel=2)
+
         _, old_pupil_value = backend.get_aperture()
 
         backend.update_pupil(pupil_diameter)

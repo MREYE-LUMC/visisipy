@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from warnings import warn
 
 from visisipy.analysis.refraction import zernike_data_to_refraction
 from visisipy.optiland.analysis.zernike_coefficients import (
@@ -64,6 +65,13 @@ def refraction(
     """
     old_aperture = None
     if pupil_diameter is not None:
+        if backend.get_setting("aperture_type") != "float_by_stop_size":
+            message = (
+                "When updating the pupil size for aperture types other than 'float_by_stop_size', "
+                "the pupil_diameter parameter changes the aperture value instead of the pupil size."
+            )
+            warn(message, UserWarning, stacklevel=2)
+
         old_aperture = backend.get_optic().aperture
         backend.update_pupil(pupil_diameter)
 

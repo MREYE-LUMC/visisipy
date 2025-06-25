@@ -119,7 +119,7 @@ class TestRefractionAnalysis:
             (1.234, True),
         ],
     )
-    def test_refraction_change_pupil(
+    def test_change_pupil(
         self,
         pupil_diameter,
         change_pupil_diameter,
@@ -138,3 +138,20 @@ class TestRefractionAnalysis:
             assert optiland_backend.aperture_history == [pupil_diameter, 1.0]
         else:
             assert optiland_backend.aperture_history == []
+
+    @pytest.mark.parametrize(
+        "aperture_type,pupil_diameter",
+        [
+            ("entrance_pupil_diameter", 1.0),
+            ("image_f_number", 2.0),
+            ("object_numeric_aperture", 1e-10),
+        ],
+    )
+    def test_change_pupil_warns_aperture(self, pupil_diameter, aperture_type, optiland_backend, optiland_analysis):
+        optiland_backend.build_model(EyeModel())
+        optiland_backend.update_settings(aperture_type=aperture_type)
+
+        with pytest.warns(
+            UserWarning, match="When updating the pupil size for aperture types other than 'float_by_stop_size'"
+        ):
+            optiland_analysis.refraction(pupil_diameter=pupil_diameter)
