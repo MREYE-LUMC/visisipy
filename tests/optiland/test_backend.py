@@ -40,6 +40,22 @@ class TestOptilandBackend:
         assert optiland_backend.model.eye_model == eye_model
         assert optiland_backend.get_optic().surface_group.num_surfaces == 7
 
+    @pytest.mark.parametrize(
+        "aperture_type", ["entrance_pupil_diameter", "float_by_stop_size", "image_f_number", "object_numeric_aperture"]
+    )
+    def test_build_model_updates_aperture_value(self, optiland_backend, eye_model, aperture_type):
+        # Ensure the aperture value is different from the eye model pupil diameter
+        aperture_value = eye_model.geometry.pupil.semi_diameter * 2 + 1
+        optiland_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)
+        optiland_backend.build_model(eye_model)
+
+        if aperture_type == "float_by_stop_size":
+            assert optiland_backend.get_setting("aperture_value") == eye_model.geometry.pupil.semi_diameter * 2
+            assert optiland_backend.get_aperture() == ("float_by_stop_size", eye_model.geometry.pupil.semi_diameter * 2)
+        else:
+            assert optiland_backend.get_setting("aperture_value") == aperture_value
+            assert optiland_backend.get_aperture() == (aperture_type, aperture_value)
+
     def test_clear_model(self, optiland_backend: OptilandBackend, eye_model: EyeModel):
         optiland_backend.build_model(eye_model)
         assert optiland_backend.model is not None

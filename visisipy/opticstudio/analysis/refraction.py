@@ -49,7 +49,8 @@ def refraction(
         The sampling for the Zernike calculation. Defaults to 64.
     pupil_diameter : float, optional
         The diameter of the pupil for the refraction calculation. Defaults to the pupil diameter configured in the
-        model.
+        backend. If the aperture type is "float_by_stop_size", the value is interpreted as the pupil diameter.
+        For other aperture types, it is interpreted as the aperture value.
     field_type : Literal["angle", "object_height"], optional
         The type of field to be used when setting the field coordinate. This parameter is only used when
         `field_coordinate` is specified. Defaults to "angle".
@@ -65,10 +66,11 @@ def refraction(
     wavelength = backend.get_wavelengths()[0] if wavelength is None else wavelength
 
     # Temporarily change the pupil diameter
-    old_pupil_semi_diameter = None
+    old_pupil_value = None
     if pupil_diameter is not None:
-        old_pupil_semi_diameter = backend.model.pupil.semi_diameter
-        backend.model.pupil.semi_diameter = pupil_diameter / 2
+        _, old_pupil_value = backend.get_aperture()
+
+        backend.update_pupil(pupil_diameter)
 
     pupil_data = zp.functions.lde.get_pupil(backend.get_oss())
     zernike_coefficients, raw_result = zernike_standard_coefficients(
@@ -79,8 +81,9 @@ def refraction(
         sampling=SampleSize(sampling),
     )
 
-    if old_pupil_semi_diameter is not None:
-        backend.model.pupil.semi_diameter = old_pupil_semi_diameter
+    # Restore the original pupil diameter
+    if old_pupil_value is not None:
+        backend.update_pupil(old_pupil_value)
 
     return zernike_data_to_refraction(
         zernike_coefficients,

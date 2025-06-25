@@ -10,7 +10,8 @@ from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.models.materials import MaterialModel
 
 if platform.system() == "Windows":
-    from visisipy.opticstudio import OpticStudioBackend, OpticStudioSettings
+    from visisipy.opticstudio import OpticStudioBackend
+    from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS
 
 from visisipy.optiland import OptilandBackend
 from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS
@@ -107,7 +108,9 @@ def opticstudio_backend(opticstudio_connection_mode, request, opticstudio_availa
     if platform.system() != "Windows":
         pytest.skip("Running on a non-Windows platform.")
 
-    OpticStudioBackend.initialize(**OpticStudioSettings(mode=opticstudio_connection_mode))
+    settings = OPTICSTUDIO_DEFAULT_SETTINGS.copy()
+    settings["mode"] = opticstudio_connection_mode
+    OpticStudioBackend.initialize(**settings)
 
     if opticstudio_connection_mode == "extension":
         # Disable UI updates using command line option, making the tests run faster

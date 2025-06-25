@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from os import PathLike
 
     from visisipy import EyeModel
+    from visisipy.types import ApertureType
 
 
 __all__ = (
@@ -67,7 +68,7 @@ OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
 }
 """Default settings for the Optiland backend."""
 
-OPTILAND_APERTURES = {
+OPTILAND_APERTURES: dict[ApertureType, str] = {
     "float_by_stop_size": "float_by_stop_size",
     "entrance_pupil_diameter": "EPD",
     "image_f_number": "imageFNO",
@@ -208,6 +209,10 @@ class OptilandBackend(BaseBackend):
             **kwargs,
         )
 
+        # Update the aperture settings based on the model's pupil size if the aperture type is 'float_by_stop_size'.
+        if cls.get_setting("aperture_type") == "float_by_stop_size":
+            cls.update_settings(aperture_value=model.geometry.pupil.semi_diameter * 2)
+
         cls.model = optiland_eye
         return optiland_eye
 
@@ -259,6 +264,30 @@ class OptilandBackend(BaseBackend):
             raise RuntimeError("No optic object initialized. Please initialize the backend first.")
 
         return cast(Optic, cls.optic)
+
+    @classmethod
+    def get_aperture(cls) -> tuple[ApertureType, float]:
+        """Get the current aperture type and value.
+
+        Returns
+        -------
+        tuple[str, float]
+            A tuple containing the aperture type and value.
+        """
+        optiland_aperture_type = cls.get_optic().aperture.ap_type
+        aperture_value: float = cls.get_optic().aperture.value
+
+        aperture_type = next(
+            (k for k, v in OPTILAND_APERTURES.items() if v == optiland_aperture_type),
+            None,
+        )
+
+        if aperture_type not in OPTILAND_APERTURES:
+            raise ValueError(
+                f"Invalid aperture type '{aperture_type}'. Must be one of {list(OPTILAND_APERTURES.keys())}."
+            )
+
+        return aperture_type, aperture_value
 
     @classmethod
     def set_aperture(cls):
@@ -418,3 +447,19 @@ class OptilandBackend(BaseBackend):
                 optiland.backend.grad_mode.enable()
             elif not torch_use_grad_mode and optiland.backend.grad_mode.requires_grad:
                 optiland.backend.grad_mode.disable()
+
+    @classmethod
+    def update_pupil(cls, new_value: float) -> None:
+        """Update the pupil size in the optical system.
+
+        Parameters
+        ----------
+        new_value : float
+            The new pupil size to be set.
+        """
+        aperture_type = cls.get_optic().aperture.ap_type
+
+        cls.get_optic().set_aperture(
+            aperture_type=aperture_type,
+            value=new_value,
+        )
