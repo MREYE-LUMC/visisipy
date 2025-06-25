@@ -35,6 +35,17 @@ class MockOpticstudioModel:
         return self._pupil
 
 
+@pytest.fixture
+def mock_update_pupil(opticstudio_backend, monkeypatch):
+    monkeypatch.setattr(opticstudio_backend, "aperture_history", [], raising=False)
+
+    @classmethod
+    def update_pupil(cls, pupil_diameter):
+        cls.aperture_history.append(pupil_diameter)
+
+    monkeypatch.setattr(opticstudio_backend, "update_pupil", update_pupil)
+
+
 class TestRefractionAnalysis:
     @pytest.mark.parametrize(
         "field_coordinate,wavelength,sampling,pupil_diameter,field_type,use_higher_order_aberrations",
@@ -76,17 +87,6 @@ class TestRefractionAnalysis:
         )
 
         assert opticstudio_analysis.refraction(**args)
-
-    @pytest.fixture
-    @staticmethod
-    def mock_update_pupil(opticstudio_backend, monkeypatch):
-        monkeypatch.setattr(opticstudio_backend, "aperture_history", [], raising=False)
-
-        @classmethod
-        def update_pupil(cls, pupil_diameter):
-            cls.aperture_history.append(pupil_diameter)
-
-        monkeypatch.setattr(opticstudio_backend, "update_pupil", update_pupil)
 
     @pytest.mark.parametrize(
         "pupil_diameter,change_pupil_diameter",

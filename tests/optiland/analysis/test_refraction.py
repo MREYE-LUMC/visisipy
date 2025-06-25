@@ -44,6 +44,17 @@ def patch_surface(surface: Surface, monkeypatch):
     monkeypatch.setattr(surface, "changed_semi_aperture", False, raising=False)
 
 
+@pytest.fixture
+def mock_update_pupil(optiland_backend, monkeypatch):
+    monkeypatch.setattr(optiland_backend, "aperture_history", [], raising=False)
+
+    @classmethod
+    def update_pupil(cls, pupil_diameter):
+        cls.aperture_history.append(pupil_diameter)
+
+    monkeypatch.setattr(optiland_backend, "update_pupil", update_pupil)
+
+
 class TestRefractionAnalysis:
     @pytest.mark.parametrize(
         "field_coordinate,wavelength,sampling,pupil_diameter,field_type,use_higher_order_aberrations",
@@ -100,17 +111,6 @@ class TestRefractionAnalysis:
         )
 
         assert optiland_analysis.refraction(**args)
-
-    @pytest.fixture
-    @staticmethod
-    def mock_update_pupil(optiland_backend, monkeypatch):
-        monkeypatch.setattr(optiland_backend, "aperture_history", [], raising=False)
-
-        @classmethod
-        def update_pupil(cls, pupil_diameter):
-            cls.aperture_history.append(pupil_diameter)
-
-        monkeypatch.setattr(optiland_backend, "update_pupil", update_pupil)
 
     @pytest.mark.parametrize(
         "pupil_diameter,change_pupil_diameter",
