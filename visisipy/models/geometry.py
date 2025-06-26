@@ -174,8 +174,6 @@ class BiconicSurface(StandardSurface):
 
         This works only if the surface is an ellipsoid (asphericity > -1), otherwise a NotImplementedError is raised.
         A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.
-        The z radius is calculated based on the radius and asphericity in the y-direction. Because not all biconic
-        surfaces are ellipsoids, this value
 
         Returns
         -------
