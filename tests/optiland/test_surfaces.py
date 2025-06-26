@@ -9,6 +9,8 @@ import pytest
 from visisipy.models.geometry import NoSurface, StandardSurface, Stop, Surface
 from visisipy.models.materials import MaterialModel
 from visisipy.optiland.surfaces import (
+    BaseOptilandSurface,
+    OptilandBiconicSurface,
     OptilandNoSurface,
     OptilandSurface,
     _built_only_property,
@@ -109,7 +111,7 @@ class TestBuiltOnlyProperty:
             mock_surface.comment = "New comment"
 
 
-def build_surface(optic: Optic, surface: OptilandSurface) -> int:
+def build_surface(optic: Optic, surface: BaseOptilandSurface) -> int:
     """Build a surface with `surface_settings` to the optic system, between an object and image surface."""
     optic.add_surface(
         index=0,
@@ -228,6 +230,71 @@ class TestOptilandSurface:
 
         with pytest.raises(TypeError, match="'material' must be MaterialModel or str"):
             build_surface(optic, surface)
+
+
+class TestOptilandBiconicSurface:
+    @pytest.mark.parametrize("is_stop", [True, False, None])
+    def test_build(self, optic: Optic, is_stop: bool):
+        surface = OptilandBiconicSurface(
+            comment="Test surface",
+            radius=1.0,
+            radius_x=2.0,
+            thickness=3.0,
+            semi_diameter=4.0,
+            conic=0.5,
+            conic_x=0.3,
+            material="BK7",
+            is_stop=is_stop,
+        )
+
+        assert not surface._is_built
+        assert surface.surface is None
+        assert surface._optic is None
+        assert surface._index is None
+
+        surface_index = build_surface(optic, surface)
+
+        assert surface_index == 1
+        assert surface.surface is not None
+        assert surface._is_built is True
+        assert surface._optic == optic
+        assert surface._index == 1
+
+        assert surface.comment == "Test surface"
+        assert surface.radius == 1.0
+        assert surface.radius_x == 2.0
+        assert surface.thickness == 3.0
+        assert surface.semi_diameter == 4.0
+        assert surface.conic == 0.5
+        assert surface.conic_x == 0.3
+        assert surface.material == "BK7"
+        assert surface.is_stop == bool(is_stop)
+
+    def test_set_biconic_radii(self, optic: Optic):
+        surface = OptilandBiconicSurface(
+            comment="Test surface",
+            radius=1.0,
+            radius_x=2.0,
+        )
+        build_surface(optic, surface)
+
+        assert surface.radius == 1.0
+        assert surface.surface.geometry.Ry == 1.0
+        assert surface.radius_x == 2.0
+        assert surface.surface.geometry.Rx == 2.0
+
+    def test_set_biconic_conics(self, optic: Optic):
+        surface = OptilandBiconicSurface(
+            comment="Test surface",
+            conic=0.5,
+            conic_x=0.3,
+        )
+        build_surface(optic, surface)
+
+        assert surface.conic == 0.5
+        assert surface.surface.geometry.ky == 0.5
+        assert surface.conic_x == 0.3
+        assert surface.surface.geometry.kx == 0.3
 
 
 class TestNoSurface:

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pytest
 
 from visisipy.models import EyeGeometry, NavarroGeometry, create_geometry
-from visisipy.models.geometry import GeometryParameters, StandardSurface, Stop
+from visisipy.models.geometry import BiconicSurface, GeometryParameters, StandardSurface, Stop
 
 
 @pytest.fixture
@@ -101,6 +103,46 @@ class TestStop:
 
         assert stop.is_stop
         assert stop.semi_diameter > 0
+
+
+class TestBiconicSurface:
+    @pytest.mark.parametrize(
+        "radius_y,asphericity_y,radius_x,asphericity_x,z_radius,y_radius,x_radius",
+        [
+            (12, 0, 12, 0, 12, 12, 12),  # Sphere
+            (12, 1, 12, 1, 6, 12 / np.sqrt(2), 12 / np.sqrt(2)),  # Rotationally symmetric ellipsoid
+            (144 / 14, 144 / 196 - 1, 100 / 14, 100 / 196 - 1, 14, 12, 10),  # Astigmatic ellipsoid
+        ],
+    )
+    def test_ellipsoid_radii(self, radius_y, asphericity_y, radius_x, asphericity_x, z_radius, y_radius, x_radius):
+        surface = BiconicSurface(
+            radius=radius_y, asphericity=asphericity_y, radius_x=radius_x, asphericity_x=asphericity_x
+        )
+
+        assert surface.ellipsoid_radii == pytest.approx((z_radius, y_radius, x_radius))
+        assert surface.ellipsoid_radii.z == pytest.approx(z_radius)
+        assert surface.ellipsoid_radii.y == pytest.approx(y_radius)
+        assert surface.ellipsoid_radii.x == pytest.approx(x_radius)
+
+    @pytest.mark.parametrize(
+        "parameter,value", [("asphericity", -1), ("asphericity_x", -1), ("asphericity", -1.5), ("asphericity_x", -1.5)]
+    )
+    def test_non_ellipsoid_asphericity_raises_notimplementederror(self, parameter, value):
+        surface = BiconicSurface(radius=12, radius_x=12, **{parameter: value})
+
+        with pytest.raises(
+            NotImplementedError, match=re.escape("Half axes are only defined for ellipsoids (asphericity > -1)")
+        ):
+            _ = surface.ellipsoid_radii
+
+    def test_non_ellipsoid_raises_notimplementederror(self):
+        surface = BiconicSurface(radius=13, asphericity=1, radius_x=12, asphericity_x=0)
+
+        with pytest.raises(
+            NotImplementedError,
+            match=re.escape("Half axes are only defined for ellipsoids. This biconic surface is not an ellipsoid"),
+        ):
+            _ = surface.ellipsoid_radii
 
 
 class TestEyeGeometry:
