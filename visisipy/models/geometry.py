@@ -70,7 +70,7 @@ class StandardSurface(Surface):
 
     Methods
     -------
-    half_axes(self) -> tuple[float, float]:
+    ellipsoid_radii(self) -> tuple[float, float]:
         Calculates and returns the half axes of the surface.
     """
 
