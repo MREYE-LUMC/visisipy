@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from visisipy.optiland.backend import OptilandBackend
     from visisipy.types import FieldType
 
+__all__ = ("set_field", "set_wavelength")
+
 
 def set_wavelength(
     backend: type[OptilandBackend],

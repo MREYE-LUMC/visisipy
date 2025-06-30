@@ -27,7 +27,7 @@ checker happy, it is not a valid backend value and is only intended for internal
 """
 
 
-def _validate_analysis_signature(function: Callable[..., tuple[Any, Any]]) -> None:
+def _validate_analysis_signature(function: Callable[..., Any | tuple[Any, Any]]) -> None:
     """Validate the signature of an analysis function.
 
     The first parameter must be 'model' with type 'EyeModel | None'. The last parameter must be 'return_raw_result'
@@ -99,7 +99,7 @@ T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 
 
-def analysis(function: Callable[..., tuple[T1, T2]]) -> Callable:
+def analysis(function: Callable[..., T1 | tuple[T1, T2]]) -> Callable:
     """Decorator for analysis functions.
 
     This decorator is used to mark a function as an analysis function. Analysis functions are used to perform various

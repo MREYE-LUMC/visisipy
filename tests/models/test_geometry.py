@@ -248,7 +248,7 @@ class TestCreateGeometry:
             {"retina_ellipsoid_z_radius": 12, "retina_ellipsoid_y_radius": 12},
         ],
     )
-    def test_supplying_retina_parameters_and_half_axes_raises_valueerror(
+    def test_supplying_retina_parameters_and_ellipsoid_radii_raises_valueerror(
         self, base_geometry, parameters_a, parameters_b
     ):
         parameters = parameters_a | parameters_b
@@ -263,7 +263,7 @@ class TestCreateGeometry:
             {"retina_ellipsoid_y_radius": 12},
         ],
     )
-    def test_supplying_single_half_axis_raises_valueerror(self, base_geometry, parameters):
+    def test_supplying_single_ellipsoid_radius_raises_valueerror(self, base_geometry, parameters):
         with pytest.raises(
             ValueError,
             match="If the retina ellipsoid radii are specified, both the z and y radius must be provided",
