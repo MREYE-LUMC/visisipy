@@ -29,14 +29,16 @@ def _trace_single_ray(
     z = optic.surface_group.z
     surface_numbers = range(optic.surface_group.num_surfaces)
 
-    return pd.DataFrame({
-        "wavelength": [wavelength] * len(x),
-        "surface": surface_numbers,
-        "comment": [s.comment for s in optic.surface_group.surfaces],
-        "x": x[:, 0],
-        "y": y[:, 0],
-        "z": z[:, 0],
-    })
+    return pd.DataFrame(
+        {
+            "wavelength": [wavelength] * len(x),
+            "surface": surface_numbers,
+            "comment": [s.comment for s in optic.surface_group.surfaces],
+            "x": x[:, 0],
+            "y": y[:, 0],
+            "z": z[:, 0],
+        }
+    )
 
 
 def raytrace(
