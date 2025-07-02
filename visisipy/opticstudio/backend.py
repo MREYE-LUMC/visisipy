@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from zospy.zpcore import ZOS
 
     from visisipy import EyeModel
-    from visisipy.types import FieldCoordinate, NotRequired, Unpack
+    from visisipy.types import ApertureType, FieldCoordinate, NotRequired, Unpack
 
 
 __all__ = ("OpticStudioBackend", "OpticStudioSettings")
@@ -205,6 +205,10 @@ class OpticStudioBackend(BaseBackend):
             **kwargs,
         )
 
+        # Update the aperture settings based on the model's pupil size if the aperture type is 'float_by_stop_size'.
+        if cls.get_setting("aperture_type") == "float_by_stop_size":
+            cls.update_settings(aperture_value=model.geometry.pupil.semi_diameter * 2)
+
         cls.model = opticstudio_eye
 
         return opticstudio_eye
@@ -270,14 +274,55 @@ class OpticStudioBackend(BaseBackend):
         return cast(OpticStudioSystem, cls.oss)
 
     @classmethod
+    def get_aperture(cls) -> tuple[ApertureType, float]:
+        """Get the current aperture type and value of the optical system.
+
+        This method retrieves the current aperture type and value from the optical system.
+        If the aperture type is `float_by_stop_size`, the diameter of the stop surface is returned as the aperture value.
+        Note that the diameter, and not the semi-diameter, is returned, to be consistent with the other aperture types.
+        For other aperture types, the aperture value is returned directly from the `SystemData`.
+
+        Returns
+        -------
+        zp.constants.SystemData.ZemaxApertureType
+            The current aperture type.
+        """
+        aperture_type: ApertureType
+
+        if cls.get_oss().SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.FloatByStopSize:
+            aperture_type = "float_by_stop_size"
+        elif (
+            cls.get_oss().SystemData.Aperture.ApertureType
+            == zp.constants.SystemData.ZemaxApertureType.EntrancePupilDiameter
+        ):
+            aperture_type = "entrance_pupil_diameter"
+        elif cls.get_oss().SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.ImageSpaceFNum:
+            aperture_type = "image_f_number"
+        elif cls.get_oss().SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.ObjectSpaceNA:
+            aperture_type = "object_numeric_aperture"
+
+        if aperture_type == "float_by_stop_size":
+            aperture_value = cls.get_oss().LDE.GetSurfaceAt(cls.get_oss().LDE.StopSurface).SemiDiameter * 2
+        else:
+            aperture_value = cls.get_oss().SystemData.Aperture.ApertureValue
+
+        return aperture_type, aperture_value
+
+    @classmethod
     def _set_aperture_value(cls) -> None:
         if cls.settings.get("aperture_value") is not None:
-            cls.get_oss().SystemData.Aperture.ApertureValue = cls.get_setting("aperture_value")
+            if cls.get_setting("aperture_type") == "float_by_stop_size":
+                cls.get_oss().LDE.GetSurfaceAt(cls.get_oss().LDE.StopSurface).SemiDiameter = (
+                    cls.get_setting("aperture_value") / 2
+                )
+            else:
+                cls.get_oss().SystemData.Aperture.ApertureValue = cls.get_setting("aperture_value")
 
     @classmethod
     def set_aperture(cls):
         if cls.get_setting("aperture_type") == "float_by_stop_size":
             cls.get_oss().SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
+            cls._set_aperture_value()
         elif cls.get_setting("aperture_type") == "entrance_pupil_diameter":
             cls.get_oss().SystemData.Aperture.ApertureType = (
                 zp.constants.SystemData.ZemaxApertureType.EntrancePupilDiameter
@@ -439,3 +484,24 @@ class OpticStudioBackend(BaseBackend):
         """Iterate over the wavelengths in the optical system."""
         for i in range(cls.get_oss().SystemData.Wavelengths.NumberOfWavelengths):
             yield i + 1, cls.get_oss().SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
+
+    @classmethod
+    def update_pupil(cls, new_value: float) -> None:
+        """Update the pupil size in the optical system.
+
+        This method updates the pupil size in the optical system to the new value provided.
+        Which value is updated depends on the aperture type set in the optical system.
+        For `float_by_stop_size`, the semi-diameter of the stop surface is updated; `new_value`
+        is interpreted as the pupil diameter. For other aperture types, the aperture value in
+        `SystemData` is updated.
+
+        Parameters
+        ----------
+        new_value : float
+            The new pupil size to be set.
+        """
+        if cls.get_oss().SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.FloatByStopSize:
+            stop_surface = cls.get_oss().LDE.StopSurface
+            cls.get_oss().LDE.GetSurfaceAt(stop_surface).SemiDiameter = new_value / 2
+        else:
+            cls.get_oss().SystemData.Aperture.ApertureValue = new_value

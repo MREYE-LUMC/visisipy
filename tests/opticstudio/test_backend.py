@@ -45,6 +45,28 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.model.eye_model == model
         assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 7
 
+    @pytest.mark.parametrize(
+        "aperture_type", ["entrance_pupil_diameter", "float_by_stop_size", "image_f_number", "object_numeric_aperture"]
+    )
+    def test_build_model_updates_aperture_value(self, opticstudio_backend, aperture_type):
+        model = EyeModel()
+
+        # Ensure the aperture value is different from the eye model pupil diameter
+        aperture_value = model.geometry.pupil.semi_diameter * 2 + 1
+        opticstudio_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)
+        opticstudio_backend.build_model(model)
+
+        if aperture_type == "float_by_stop_size":
+            # For float by stop size, the value is interpreted as the semi-diameter
+            assert opticstudio_backend.get_setting("aperture_value") == model.geometry.pupil.semi_diameter * 2
+            assert opticstudio_backend.get_oss().LDE.GetSurfaceAt(3).SemiDiameter == model.geometry.pupil.semi_diameter
+            assert opticstudio_backend.get_aperture() == ("float_by_stop_size", model.geometry.pupil.semi_diameter * 2)
+        else:
+            # For other aperture types, the value is interpreted as the aperture value
+            assert opticstudio_backend.get_setting("aperture_value") == aperture_value
+            assert opticstudio_backend.get_oss().SystemData.Aperture.ApertureValue == aperture_value
+            assert opticstudio_backend.get_aperture() == (aperture_type, aperture_value)
+
     def test_clear_model(self, opticstudio_backend):
         model = EyeModel()
 
@@ -83,6 +105,20 @@ class TestOpticStudioBackend:
 
         assert opticstudio_backend.zos is None
         assert opticstudio_backend.oss is None
+
+    @pytest.mark.parametrize(
+        "aperture_type,aperture_value",
+        [
+            ("entrance_pupil_diameter", 3.0),
+            ("float_by_stop_size", 1.4),
+            ("image_f_number", 1.0),
+            ("object_numeric_aperture", 0.1),
+        ],
+    )
+    def test_get_aperture(self, opticstudio_backend, aperture_type, aperture_value):
+        opticstudio_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)
+
+        assert opticstudio_backend.get_aperture() == (aperture_type, aperture_value)
 
     @pytest.mark.parametrize(
         "coordinates,field_type,field_constant,expectation",
@@ -166,6 +202,36 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.get_wavelength_number(0.543) == 1
         assert opticstudio_backend.get_wavelength_number(0.650) == 2
         assert opticstudio_backend.get_wavelength_number(1.234) is None
+
+    @pytest.mark.parametrize(
+        "aperture_type,new_aperture_value",
+        [
+            ("entrance_pupil_diameter", 2.5),
+            ("float_by_stop_size", 10.0),
+            ("image_f_number", 2.0),
+            ("object_numeric_aperture", 0.2),
+        ],
+    )
+    def test_update_pupil(self, opticstudio_backend, aperture_type, new_aperture_value):
+        opticstudio_backend.update_settings(
+            aperture_type=aperture_type,
+            aperture_value=1,
+        )
+
+        opticstudio_backend.update_pupil(new_aperture_value)
+
+        assert opticstudio_backend.get_aperture() == (aperture_type, new_aperture_value)
+
+        if aperture_type == "float_by_stop_size":
+            # For float by stop size, the value is interpreted as the semi-diameter
+            assert (
+                opticstudio_backend.get_oss()
+                .LDE.GetSurfaceAt(opticstudio_backend.get_oss().LDE.StopSurface)
+                .SemiDiameter
+                == new_aperture_value / 2
+            )
+        else:
+            assert opticstudio_backend.get_oss().SystemData.Aperture.ApertureValue == new_aperture_value
 
 
 class TestOpticStudioBackendSettings:
