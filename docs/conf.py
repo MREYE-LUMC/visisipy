@@ -107,6 +107,7 @@ else:
 if os.getenv("READTHEDOCS"):
     # Do not build notebooks that depend on OpticStudio
     execution_excludepatterns = [
+        "*examples/Direct modification of the optical system in OpticStudio/*",
         "*examples/Patient-specific mapping of fundus photographs to three-dimensional ocular imaging/*",
         "*examples/Backend comparison/*",
     ]
