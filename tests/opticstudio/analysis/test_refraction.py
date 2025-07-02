@@ -13,8 +13,8 @@ pytestmark = [pytest.mark.needs_opticstudio]
 
 class MockPupil:
     def __init__(self):
-        self.semi_diameter = 1.0
-        self.changed_semi_diameter = False
+        self.semi_diameter_history = []
+        self.semi_diameter = 0.5
 
     @property
     def semi_diameter(self):
@@ -22,7 +22,7 @@ class MockPupil:
 
     @semi_diameter.setter
     def semi_diameter(self, value):
-        self.changed_semi_diameter = True
+        self.semi_diameter_history.append(value)
         self._semi_diameter = value
 
 
@@ -33,6 +33,17 @@ class MockOpticstudioModel:
     @property
     def pupil(self):
         return self._pupil
+
+
+@pytest.fixture
+def mock_update_pupil(opticstudio_backend, monkeypatch):
+    monkeypatch.setattr(opticstudio_backend, "aperture_history", [], raising=False)
+
+    @classmethod
+    def update_pupil(cls, pupil_diameter):
+        cls.aperture_history.append(pupil_diameter)
+
+    monkeypatch.setattr(opticstudio_backend, "update_pupil", update_pupil)
 
 
 class TestRefractionAnalysis:
@@ -64,7 +75,6 @@ class TestRefractionAnalysis:
         opticstudio_backend.build_model(
             EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
         )
-        # monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -79,18 +89,43 @@ class TestRefractionAnalysis:
         assert opticstudio_analysis.refraction(**args)
 
     @pytest.mark.parametrize(
-        "pupil_diameter,changed_pupil_diameter",
+        "pupil_diameter,change_pupil_diameter",
         [
             (None, False),
-            (0.5, True),
+            (1.234, True),
         ],
     )
-    def test_refraction_change_pupil(self, opticstudio_analysis, pupil_diameter, changed_pupil_diameter, monkeypatch):
-        monkeypatch.setattr(opticstudio_analysis.backend, "model", MockOpticstudioModel())
+    def test_change_pupil(
+        self, opticstudio_backend, mock_update_pupil, opticstudio_analysis, pupil_diameter, change_pupil_diameter
+    ):
+        opticstudio_backend.update_settings(aperture_type="float_by_stop_size", aperture_value=1.0)
 
-        assert not opticstudio_analysis.backend.model.pupil.changed_semi_diameter
+        assert opticstudio_backend.aperture_history == []
 
         opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)
 
-        assert opticstudio_analysis.backend.model.pupil.changed_semi_diameter == changed_pupil_diameter
-        assert opticstudio_analysis.backend.model.pupil.semi_diameter == 1.0
+        if change_pupil_diameter:
+            assert opticstudio_backend.aperture_history == [pupil_diameter, 1.0]
+        else:
+            assert opticstudio_backend.aperture_history == []
+
+    @pytest.mark.parametrize(
+        "aperture_type,pupil_diameter",
+        [
+            ("entrance_pupil_diameter", 1.0),
+            ("image_f_number", 2.0),
+            ("object_numeric_aperture", 0.1),
+        ],
+    )
+    def test_change_pupil_warns_aperture(
+        self, pupil_diameter, aperture_type, opticstudio_backend, opticstudio_analysis
+    ):
+        opticstudio_backend.build_model(
+            EyeModel(), object_distance=10 if aperture_type == "object_numeric_aperture" else float("inf")
+        )
+        opticstudio_backend.update_settings(aperture_type=aperture_type)
+
+        with pytest.warns(
+            UserWarning, match="When updating the pupil size for aperture types other than 'float_by_stop_size'"
+        ):
+            opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)

@@ -76,7 +76,7 @@ class StandardSurface(Surface):
     Methods
     -------
     ellipsoid_radii(self) -> tuple[float, float, float]:
-        Calculates and returns the ellipsoid x, y and z radii of the surface.
+        Calculates and returns the ellipsoid x, y and z radii (semi-axes) of the surface.
     """
 
     radius: float = float("inf")
@@ -112,7 +112,7 @@ class StandardSurface(Surface):
             )
 
         raise NotImplementedError(
-            f"Half axes are only defined for ellipsoids (asphericity > -1), got {self.asphericity=}"
+            f"Ellipsoid radii are only defined for ellipsoids (asphericity > -1), got {self.asphericity=}"
         )
 
 
@@ -604,7 +604,7 @@ def create_geometry(
     All parameters are optional, and if not provided, the default values will be used.
     Sizes are specified in mm. If `estimate_cornea_back` is True, the back cornea radius will be estimated from the
     front cornea radius as `cornea_back_radius = 0.81 * cornea_front_radius`.
-    The retina can be specified either by its radius and asphericity or by its axial and radial half axes. If both
+    The retina can be specified either by its radius and asphericity or by its y and z ellipsoid radii. If both
     methods are specified, a ValueError will be raised.
 
     Parameters
@@ -660,8 +660,8 @@ def create_geometry(
     ------
     ValueError
         If the base geometry is not a class or if it is not a subclass of EyeGeometry.
-        If the retina radius/asphericity and axial/radial half axes are both specified.
-        If only one of the retina half axes is specified.
+        If the retina radius/asphericity and y/z ellipsoid radii are both specified.
+        If only one of the retina ellipsoid radii is specified.
         If the sum of the cornea thickness, anterior chamber depth and lens thickness is greater than or equal to the
         axial length.
     """

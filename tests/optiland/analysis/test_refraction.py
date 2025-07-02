@@ -44,6 +44,17 @@ def patch_surface(surface: Surface, monkeypatch):
     monkeypatch.setattr(surface, "changed_semi_aperture", False, raising=False)
 
 
+@pytest.fixture
+def mock_update_pupil(optiland_backend, monkeypatch):
+    monkeypatch.setattr(optiland_backend, "aperture_history", [], raising=False)
+
+    @classmethod
+    def update_pupil(cls, pupil_diameter):
+        cls.aperture_history.append(pupil_diameter)
+
+    monkeypatch.setattr(optiland_backend, "update_pupil", update_pupil)
+
+
 class TestRefractionAnalysis:
     @pytest.mark.parametrize(
         "field_coordinate,wavelength,sampling,pupil_diameter,field_type,use_higher_order_aberrations",
@@ -102,30 +113,45 @@ class TestRefractionAnalysis:
         assert optiland_analysis.refraction(**args)
 
     @pytest.mark.parametrize(
-        "pupil_diameter,changed_pupil_diameter",
+        "pupil_diameter,change_pupil_diameter",
         [
             (None, False),
-            (0.5, True),
+            (1.234, True),
         ],
     )
-    def test_refraction_change_pupil(
+    def test_change_pupil(
         self,
         pupil_diameter,
-        changed_pupil_diameter,
+        change_pupil_diameter,
         optiland_backend,
+        mock_update_pupil,
         optiland_analysis,
     ):
         optiland_backend.build_model(EyeModel())
+        optiland_backend.update_settings(aperture_type="float_by_stop_size", aperture_value=1.0)
 
-        # Manually set the aperture to a sentinel value
-        new_semi_aperture = object()
-        optiland_analysis.backend.model.pupil.surface.set_semi_aperture(new_semi_aperture)
-
-        assert optiland_analysis.backend.model.pupil.surface.semi_aperture is new_semi_aperture
+        assert optiland_backend.aperture_history == []
 
         optiland_analysis.refraction(pupil_diameter=pupil_diameter)
 
-        if changed_pupil_diameter:
-            assert optiland_analysis.backend.model.pupil.surface.semi_aperture == pupil_diameter / 2
+        if change_pupil_diameter:
+            assert optiland_backend.aperture_history == [pupil_diameter, 1.0]
         else:
-            assert optiland_analysis.backend.model.pupil.surface.semi_aperture is new_semi_aperture
+            assert optiland_backend.aperture_history == []
+
+    @pytest.mark.parametrize(
+        "aperture_type,pupil_diameter",
+        [
+            ("entrance_pupil_diameter", 1.0),
+            ("image_f_number", 2.0),
+            ("object_numeric_aperture", 1e-10),
+        ],
+    )
+    def test_change_pupil_warns_aperture(self, pupil_diameter, aperture_type, optiland_backend, optiland_analysis):
+        optiland_backend.build_model(EyeModel())
+        optiland_backend.update_settings(aperture_type=aperture_type)
+
+        with pytest.warns(
+            UserWarning, match="When updating the pupil size for aperture types other than 'float_by_stop_size'"
+        ):
+            optiland_analysis.refraction(pupil_diameter=pupil_diameter)
