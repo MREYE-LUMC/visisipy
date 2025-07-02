@@ -88,6 +88,9 @@ class TestStandardSurface:
         assert surface.ellipsoid_radii.z == pytest.approx(z_radius)
         assert surface.ellipsoid_radii.y == pytest.approx(y_radius)
         assert surface.ellipsoid_radii.x == pytest.approx(y_radius)
+        assert surface.ellipsoid_radii.anterior_posterior == pytest.approx(z_radius)
+        assert surface.ellipsoid_radii.inferior_superior == pytest.approx(y_radius)
+        assert surface.ellipsoid_radii.left_right == pytest.approx(y_radius)
 
     @pytest.mark.parametrize("asphericity", [-1, -1.5])
     def test_ellipsoid_radii_raises_notimplementederror(self, asphericity):

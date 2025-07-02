@@ -44,6 +44,26 @@ class _EllipsoidRadii(NamedTuple):
     y: float
     x: float
 
+    @property
+    def anterior_posterior(self) -> float:
+        """Anterior-posterior radius of the ellipsoid."""
+        return self.z
+
+    @property
+    def inferior_superior(self) -> float:
+        """Inferior-superior radius of the ellipsoid."""
+        return self.y
+
+    @property
+    def left_right(self) -> float:
+        """Left-right radius of the ellipsoid.
+
+        This is the left-right direction as seen from the anatomical position. For the left eye,
+        this corresponds to the temporal-nasal direction, while for the right eye, it corresponds to
+        the nasal-temporal direction.
+        """
+        return self.x
+
 
 @dataclass
 class StandardSurface(Surface):
@@ -91,6 +111,11 @@ class StandardSurface(Surface):
 
         This works only if the surface is an ellipsoid (asphericity > -1), otherwise a NotImplementedError is raised.
         A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.
+        These axes correspond to the following anatomical directions:
+
+        - z: anterior-posterior
+        - y: inferior-superior
+        - x: left-right
 
         Returns
         -------
@@ -140,18 +165,20 @@ class BiconicSurface(StandardSurface):
     """Standard biconic surface.
 
     Inherits from the `StandardSurface` class and represents a surface with different radii of curvature and
-    asphericities in the x and y directions. This is useful for modeling astigmatic surfaces.
+    asphericities in the x (left-right) and y (inferior-superior) directions. This is useful for modeling astigmatic surfaces.
+    For the left eye, the x (left-right) direction corresponds to the temporal-nasal direction, while for the right eye,
+    it corresponds to the nasal-temporal direction.
 
     Attributes
     ----------
     radius : float
-        The radius of the surface in the y-direction. Default is infinity.
+        The radius of the surface in the y (inferior-superior) direction. Default is infinity.
     radius_x : float
-        The radius of the surface in the x-direction. Default is infinity.
+        The radius of the surface in the x (left-right) direction. Default is infinity.
     asphericity : float
-        The asphericity of the surface in the y-direction. Default is 0.
+        The asphericity of the surface in the y (inferior-superior) direction. Default is 0.
     asphericity_x : float
-        The asphericity of the surface in the x-direction. Default is 0.
+        The asphericity of the surface in the x (left-right) direction. Default is 0.
     thickness : float
         The thickness of the surface. Default is 0.
     semi_diameter : float | None
@@ -174,6 +201,11 @@ class BiconicSurface(StandardSurface):
 
         This works only if the surface is an ellipsoid (asphericity > -1), otherwise a NotImplementedError is raised.
         A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.
+        These axes correspond to the following anatomical directions:
+
+        - z: anterior-posterior
+        - y: inferior-superior
+        - x: left-right
 
         Returns
         -------
