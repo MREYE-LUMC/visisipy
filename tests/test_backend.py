@@ -176,3 +176,10 @@ class TestGetSetting:
 
         with pytest.raises(KeyError, match="Setting 'undefined_setting' does not exist"):
             backend.BaseBackend.get_setting("undefined_setting")
+
+
+def test_default_backend():
+    if platform.system() == "Windows":
+        assert backend._DEFAULT_BACKEND == backend.Backend.OPTICSTUDIO
+    else:
+        assert backend._DEFAULT_BACKEND == backend.Backend.OPTILAND

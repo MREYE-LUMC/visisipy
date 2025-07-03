@@ -63,7 +63,9 @@ __all__ = (
 
 
 _BACKEND: type[BaseBackend] | None = None
-_DEFAULT_BACKEND: Backend | Literal["opticstudio", "optiland"] = "opticstudio"
+_DEFAULT_BACKEND: Backend | Literal["opticstudio", "optiland"] = (
+    "opticstudio" if platform.system() == "Windows" else "optiland"
+)
 
 
 _Analysis = TypeVar("_Analysis", bound=Callable)
