@@ -12,6 +12,7 @@ import zospy as zp
 from visisipy.models import BaseSurface
 from visisipy.models import NoSurface as OpticStudioNoSurface
 from visisipy.models.geometry import (
+    BiconicSurface,
     NoSurface,
     StandardSurface,
     Stop,
@@ -265,6 +266,96 @@ class OpticStudioSurface(BaseSurface):
                 return True
 
         return False
+
+
+class OpticStudioBiconicSurface(OpticStudioSurface):
+    """Biconic surface in OpticStudio."""
+
+    _TYPE: str = "Biconic"
+
+    def __init__(
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        radius_x: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        conic_x: float = 0.0,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+    ):
+        """Create a new biconic OpticStudio surface.
+
+        Parameters
+        ----------
+        comment : str
+            Comment for the surface.
+        radius : float
+            Radius of curvature in the Y direction of the surface, in mm. Defaults to infinity (flat surface).
+        radius_x : float
+            Radius of curvature in the X direction of the surface, in mm. Defaults to infinity (flat surface).
+        thickness : float
+            Thickness of the surface, in mm. Defaults to 0.0 mm.
+        semi_diameter : float, optional
+            Semi-diameter of the surface aperture, in mm. Defaults to `None`, which means the semi-diameter will be
+            determined by OpticStudio.
+        conic : float
+            Conic constant of the surface in the Y direction. Defaults to 0.0 (spherical surface).
+        conic_x : float
+            Conic constant of the surface in the X direction. Defaults to 0.0 (spherical surface).
+        material : MaterialModel | str, optional
+            Material of the surface. This can be either a string representing the name of the material or a
+            MaterialModel instance. Defaults to `None`, which means no material is set.
+        is_stop : bool, optional
+            If `True`, the surface is treated as a stop. Defaults to `None`, which means the stop status will be
+            determined by OpticStudio. Note that setting the `IsStop` property in OpticStudio will always convert the
+            surface to a stop, regardless of the value. When set to `False`, this parameter will be ignored.
+        """
+        self._comment = comment
+        self._radius = radius
+        self._radius_x = radius_x
+        self._thickness = thickness
+        self._semi_diameter = semi_diameter
+        self._conic = conic
+        self._conic_x = conic_x
+        self._material = material
+        self._is_stop = is_stop
+
+        self._surface = None
+        self._is_built = False
+
+    radius_x: float = OpticStudioSurfaceDataProperty("XRadius")
+    conic_x: float = OpticStudioSurfaceDataProperty("XConic")
+
+    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
+        """Create the surface in OpticStudio.
+
+        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
+        is set to `True`.
+
+        Parameters
+        ----------
+        oss : zospy.zpcore.OpticStudioSystem
+            OpticStudio system in which the surface is created.
+        position : int
+            Index at which the surface is located, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be added after this index.
+        """
+        surface_index = super().build(oss, position=position, replace_existing=replace_existing)
+
+        self.radius_x = self._radius_x
+        self.conic_x = self._conic_x
+
+        return surface_index
 
 
 class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
@@ -587,6 +678,24 @@ def _make_surface(
         material=material,
         semi_diameter=surface.semi_diameter,
         is_stop=True,
+    )
+
+
+@make_surface.register
+def _make_surface(
+    surface: BiconicSurface,
+    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    comment: str = "",
+) -> OpticStudioBiconicSurface:
+    return OpticStudioBiconicSurface(
+        comment=comment,
+        radius=surface.radius,
+        radius_x=surface.radius_x,
+        thickness=surface.thickness,
+        semi_diameter=surface.semi_diameter,
+        conic=surface.asphericity,
+        conic_x=surface.asphericity_x,
+        material=material,
     )
 
 

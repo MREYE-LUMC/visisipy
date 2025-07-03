@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import weakref
+from abc import ABC, abstractmethod
 from functools import reduce, singledispatch
 from operator import attrgetter
-from typing import TYPE_CHECKING, Generic, TypeVar, Union
+from typing import TYPE_CHECKING, Generic, TypeVar, Union, overload
 
-import optiland.materials
 from optiland.materials import AbbeMaterial, IdealMaterial, Material
 
 from visisipy.models import BaseSurface
 from visisipy.models import NoSurface as OptilandNoSurface
 from visisipy.models.geometry import (
+    BiconicSurface,
     NoSurface,
     StandardSurface,
     Stop,
@@ -21,10 +22,13 @@ from visisipy.models.geometry import (
     ZernikeStandardSagSurface,
 )
 from visisipy.models.materials import MaterialModel
+from visisipy.types import TypedDict
 
 if TYPE_CHECKING:
     import optiland.surfaces
     from optiland.optic import Optic
+
+    from visisipy.types import NotRequired, Unpack
 
 
 PropertyType = TypeVar("PropertyType")
@@ -79,58 +83,43 @@ class _built_only_property(property):  # noqa: N801
         super().__set__(obj, value)
 
 
-class OptilandSurface(BaseSurface):
-    """Sequential surface in Optiland.
+class OptilandCommonSurfaceParameters(TypedDict):
+    """Optiland common surface parameters."""
 
-    Note that, unlike OpticStudio surfaces, it is not possible to update surfaces after they have been built.
-    """
+    comment: str
+    thickness: NotRequired[float]
+    material: NotRequired[IdealMaterial | AbbeMaterial | str]
+    semi_diameter: float | None
+    is_stop: bool
 
-    _TYPE: str = "Standard"
 
-    def __init__(
-        self,
-        comment: str,
-        *,
-        radius: float = float("inf"),
-        thickness: float = 0.0,
-        semi_diameter: float | None = None,
-        conic: float = 0.0,
-        material: MaterialModel | str | None = None,
-        is_stop: bool | None = None,
-    ):
-        """Create a new Optiland surface.
+class OptilandStandardSurfaceParameters(OptilandCommonSurfaceParameters):
+    """Optiland standard surface parameters."""
 
-        Parameters
-        ----------
-        comment : str
-            Comment for the surface.
-        radius : float
-            Radius of curvature of the surface, in mm. Defaults to infinity (flat surface).
-        thickness : float
-            Thickness of the surface, in mm. Defaults to 0.0 mm.
-        semi_diameter : float, optional
-            Semi-diameter of the surface aperture, in mm. Defaults to `None`, which means the semi-diameter will be
-            determined by Optiland.
-        conic : float
-            Conic constant of the surface. Defaults to 0.0 (spherical surface).
-        material : MaterialModel | str, optional
-            Material of the surface. This can be either a string representing the name of the material or a
-            MaterialModel instance. Defaults to `None`, which means the material is assumed to be air.
-        is_stop : bool, optional
-            If `True`, the surface is treated as a stop.
-        """
-        self._comment = comment
-        self._radius = radius
-        self._thickness = thickness
-        self._semi_diameter = semi_diameter
-        self._conic = conic
-        self._material = material
-        self._is_stop = is_stop
+    radius: NotRequired[float]
+    conic: NotRequired[float]
 
+
+class OptilandBiconicSurfaceParameters(OptilandCommonSurfaceParameters):
+    """Optiland biconic surface parameters."""
+
+    radius_y: NotRequired[float]
+    radius_x: NotRequired[float]
+    conic_y: NotRequired[float]
+    conic_x: NotRequired[float]
+
+
+class BaseOptilandSurface(BaseSurface, ABC):
+    def __init__(self):
+        """Initialize the base Optiland surface."""
         self._surface: optiland.surfaces.Surface | None = None
         self._optic: Optic | None = None
         self._index: int | None = None
         self._is_built: bool = False
+
+    @property
+    @abstractmethod
+    def _TYPE(self) -> str: ...  # noqa: N802
 
     @property
     def surface(self) -> optiland.surfaces.Surface | None:
@@ -151,9 +140,14 @@ class OptilandSurface(BaseSurface):
         self.surface.comment = value  # type: ignore
 
     @_built_only_property
-    def radius(self) -> float:
-        """Radius of the surface."""
-        return self._optic.surface_group.radii[self._index]  # type: ignore
+    def material(self) -> MaterialModel | str | None:
+        """Material of the surface."""
+        return self._get_material()
+
+    @_built_only_property
+    def is_stop(self) -> bool:
+        """Flag indicating if the surface is a stop."""
+        return self.surface.is_stop  # type: ignore
 
     @_built_only_property
     def thickness(self) -> float:
@@ -168,21 +162,6 @@ class OptilandSurface(BaseSurface):
     def semi_diameter(self) -> float | None:
         """Semi-diameter of the surface."""
         return self.surface.semi_aperture  # type: ignore
-
-    @_built_only_property
-    def conic(self) -> float:
-        """Conic constant of the surface."""
-        return self._optic.surface_group.conic[self._index]  # type: ignore
-
-    @_built_only_property
-    def material(self) -> MaterialModel | str | None:
-        """Material of the surface."""
-        return self._get_material()
-
-    @_built_only_property
-    def is_stop(self) -> bool:
-        """Flag indicating if the surface is a stop."""
-        return self.surface.is_stop  # type: ignore
 
     def _get_material(self) -> MaterialModel | str | None:
         """Get the material of the surface."""
@@ -228,6 +207,132 @@ class OptilandSurface(BaseSurface):
 
         raise TypeError("'material' must be MaterialModel or str.")
 
+    @overload
+    def _create_surface(
+        self,
+        optic: Optic,
+        *,
+        position: int,
+        replace_existing: bool = False,
+        **kwargs: Unpack[OptilandStandardSurfaceParameters],
+    ) -> optiland.surfaces.Surface: ...
+
+    @overload
+    def _create_surface(
+        self,
+        optic: Optic,
+        *,
+        position: int,
+        replace_existing: bool = False,
+        **kwargs: Unpack[OptilandBiconicSurfaceParameters],
+    ) -> optiland.surfaces.Surface: ...
+
+    def _create_surface(
+        self, optic: Optic, *, position: int, replace_existing: bool = False, **kwargs
+    ) -> optiland.surfaces.Surface:
+        """Helper method to create a surface in Optiland.
+
+        This method adds a surface to the provided `Optic` object at the specified `position`, and handles
+        all common surface creation logic. Surface parameters are passed as keyword arguments.
+
+        Parameters
+        ----------
+        optic : Optic
+            The Optic object to which the surface will be added.
+        position : int
+            The index at which the surface will be added, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+        **kwargs : Unpack[OptilandStandardSurfaceParameters] | Unpack[OptilandBiconicSurfaceParameters]
+            Keyword arguments for the surface parameters.
+
+        Returns
+        -------
+        optiland.surfaces.Surface
+            The created surface object.
+
+        See Also
+        --------
+        OptilandStandardSurfaceParameters : Parameters for standard surfaces in Optiland.
+        OptilandBiconicSurfaceParameters : Parameters for biconic surfaces in Optiland.
+        """
+        optic.add_surface(index=position, surface_type=self._TYPE, **kwargs)
+
+        if replace_existing:
+            optic.surface_group.surfaces.pop(position + 1)
+
+        self._surface = optic.surface_group.surfaces[position]
+
+        if kwargs["semi_diameter"] is not None:
+            self.surface.set_semi_aperture(kwargs["semi_diameter"])  # type: ignore
+
+        self._optic = weakref.proxy(optic)
+        self._index = position
+        self._is_built = True
+
+        return self._surface
+
+
+class OptilandSurface(BaseOptilandSurface):
+    """Sequential surface in Optiland.
+
+    Note that, unlike OpticStudio surfaces, it is not possible to update surfaces after they have been built.
+    """
+
+    _TYPE: str = "standard"
+
+    def __init__(
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+    ):
+        """Create a new Optiland surface.
+
+        Parameters
+        ----------
+        comment : str
+            Comment for the surface.
+        radius : float
+            Radius of curvature of the surface, in mm. Defaults to infinity (flat surface).
+        thickness : float
+            Thickness of the surface, in mm. Defaults to 0.0 mm.
+        semi_diameter : float, optional
+            Semi-diameter of the surface aperture, in mm. Defaults to `None`, which means the semi-diameter will be
+            determined by Optiland.
+        conic : float
+            Conic constant of the surface. Defaults to 0.0 (spherical surface).
+        material : MaterialModel | str, optional
+            Material of the surface. This can be either a string representing the name of the material or a
+            MaterialModel instance. Defaults to `None`, which means the material is assumed to be air.
+        is_stop : bool, optional
+            If `True`, the surface is treated as a stop.
+        """
+        super().__init__()
+
+        self._comment = comment
+        self._radius = radius
+        self._thickness = thickness
+        self._semi_diameter = semi_diameter
+        self._conic = conic
+        self._material = material
+        self._is_stop = is_stop
+
+    @_built_only_property
+    def radius(self) -> float:
+        """Radius of the surface."""
+        return self._optic.surface_group.radii[self._index]  # type: ignore
+
+    @_built_only_property
+    def conic(self) -> float:
+        """Conic constant of the surface."""
+        return self._optic.surface_group.conic[self._index]  # type: ignore
+
     def build(self, optic: Optic, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in Optiland.
 
@@ -249,27 +354,132 @@ class OptilandSurface(BaseSurface):
         int
             The index of the created surface. Subsequent surfaces should be after this index.
         """
-        optic.add_surface(
-            index=position,
+        self._create_surface(
+            optic=optic,
+            position=position,
+            replace_existing=replace_existing,
+            comment=self._comment,
             radius=self._radius,
             thickness=self._thickness,
+            semi_diameter=self._semi_diameter,
             conic=self._conic,
             material=self._convert_material(self._material),
             is_stop=bool(self._is_stop),
-            comment=self._comment,
         )
 
-        if replace_existing:
-            optic.surface_group.surfaces.pop(position + 1)
+        return position
 
-        self._surface = optic.surface_group.surfaces[position]
 
-        if self._semi_diameter is not None:
-            self.surface.set_semi_aperture(self._semi_diameter)  # type: ignore
+class OptilandBiconicSurface(BaseOptilandSurface):
+    """Biconic surface in Optiland."""
 
-        self._optic = weakref.proxy(optic)
-        self._index = position
-        self._is_built = True
+    _TYPE: str = "biconic"
+
+    def __init__(
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        radius_x: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        conic_x: float = 0.0,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+    ):
+        """Create a new biconic Optiland surface.
+
+        Parameters
+        ----------
+        comment : str
+            Comment for the surface.
+        radius : float
+            Radius of curvature of the surface in the Y direction, in mm. Defaults to infinity (flat surface).
+        radius_x : float
+            Radius of curvature of the surface in the X direction, in mm. Defaults to infinity (flat surface).
+        thickness : float
+            Thickness of the surface, in mm. Defaults to 0.0 mm.
+        semi_diameter : float, optional
+            Semi-diameter of the surface aperture, in mm. Defaults to `None`, which means the semi-diameter will be
+            determined by Optiland.
+        conic : float
+            Conic constant of the surface in the Y direction. Defaults to 0.0 (spherical surface).
+        conic_x : float
+            Conic constant of the surface in the X direction. Defaults to 0.0 (spherical surface).
+        material : MaterialModel | str, optional
+            Material of the surface. This can be either a string representing the name of the material or a
+            MaterialModel instance. Defaults to `None`, which means the material is assumed to be air.
+        is_stop : bool, optional
+            If `True`, the surface is treated as a stop.
+        """
+        super().__init__()
+
+        self._comment = comment
+        self._radius = radius
+        self._radius_x = radius_x
+        self._thickness = thickness
+        self._semi_diameter = semi_diameter
+        self._conic = conic
+        self._conic_x = conic_x
+        self._material = material
+        self._is_stop = is_stop
+
+    @_built_only_property
+    def radius(self) -> float:
+        """Radius of the surface in the Y direction."""
+        return float(self.surface.geometry.Ry)  # type: ignore
+
+    @_built_only_property
+    def conic(self) -> float:
+        """Conic constant of the surface in the X direction."""
+        return float(self.surface.geometry.ky)  # type: ignore
+
+    @_built_only_property
+    def radius_x(self) -> float:
+        """Radius of the surface in the X direction."""
+        return float(self.surface.geometry.Rx)  # type: ignore
+
+    @_built_only_property
+    def conic_x(self) -> float:
+        """Conic constant of the surface in the X direction."""
+        return float(self.surface.geometry.kx)  # type: ignore
+
+    def build(self, optic: Optic, *, position: int, replace_existing: bool = False) -> int:
+        """Create the surface in Optiland.
+
+        Create the surface in the provided `Optic` object at the specified `position`.
+        By default, a new surface will be created. If `replace_existing` is `True`, the existing surface at the
+        specified position will be replaced.
+
+        Parameters
+        ----------
+        optic : Optic
+            The Optic object to which the surface will be added.
+        position : int
+            The index at which the surface will be added, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be after this index.
+        """
+        self._create_surface(
+            optic=optic,
+            position=position,
+            replace_existing=replace_existing,
+            comment=self._comment,
+            radius_y=self._radius,
+            radius_x=self._radius_x,
+            thickness=self._thickness,
+            semi_diameter=self._semi_diameter,
+            conic_y=self._conic,
+            conic_x=self._conic_x,
+            material=self._convert_material(self._material),
+            is_stop=bool(self._is_stop),
+        )
 
         return position
 
@@ -324,6 +534,24 @@ def _make_surface(
         material=material,
         semi_diameter=surface.semi_diameter,
         is_stop=True,
+    )
+
+
+@make_surface.register
+def _make_surface(
+    surface: BiconicSurface,
+    material: Union[str, MaterialModel] = "Air",  # noqa: UP007
+    comment: str = "",
+) -> OptilandBiconicSurface:
+    return OptilandBiconicSurface(
+        comment=comment,
+        radius=surface.radius,
+        radius_x=surface.radius_x,
+        thickness=surface.thickness,
+        semi_diameter=surface.semi_diameter,
+        conic=surface.asphericity,
+        conic_x=surface.asphericity_x,
+        material=material,
     )
 
 

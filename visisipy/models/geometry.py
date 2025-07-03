@@ -13,12 +13,15 @@ from visisipy.types import TypedDict, Unpack
 from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
+    "BiconicSurface",
     "EyeGeometry",
     "NavarroGeometry",
     "NoSurface",
     "StandardSurface",
     "Stop",
     "Surface",
+    "ZernikeStandardPhaseSurface",
+    "ZernikeStandardSagSurface",
     "create_geometry",
 )
 
@@ -40,6 +43,26 @@ class _EllipsoidRadii(NamedTuple):
     z: float
     y: float
     x: float
+
+    @property
+    def anterior_posterior(self) -> float:
+        """Anterior-posterior radius of the ellipsoid."""
+        return self.z
+
+    @property
+    def inferior_superior(self) -> float:
+        """Inferior-superior radius of the ellipsoid."""
+        return self.y
+
+    @property
+    def left_right(self) -> float:
+        """Left-right radius of the ellipsoid.
+
+        This is the left-right direction as seen from the anatomical position. For the left eye,
+        this corresponds to the temporal-nasal direction, while for the right eye, it corresponds to
+        the nasal-temporal direction.
+        """
+        return self.x
 
 
 @dataclass
@@ -67,11 +90,13 @@ class StandardSurface(Surface):
         The thickness of the surface. Default is 0.
     semi_diameter : float | None
         The semi-diameter of the surface aperture. Default is `None`.
+    is_stop : bool
+        If `True`, the surface is a stop surface. Default is `False`.
 
     Methods
     -------
-    ellipsoid_radii(self) -> tuple[float, float]:
-        Calculates and returns the ellipsoid radii (semi-axes) of the surface.
+    ellipsoid_radii(self) -> tuple[float, float, float]:
+        Calculates and returns the ellipsoid x, y and z radii (semi-axes) of the surface.
     """
 
     radius: float = float("inf")
@@ -86,6 +111,11 @@ class StandardSurface(Surface):
 
         This works only if the surface is an ellipsoid (asphericity > -1), otherwise a NotImplementedError is raised.
         A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.
+        These axes correspond to the following anatomical directions:
+
+        - z: anterior-posterior
+        - y: inferior-superior
+        - x: left-right
 
         Returns
         -------
@@ -128,6 +158,88 @@ class Stop(StandardSurface):
     semi_diameter: float = 1.0
     thickness: float = 0
     is_stop: bool = True
+
+
+@dataclass
+class BiconicSurface(StandardSurface):
+    """Standard biconic surface.
+
+    Inherits from the `StandardSurface` class and represents a surface with different radii of curvature and
+    asphericities in the x (left-right) and y (inferior-superior) directions. This is useful for modeling astigmatic surfaces.
+    For the left eye, the x (left-right) direction corresponds to the temporal-nasal direction, while for the right eye,
+    it corresponds to the nasal-temporal direction.
+
+    Attributes
+    ----------
+    radius : float
+        The radius of the surface in the y (inferior-superior) direction. Default is infinity.
+    radius_x : float
+        The radius of the surface in the x (left-right) direction. Default is infinity.
+    asphericity : float
+        The asphericity of the surface in the y (inferior-superior) direction. Default is 0.
+    asphericity_x : float
+        The asphericity of the surface in the x (left-right) direction. Default is 0.
+    thickness : float
+        The thickness of the surface. Default is 0.
+    semi_diameter : float | None
+        The semi-diameter of the surface aperture. Default is `None`.
+    is_stop : bool
+        If `True`, the surface is a stop surface. Default is `False`.
+
+    Methods
+    -------
+    ellipsoid_radii(self) -> tuple[float, float, float]:
+        Calculates and returns the ellipsoid x, y and z radii of the surface.
+    """
+
+    radius_x: float = float("inf")
+    asphericity_x: float = 0
+
+    @property
+    def ellipsoid_radii(self) -> _EllipsoidRadii:
+        """Calculates and returns the ellipsoid radii (semi-axes) of the surface.
+
+        This works only if the surface is an ellipsoid (asphericity > -1), otherwise a NotImplementedError is raised.
+        A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.
+        These axes correspond to the following anatomical directions:
+
+        - z: anterior-posterior
+        - y: inferior-superior
+        - x: left-right
+
+        Returns
+        -------
+        tuple[float, float, float]
+            The ellipsoid radii (semi-axes) of the surface.
+
+        Raises
+        ------
+        NotImplementedError
+            If the surface is not an ellipsoid (asphericity <= -1).
+        """
+        if self.asphericity <= -1 or self.asphericity_x <= -1:
+            raise NotImplementedError(
+                f"Half axes are only defined for ellipsoids (asphericity > -1), got {self.asphericity=} and {self.asphericity_x=}"
+            )
+
+        # Z radii may differ in the sagittal and tangential planes. If they are not equal, the surface is not an ellipsoid.
+        z_radius_x = self.radius_x / (self.asphericity_x + 1)
+        z_radius_y = self.radius / (self.asphericity + 1)
+
+        if z_radius_x != z_radius_y:
+            raise NotImplementedError(
+                "Half axes are only defined for ellipsoids. This biconic surface is not an ellipsoid."
+            )
+
+        x_radius = self.radius_x / np.sqrt(self.asphericity_x + 1)
+        y_radius = self.radius / np.sqrt(self.asphericity + 1)
+        z_radius = abs(z_radius_y)
+
+        return _EllipsoidRadii(
+            z=z_radius,
+            y=y_radius,
+            x=x_radius,
+        )
 
 
 @dataclass

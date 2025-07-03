@@ -19,6 +19,7 @@ from visisipy.models.geometry import (
 from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio.surfaces import (
     BaseOpticStudioZernikeSurface,
+    OpticStudioBiconicSurface,
     OpticStudioNoSurface,
     OpticStudioSurface,
     OpticStudioSurfaceDataProperty,
@@ -258,6 +259,62 @@ class TestOpticStudioSurface:
         surface = OpticStudioSurface(comment="Test")
 
         assert surface.build(oss, position=1) == 1
+
+
+class TestOpticStudioBiconicSurface:
+    @pytest.mark.parametrize("is_stop", [True, None])
+    def test_build(self, oss, is_stop):
+        surface = OpticStudioBiconicSurface(
+            comment="Test comment",
+            radius=1.0,
+            radius_x=2.0,
+            thickness=3.0,
+            semi_diameter=4.0,
+            conic=0.5,
+            conic_x=0.6,
+            material="Test material",
+            is_stop=is_stop,
+        )
+
+        assert surface._is_built is False
+        surface_index = surface.build(oss, position=2)
+
+        assert surface_index == 2
+        assert surface._is_built
+
+        assert surface.surface.SurfaceNumber == 2
+
+        assert surface.comment == "Test comment"
+        assert surface.radius == 1.0
+        assert surface.radius_x == 2.0
+        assert surface.thickness == 3.0
+        assert surface.semi_diameter == 4.0
+        assert surface.conic == 0.5
+        assert surface.conic_x == 0.6
+        assert surface.material == "TEST MATERIAL"  # OpticStudio capitalizes material names
+        assert surface.is_stop == bool(is_stop)
+
+    def test_set_x_radius(self, oss):
+        surface = OpticStudioBiconicSurface(comment="Test", radius_x=1.0)
+        surface.build(oss, position=1)
+
+        assert surface.radius_x == 1.0
+        assert surface.surface.SurfaceData.XRadius == 1.0
+
+        surface.radius_x = 2.0
+        assert surface.radius_x == 2.0
+        assert surface.surface.SurfaceData.XRadius == 2.0
+
+    def test_set_x_conic(self, oss):
+        surface = OpticStudioBiconicSurface(comment="Test", conic_x=0.5)
+        surface.build(oss, position=1)
+
+        assert surface.conic_x == 0.5
+        assert surface.surface.SurfaceData.XConic == 0.5
+
+        surface.conic_x = 0.6
+        assert surface.conic_x == 0.6
+        assert surface.surface.SurfaceData.XConic == 0.6
 
 
 class TestBaseOpticStudioZernikeSurface:
