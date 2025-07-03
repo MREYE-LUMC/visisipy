@@ -124,6 +124,10 @@ class TestGetModels:
     def test_get_oss_no_opticstudio_backend(self, mock_optiland_backend):
         assert backend.get_oss() is None
 
+    @pytest.mark.skipif(platform.system() == "Windows", reason="OpticStudio backend is available on Windows")
+    def test_get_oss_no_windows(self, mock_optiland_backend):
+        assert backend.get_oss() is None
+
     def test_get_optic(self, mock_optiland_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", mock_optiland_backend)
 

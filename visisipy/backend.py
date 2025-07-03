@@ -25,6 +25,7 @@ visispy.optiland.backend : Backend for Optiland.
 from __future__ import annotations
 
 import json
+import platform
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from enum import Enum
@@ -359,6 +360,9 @@ def get_oss() -> OpticStudioSystem | None:
     OpticStudioSystem | None
         The OpticStudioSystem instance if the current backend is the OpticStudio backend, otherwise `None`.
     """
+    if platform.system() != "Windows":
+        return None
+
     from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
     if _BACKEND is OpticStudioBackend:
