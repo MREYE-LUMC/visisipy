@@ -2,11 +2,19 @@ from __future__ import annotations
 
 import re
 
+from contextlib import nullcontext as does_not_raise
+
 import numpy as np
 import pytest
 
 from visisipy.models import EyeGeometry, NavarroGeometry, create_geometry
-from visisipy.models.geometry import BiconicSurface, GeometryParameters, StandardSurface, Stop
+from visisipy.models.geometry import (
+    GeometryParameters,
+    StandardSurface,
+    Stop,
+    ZernikeStandardPhaseSurface,
+    ZernikeStandardSagSurface,
+)
 
 
 @pytest.fixture
@@ -146,6 +154,35 @@ class TestBiconicSurface:
             match=re.escape("Half axes are only defined for ellipsoids. This biconic surface is not an ellipsoid"),
         ):
             _ = surface.ellipsoid_radii
+
+
+@pytest.mark.parametrize("surface_type", [ZernikeStandardSagSurface, ZernikeStandardPhaseSurface])
+class TestZernikeSurfaces:
+    @pytest.mark.parametrize(
+        "zernike_coefficients, maximum_term, expected_maximum_term, expectation",
+        [
+            ({}, None, 0, does_not_raise()),
+            ({1: 0.1, 2: 0.2}, None, 2, does_not_raise()),
+            ({1: 0.1, 2: 0.2}, 4, 4, does_not_raise()),
+            (
+                {1: 0.1, 2: 0.2},
+                1,
+                1,
+                pytest.raises(
+                    ValueError, match="The Zernike coefficients contain terms that are greater than the maximum term."
+                ),
+            ),
+        ],
+    )
+    def test_init(self, surface_type, zernike_coefficients, maximum_term, expected_maximum_term, expectation):
+        with expectation:
+            surface = surface_type(
+                zernike_coefficients=zernike_coefficients,
+                maximum_term=maximum_term,
+            )
+
+            assert surface.zernike_coefficients == zernike_coefficients
+            assert surface.maximum_term == expected_maximum_term
 
 
 class TestEyeGeometry:

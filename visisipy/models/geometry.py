@@ -261,8 +261,8 @@ class ZernikeStandardSagSurface(StandardSurface):
     zernike_decenter_y : float
         Decentration of the Zernike terms with respect to the conical and aspherical terms in the y-direction.
         Default is 0.
-    maximum_term : int
-        The maximum Zernike term to consider. Default is 0.
+    maximum_term : int | None
+        The maximum Zernike term to consider. If `None` is passed, this will be set to the maximum term in `zernike_coefficients`.
     norm_radius : float
         The normalization radius for the Zernike coefficients, in lens units (usually mm). Default is 100.
 
@@ -276,10 +276,13 @@ class ZernikeStandardSagSurface(StandardSurface):
     extrapolate: bool = True
     zernike_decenter_x: float = 0
     zernike_decenter_y: float = 0
-    maximum_term: int = 0
+    maximum_term: int | None = None
     norm_radius: float = 100
 
     def __post_init__(self):
+        if self.maximum_term is None:
+            self.maximum_term = max(self.zernike_coefficients.keys(), default=0)
+
         if any(key > self.maximum_term for key in self.zernike_coefficients):
             raise ValueError("The Zernike coefficients contain terms that are greater than the maximum term.")
 
@@ -301,8 +304,8 @@ class ZernikeStandardPhaseSurface(StandardSurface):
         Default is `True`.
     diffraction_order : float
         The diffraction order of the surface. Default is 0.
-    maximum_term : int
-        The maximum Zernike term to consider. Default is 0.
+    maximum_term : int | None
+        The maximum Zernike term to consider. If `None` is passed, this will be set to the maximum term in `zernike_coefficients`.
     norm_radius : float
         The normalization radius for the Zernike coefficients, in lens units (usually mm). Default is 100.
 
@@ -315,10 +318,13 @@ class ZernikeStandardPhaseSurface(StandardSurface):
     zernike_coefficients: ZernikeCoefficients | dict[int, float] = field(default_factory=dict)
     extrapolate: bool = True
     diffraction_order: float = 1
-    maximum_term: int = 0
+    maximum_term: int | None = None
     norm_radius: float = 100
 
     def __post_init__(self):
+        if self.maximum_term is None:
+            self.maximum_term = max(self.zernike_coefficients.keys(), default=0)
+
         if any(key > self.maximum_term for key in self.zernike_coefficients):
             raise ValueError("The Zernike coefficients contain terms that are greater than the maximum term.")
 
