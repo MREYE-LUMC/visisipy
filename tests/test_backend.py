@@ -124,6 +124,10 @@ class TestGetModels:
     def test_get_oss_no_opticstudio_backend(self, mock_optiland_backend):
         assert backend.get_oss() is None
 
+    @pytest.mark.skipif(platform.system() == "Windows", reason="OpticStudio backend is available on Windows")
+    def test_get_oss_no_windows(self, mock_optiland_backend):
+        assert backend.get_oss() is None
+
     def test_get_optic(self, mock_optiland_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", mock_optiland_backend)
 
@@ -172,3 +176,10 @@ class TestGetSetting:
 
         with pytest.raises(KeyError, match="Setting 'undefined_setting' does not exist"):
             backend.BaseBackend.get_setting("undefined_setting")
+
+
+def test_default_backend():
+    if platform.system() == "Windows":
+        assert backend._DEFAULT_BACKEND == backend.Backend.OPTICSTUDIO
+    else:
+        assert backend._DEFAULT_BACKEND == backend.Backend.OPTILAND

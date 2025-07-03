@@ -297,7 +297,8 @@ def plot_eye(
         Thickness of the lens at its edge, defaults to 0. If specified, the lens will be cut off at the point where
         its thickness equals this value.
     retina_cutoff_position : float
-        Location to which the retina should be drawn. Defaults to the lens's posterior apex.
+        Location to which the retina should be drawn. Defaults to the lens's posterior apex. For a value of `0`, the
+        cutoff is located at the pupil.
 
     Returns
     -------

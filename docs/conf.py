@@ -24,7 +24,7 @@ author = "Corné Haasjes, Luc van Vught, Jan-Willem Beenakker"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = ["autoapi.extension", "myst_nb", "sphinx_design"]
-myst_enable_extensions = ["colon_fence"]
+myst_enable_extensions = ["colon_fence", "dollarmath"]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
@@ -107,6 +107,7 @@ else:
 if os.getenv("READTHEDOCS"):
     # Do not build notebooks that depend on OpticStudio
     execution_excludepatterns = [
+        "*examples/Direct modification of the optical system in OpticStudio/*",
         "*examples/Patient-specific mapping of fundus photographs to three-dimensional ocular imaging/*",
         "*examples/Backend comparison/*",
     ]
