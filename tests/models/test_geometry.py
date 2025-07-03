@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-
 from contextlib import nullcontext as does_not_raise
 
 import numpy as np
@@ -9,6 +8,7 @@ import pytest
 
 from visisipy.models import EyeGeometry, NavarroGeometry, create_geometry
 from visisipy.models.geometry import (
+    BiconicSurface,
     GeometryParameters,
     StandardSurface,
     Stop,
