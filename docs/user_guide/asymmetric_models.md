@@ -1,7 +1,7 @@
 # Notes on asymmetric models
 
 By default, Visisipy's eye models are rotationally symmetric, meaning all surfaces can be described by a single radius of curvature and asphericity.
-It is also possible to model asymmetric eyes using {py:class}`biconic surfaces <visispy.models.geometry.BiconicSurface>`. 
+It is also possible to model asymmetric eyes using {py:class}`biconic surfaces <visisipy.models.geometry.BiconicSurface>`. 
 This is useful if you want to model astigmatism or astigmatic intraocular lenses.
 
 Biconic surfaces have two radii of curvature and asphericities.
