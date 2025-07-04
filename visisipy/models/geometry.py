@@ -244,7 +244,7 @@ class BiconicSurface(StandardSurface):
 
 @dataclass
 class BaseZernikeStandardSurface(StandardSurface, ABC):
-    def __new__(cls, *args, **kwargs):  # noqa: ARG003
+    def __new__(cls, *args, **kwargs):  # noqa: ARG004, RUF100
         if cls == BaseZernikeStandardSurface:
             raise TypeError("Cannot instantiate abstract class BaseZernikeStandardSurface.")
         return super().__new__(cls)

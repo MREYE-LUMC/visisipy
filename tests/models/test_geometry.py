@@ -157,7 +157,6 @@ class TestBiconicSurface:
             _ = surface.ellipsoid_radii
 
 
-
 class TestZernikeSurfaces:
     def test_base_zernike_standard_surface_raises_typeerror(self):
         with pytest.raises(TypeError, match="Cannot instantiate abstract class BaseZernikeStandardSurface."):
