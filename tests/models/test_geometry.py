@@ -8,6 +8,7 @@ import pytest
 
 from visisipy.models import EyeGeometry, NavarroGeometry, create_geometry
 from visisipy.models.geometry import (
+    BaseZernikeStandardSurface,
     BiconicSurface,
     GeometryParameters,
     StandardSurface,
@@ -156,14 +157,20 @@ class TestBiconicSurface:
             _ = surface.ellipsoid_radii
 
 
-@pytest.mark.parametrize("surface_type", [ZernikeStandardSagSurface, ZernikeStandardPhaseSurface])
+
 class TestZernikeSurfaces:
+    def test_base_zernike_standard_surface_raises_typeerror(self):
+        with pytest.raises(TypeError, match="Cannot instantiate abstract class BaseZernikeStandardSurface."):
+            BaseZernikeStandardSurface(zernike_coefficients={}, maximum_term=None)
+
+    @pytest.mark.parametrize("surface_type", [ZernikeStandardSagSurface, ZernikeStandardPhaseSurface])
     @pytest.mark.parametrize(
         "zernike_coefficients, maximum_term, expected_maximum_term, expectation",
         [
             ({}, None, 0, does_not_raise()),
             ({1: 0.1, 2: 0.2}, None, 2, does_not_raise()),
             ({1: 0.1, 2: 0.2}, 4, 4, does_not_raise()),
+            ({}, 5, 5, does_not_raise()),
             (
                 {1: 0.1, 2: 0.2},
                 1,

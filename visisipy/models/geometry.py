@@ -243,7 +243,27 @@ class BiconicSurface(StandardSurface):
 
 
 @dataclass
-class ZernikeStandardSagSurface(StandardSurface):
+class BaseZernikeStandardSurface(StandardSurface, ABC):
+    def __new__(cls, *args, **kwargs):  # noqa: ARG003
+        if cls == BaseZernikeStandardSurface:
+            raise TypeError("Cannot instantiate abstract class BaseZernikeStandardSurface.")
+        return super().__new__(cls)
+
+    zernike_coefficients: ZernikeCoefficients | dict[int, float] = field(default_factory=dict)
+    maximum_term: int | None = None
+
+    def __post_init__(self):
+        if self.maximum_term is None:
+            self.maximum_term = max(self.zernike_coefficients.keys(), default=0)
+
+        if any(key > self.maximum_term for key in self.zernike_coefficients):
+            raise ValueError("The Zernike coefficients contain terms that are greater than the maximum term.")
+
+        self.zernike_coefficients = ZernikeCoefficients(self.zernike_coefficients)
+
+
+@dataclass
+class ZernikeStandardSagSurface(BaseZernikeStandardSurface):
     """Zernike standard coefficients surface with surface deformations.
 
     Represents a surface with surface deformations described by Zernike polynomials.
@@ -279,18 +299,9 @@ class ZernikeStandardSagSurface(StandardSurface):
     maximum_term: int | None = None
     norm_radius: float = 100
 
-    def __post_init__(self):
-        if self.maximum_term is None:
-            self.maximum_term = max(self.zernike_coefficients.keys(), default=0)
-
-        if any(key > self.maximum_term for key in self.zernike_coefficients):
-            raise ValueError("The Zernike coefficients contain terms that are greater than the maximum term.")
-
-        self.zernike_coefficients = ZernikeCoefficients(self.zernike_coefficients)
-
 
 @dataclass
-class ZernikeStandardPhaseSurface(StandardSurface):
+class ZernikeStandardPhaseSurface(BaseZernikeStandardSurface):
     """Zernike standard coefficients surface with wavefront aberrations.
 
     Represents a surface with wavefront aberrations described by Zernike polynomials.
@@ -320,15 +331,6 @@ class ZernikeStandardPhaseSurface(StandardSurface):
     diffraction_order: float = 1
     maximum_term: int | None = None
     norm_radius: float = 100
-
-    def __post_init__(self):
-        if self.maximum_term is None:
-            self.maximum_term = max(self.zernike_coefficients.keys(), default=0)
-
-        if any(key > self.maximum_term for key in self.zernike_coefficients):
-            raise ValueError("The Zernike coefficients contain terms that are greater than the maximum term.")
-
-        self.zernike_coefficients = ZernikeCoefficients(self.zernike_coefficients)
 
 
 @dataclass

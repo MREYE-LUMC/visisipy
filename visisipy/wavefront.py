@@ -34,7 +34,7 @@ def _validate_nm(n: int, m: int) -> None:
         raise ValueError("n and m must have the same parity.")
 
 
-class ZernikeCoefficients(defaultdict):
+class ZernikeCoefficients(defaultdict[int, float]):
     """Zernike coefficients.
 
     Convenience class for handling Zernike coefficients as a dictionary. If a term is not present, 0 is returned.
