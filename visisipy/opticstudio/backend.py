@@ -1,11 +1,18 @@
+"""OpticStudio backend for Visisipy."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 from warnings import warn
 
 import zospy as zp
+from zospy.zpcore import OpticStudioSystem
 
-from visisipy.backend import BackendSettings, BaseBackend, NotRequired, _classproperty
+from visisipy.backend import (
+    BackendSettings,
+    BaseBackend,
+    _classproperty,
+)
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
@@ -14,12 +21,13 @@ if TYPE_CHECKING:
     from os import PathLike
 
     from zospy.api import _ZOSAPI
-    from zospy.zpcore import ZOS, OpticStudioSystem
+    from zospy.zpcore import ZOS
 
     from visisipy import EyeModel
+    from visisipy.types import ApertureType, FieldCoordinate, NotRequired, Unpack
 
 
-__all__ = ("OpticStudioSettings", "OpticStudioBackend")
+__all__ = ("OpticStudioBackend", "OpticStudioSettings")
 
 
 RayAimingType = Literal["off", "paraxial", "real"]
@@ -52,29 +60,30 @@ OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
 
 
 class OpticStudioBackend(BaseBackend):
+    """OpticStudio backend."""
+
     zos: ZOS | None = None
     oss: OpticStudioSystem | None = None
     model: BaseOpticStudioEye | None = None
-    settings: OpticStudioSettings = OpticStudioSettings(OPTICSTUDIO_DEFAULT_SETTINGS)
+    settings: OpticStudioSettings = OpticStudioSettings(**OPTICSTUDIO_DEFAULT_SETTINGS)
     _analysis: OpticStudioAnalysisRegistry | None = None
 
     @_classproperty
     def analysis(cls) -> OpticStudioAnalysisRegistry:  # noqa: N805
-        """
-        Provides access to the `OpticStudioAnalysis` instance.
+        """Provides access to the `OpticStudioAnalysisRegistry` instance.
 
-        This property provides access to the `OpticStudioAnalysis` instance for performing various analyses on the optical
+        This property provides access to the `OpticStudioAnalysisRegistry` instance for performing various analyses on the optical
         system.
+
+        Returns
+        -------
+        OpticStudioAnalysisRegistry
+            The `OpticStudioAnalysisRegistry` instance.
 
         Raises
         ------
         RuntimeError
             If the OpticStudio backend has not been initialized.
-
-        Returns
-        -------
-        OpticStudioAnalysisRegistry
-            The `OpticStudioAnalysis` instance.
         """
         if cls.oss is None:
             raise RuntimeError("The opticstudio backend has not been initialized.")
@@ -86,11 +95,9 @@ class OpticStudioBackend(BaseBackend):
     @classmethod
     def initialize(
         cls,
-        *,
-        settings: OpticStudioSettings | None = None,
+        **settings: Unpack[OpticStudioSettings],
     ) -> None:
-        """
-        Initializes the OpticStudio backend.
+        """Initialize the OpticStudio backend.
 
         This method connects to the OpticStudio backend and initializes a new optical system.
 
@@ -99,7 +106,7 @@ class OpticStudioBackend(BaseBackend):
         settings : OpticStudioSettings | None, optional
             The settings to be used for the OpticStudio backend. If None, the default settings are used.
         """
-        if settings is not None:
+        if len(settings) > 0:
             cls.settings.update(settings)
 
         if cls.zos is None:
@@ -114,18 +121,17 @@ class OpticStudioBackend(BaseBackend):
             )
 
         if cls.oss is None:
-            cls.oss = cls.zos.connect(cls.settings["mode"])
+            cls.oss = cls.zos.connect(cls.get_setting("mode"))
 
         cls.new_model()
 
     @classmethod
-    def update_settings(cls, settings: OpticStudioSettings | None = None) -> None:
-        """
-        Applies the provided settings to the OpticStudio backend.
+    def update_settings(cls, **settings: Unpack[OpticStudioSettings]) -> None:
+        """Apply the provided settings to the OpticStudio backend.
 
         This method applies the provided settings to the OpticStudio backend.
         """
-        if settings is not None:
+        if len(settings) > 0:
             cls.settings.update(settings)
 
         if cls.oss is None:
@@ -135,9 +141,9 @@ class OpticStudioBackend(BaseBackend):
             )
         else:
             cls.set_aperture()
-            cls.set_fields(cls.settings["fields"], field_type=cls.settings["field_type"])
-            cls.set_ray_aiming(cls.oss, cls.settings["ray_aiming"])
-            cls.set_wavelengths(cls.settings["wavelengths"])
+            cls.set_fields(cls.get_setting("fields"), field_type=cls.get_setting("field_type"))
+            cls.set_ray_aiming(cls.oss, cls.get_setting("ray_aiming"))
+            cls.set_wavelengths(cls.get_setting("wavelengths"))
 
     @classmethod
     def new_model(
@@ -145,21 +151,25 @@ class OpticStudioBackend(BaseBackend):
         *,
         save_old_model: bool = False,
     ) -> None:
-        """
-        Initializes a new optical system model.
+        """Initialize a new optical system.
 
-        This method initializes a new optical system model.
+        This method initializes a new, empty optical system.
         """
-        cls.oss.new(saveifneeded=save_old_model)
-
-        cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
+        cls.get_oss().new(saveifneeded=save_old_model)
 
         cls.update_settings()
 
     @classmethod
-    def build_model(cls, model: EyeModel, *, replace_existing: bool = False, **kwargs) -> OpticStudioEye:
-        """
-        Builds an optical system based on the provided eye model.
+    def build_model(
+        cls,
+        model: EyeModel,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+        **kwargs,
+    ) -> OpticStudioEye:
+        """Builds an optical system based on the provided eye model.
 
         This method creates an OpticStudioEye instance from the provided eye model and builds the optical system.
         If `replace_existing` is True, any existing model is updated instead of building a completely new system.
@@ -168,8 +178,13 @@ class OpticStudioBackend(BaseBackend):
         ----------
         model : EyeModel
             The eye model to be used for building the optical system model.
+        start_from_index : int, optional
+            The index of the surface after which the eye model will be built. The cornea front surface will be located
+            at `start_from_index + 1`.
         replace_existing : bool, optional
             Whether to replace any existing model before building the new one. Defaults to False.
+        object_distance : float
+            Distance between the cornea front and the surface preceding the eye model.
         **kwargs
             Additional keyword arguments to be passed to the OpticStudioEye build method.
 
@@ -182,7 +197,17 @@ class OpticStudioBackend(BaseBackend):
             cls.new_model()
 
         opticstudio_eye = OpticStudioEye(model)
-        opticstudio_eye.build(cls.oss, replace_existing=replace_existing, **kwargs)
+        opticstudio_eye.build(
+            cls.get_oss(),
+            start_from_index=start_from_index,
+            replace_existing=replace_existing,
+            object_distance=object_distance,
+            **kwargs,
+        )
+
+        # Update the aperture settings based on the model's pupil size if the aperture type is 'float_by_stop_size'.
+        if cls.get_setting("aperture_type") == "float_by_stop_size":
+            cls.update_settings(aperture_value=model.geometry.pupil.semi_diameter * 2)
 
         cls.model = opticstudio_eye
 
@@ -190,20 +215,18 @@ class OpticStudioBackend(BaseBackend):
 
     @classmethod
     def clear_model(cls) -> None:
-        """
-        Clears the current optical system model.
+        """Clear the current optical system model.
 
         This method initializes a new optical system, discarding any existing model.
         """
-        cls.oss.new(saveifneeded=False)
+        cls.get_oss().new(saveifneeded=False)
         cls.model = None
 
     @classmethod
     def save_model(cls, path: str | PathLike | None = None) -> None:
-        """
-        Saves the current optical system model.
+        """Save the current optical system model.
 
-        This method saves the current optical system model to the specified path. If no path is provided,
+        This method saves the current optical system to the specified path. If no path is provided,
         it saves the model to the current working directory with the default name.
 
         Parameters
@@ -212,46 +235,127 @@ class OpticStudioBackend(BaseBackend):
             The path where the model should be saved. If None, the model is saved in the current working directory.
         """
         if path is not None:
-            cls.oss.save_as(path)
+            cls.get_oss().save_as(path)
         else:
-            cls.oss.save()
+            cls.get_oss().save()
 
     @classmethod
     def disconnect(cls) -> None:
-        """
-        Disconnects the OpticStudio backend.
+        """Disconnects the OpticStudio backend.
 
         This method closes the current optical system, sets the system and ZOS instances to None,
         and disconnects the ZOS instance.
         """
-        cls.oss.close()
-        cls.oss = None
-        cls.zos.disconnect()
-        cls.zos = None
+        if cls.oss is not None:
+            cls.oss.close()
+            cls.oss = None
+
+        if cls.zos is not None:
+            cls.zos.disconnect()
+            cls.zos = None
+
+    @classmethod
+    def get_oss(cls) -> OpticStudioSystem:
+        """Returns the current optical system.
+
+        Returns
+        -------
+        OpticStudioSystem
+            The current optical system.
+
+        Raises
+        ------
+        RuntimeError
+            If the OpticStudio system is not initialized.
+        """
+        if cls.oss is None:
+            raise RuntimeError("No OpticStudio system initialized. Please initialize the backend first.")
+
+        return cast(OpticStudioSystem, cls.oss)
+
+    @classmethod
+    def get_aperture(cls) -> tuple[ApertureType, float]:
+        """Get the current aperture type and value of the optical system.
+
+        This method retrieves the current aperture type and value from the optical system.
+        If the aperture type is `float_by_stop_size`, the diameter of the stop surface is returned as the aperture value.
+        Note that the diameter, and not the semi-diameter, is returned, to be consistent with the other aperture types.
+        For other aperture types, the aperture value is returned directly from the `SystemData`.
+
+        Returns
+        -------
+        zp.constants.SystemData.ZemaxApertureType
+            The current aperture type.
+        """
+        aperture_type: ApertureType
+
+        if cls.get_oss().SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.FloatByStopSize:
+            aperture_type = "float_by_stop_size"
+        elif (
+            cls.get_oss().SystemData.Aperture.ApertureType
+            == zp.constants.SystemData.ZemaxApertureType.EntrancePupilDiameter
+        ):
+            aperture_type = "entrance_pupil_diameter"
+        elif cls.get_oss().SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.ImageSpaceFNum:
+            aperture_type = "image_f_number"
+        elif cls.get_oss().SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.ObjectSpaceNA:
+            aperture_type = "object_numeric_aperture"
+
+        if aperture_type == "float_by_stop_size":
+            aperture_value = cls.get_oss().LDE.GetSurfaceAt(cls.get_oss().LDE.StopSurface).SemiDiameter * 2
+        else:
+            aperture_value = cls.get_oss().SystemData.Aperture.ApertureValue
+
+        return aperture_type, aperture_value
 
     @classmethod
     def _set_aperture_value(cls) -> None:
         if cls.settings.get("aperture_value") is not None:
-            cls.oss.SystemData.Aperture.ApertureValue = cls.settings["aperture_value"]
+            if cls.get_setting("aperture_type") == "float_by_stop_size":
+                cls.get_oss().LDE.GetSurfaceAt(cls.get_oss().LDE.StopSurface).SemiDiameter = (
+                    cls.get_setting("aperture_value") / 2
+                )
+            else:
+                cls.get_oss().SystemData.Aperture.ApertureValue = cls.get_setting("aperture_value")
 
     @classmethod
     def set_aperture(cls):
-        if cls.settings["aperture_type"] == "float_by_stop_size":
-            cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
-        elif cls.settings["aperture_type"] == "entrance_pupil_diameter":
-            cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.EntrancePupilDiameter
+        if cls.get_setting("aperture_type") == "float_by_stop_size":
+            cls.get_oss().SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
             cls._set_aperture_value()
-        elif cls.settings["aperture_type"] == "image_f_number":
-            cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.ImageSpaceFNum
+        elif cls.get_setting("aperture_type") == "entrance_pupil_diameter":
+            cls.get_oss().SystemData.Aperture.ApertureType = (
+                zp.constants.SystemData.ZemaxApertureType.EntrancePupilDiameter
+            )
             cls._set_aperture_value()
-        elif cls.settings["aperture_type"] == "object_numeric_aperture":
-            cls.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.ObjectSpaceNA
+        elif cls.get_setting("aperture_type") == "image_f_number":
+            cls.get_oss().SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.ImageSpaceFNum
+            cls._set_aperture_value()
+        elif cls.get_setting("aperture_type") == "object_numeric_aperture":
+            cls.get_oss().SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.ObjectSpaceNA
             cls._set_aperture_value()
         else:
             raise ValueError(
                 "aperture_type must be one of 'float_by_stop_size', 'entrance_pupil_diameter', "
                 "'image_f_number', or 'object_numeric_aperture'."
             )
+
+    @classmethod
+    def get_fields(cls) -> list[FieldCoordinate]:
+        """Get the fields in the optical system.
+
+        Returns
+        -------
+        list[tuple[float, float]]
+            The fields in the optical system as tuples of (x, y) coordinates.
+        """
+        fields = []
+
+        for i in range(cls.get_oss().SystemData.Fields.NumberOfFields):
+            field = cls.get_oss().SystemData.Fields.GetField(i + 1)
+            fields.append((field.X, field.Y))
+
+        return fields
 
     @staticmethod
     def _set_field_type(oss: OpticStudioSystem, field_type: Literal["angle", "object_height"]) -> None:
@@ -272,9 +376,9 @@ class OpticStudioBackend(BaseBackend):
         for i, c in enumerate(coordinates):
             if i == 0:
                 field = oss.SystemData.Fields.GetField(1)
-                field.X, field.Y, field.Weight = c[0], c[1], 1
+                field.X, field.Y, field.Weight = float(c[0]), float(c[1]), 1
             else:
-                oss.SystemData.Fields.AddField(c[0], c[1], 1)
+                oss.SystemData.Fields.AddField(float(c[0]), float(c[1]), 1)
 
     @classmethod
     def set_fields(
@@ -282,8 +386,7 @@ class OpticStudioBackend(BaseBackend):
         coordinates: Iterable[tuple[float, float]],
         field_type: Literal["angle", "object_height"] = "angle",
     ) -> None:
-        """
-        Sets the fields for the optical system.
+        """Set the fields for the optical system.
 
         This method removes any existing fields and adds the new ones provided.
 
@@ -295,8 +398,23 @@ class OpticStudioBackend(BaseBackend):
             The type of field to be used in the optical system. Can be either "angle" or "object_height".
             Defaults to "angle".
         """
-        cls._set_field_type(cls.oss, field_type)
-        cls._set_fields(cls.oss, coordinates)
+        cls._set_field_type(cls.get_oss(), field_type)
+        cls._set_fields(cls.get_oss(), coordinates)
+
+    @classmethod
+    def get_wavelengths(cls) -> list[float]:
+        """Get the wavelengths in the optical system.
+
+        Returns
+        -------
+        list[float]
+            The wavelengths in the optical system.
+        """
+
+        return [
+            cls.get_oss().SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
+            for i in range(cls.get_oss().SystemData.Wavelengths.NumberOfWavelengths)
+        ]
 
     @staticmethod
     def _remove_wavelenghts(oss: OpticStudioSystem) -> None:
@@ -305,8 +423,7 @@ class OpticStudioBackend(BaseBackend):
 
     @classmethod
     def set_wavelengths(cls, wavelengths: Iterable[float]) -> None:
-        """
-        Sets the wavelengths for the optical system.
+        """Set the wavelengths for the optical system.
 
         This method removes any existing wavelengths and adds the new ones provided.
         The weight for each wavelength is set to 1.0.
@@ -316,10 +433,10 @@ class OpticStudioBackend(BaseBackend):
         wavelengths : Iterable[float]
             An iterable of wavelengths to be set for the optical system.
         """
-        cls._remove_wavelenghts(cls.oss)
+        cls._remove_wavelenghts(cls.get_oss())
 
         for w in wavelengths:
-            cls.oss.SystemData.Wavelengths.AddWavelength(Wavelength=w, Weight=1.0)
+            cls.get_oss().SystemData.Wavelengths.AddWavelength(Wavelength=w, Weight=1.0)
 
     @classmethod
     def get_wavelength_number(cls, wavelength: float) -> int | None:
@@ -329,7 +446,7 @@ class OpticStudioBackend(BaseBackend):
 
         Parameters
         ----------
-        wavelength: float
+        wavelength : float
             The wavelength to find.
 
         Returns
@@ -337,8 +454,8 @@ class OpticStudioBackend(BaseBackend):
         int | None
             The wavelength number, or `None` if the wavelength is not present.
         """
-        for i in range(cls.oss.SystemData.Wavelengths.NumberOfWavelengths):
-            if cls.oss.SystemData.Wavelengths.GetWavelength(i + 1).Wavelength == wavelength:
+        for i in range(cls.get_oss().SystemData.Wavelengths.NumberOfWavelengths):
+            if cls.get_oss().SystemData.Wavelengths.GetWavelength(i + 1).Wavelength == wavelength:
                 return i + 1
 
         return None
@@ -357,13 +474,34 @@ class OpticStudioBackend(BaseBackend):
     @classmethod
     def iter_fields(cls) -> Generator[tuple[int, _ZOSAPI.SystemData.IField], Any, None]:
         """Iterate over the fields in the optical system."""
-        for i in range(cls.oss.SystemData.Fields.NumberOfFields):
-            field = cls.oss.SystemData.Fields.GetField(i + 1)
+        for i in range(cls.get_oss().SystemData.Fields.NumberOfFields):
+            field = cls.get_oss().SystemData.Fields.GetField(i + 1)
 
             yield field.FieldNumber, field
 
     @classmethod
     def iter_wavelengths(cls) -> Generator[tuple[int, float], Any, None]:
         """Iterate over the wavelengths in the optical system."""
-        for i in range(cls.oss.SystemData.Wavelengths.NumberOfWavelengths):
-            yield i + 1, cls.oss.SystemData.Wavelengths.GetWavelength(i + 1)
+        for i in range(cls.get_oss().SystemData.Wavelengths.NumberOfWavelengths):
+            yield i + 1, cls.get_oss().SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
+
+    @classmethod
+    def update_pupil(cls, new_value: float) -> None:
+        """Update the pupil size in the optical system.
+
+        This method updates the pupil size in the optical system to the new value provided.
+        Which value is updated depends on the aperture type set in the optical system.
+        For `float_by_stop_size`, the semi-diameter of the stop surface is updated; `new_value`
+        is interpreted as the pupil diameter. For other aperture types, the aperture value in
+        `SystemData` is updated.
+
+        Parameters
+        ----------
+        new_value : float
+            The new pupil size to be set.
+        """
+        if cls.get_oss().SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.FloatByStopSize:
+            stop_surface = cls.get_oss().LDE.StopSurface
+            cls.get_oss().LDE.GetSurfaceAt(stop_surface).SemiDiameter = new_value / 2
+        else:
+            cls.get_oss().SystemData.Aperture.ApertureValue = new_value

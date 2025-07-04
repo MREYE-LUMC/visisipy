@@ -2,7 +2,6 @@ name: "CI"
 
 on:
   push:
-  pull_request:
 
 jobs:
   format:
@@ -15,13 +14,19 @@ jobs:
         uses: astral-sh/setup-uv@v3
       - name: Format and lint
         run: uvx hatch fmt --check
+      - name: Lint docstrings
+        if: always() # Run even if previous step fails
+        run: uvx pydocstringformatter --exit-code scripts tests visisipy
 
   test:
     name: "Test"
-    runs-on: windows-latest
+
     strategy:
       matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4

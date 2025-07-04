@@ -19,12 +19,11 @@ class FourierPowerVectorRefraction:
     """Ocular refraction in Fourier power vector form.
 
     This is the default representation of refractions in visisipy. This class contains several methods to convert the
-    refraction to other forms, using the conversions defined in [1].
+    refraction to other forms, using the conversions defined in [1]_.
 
     .. [1] Thibos LN, Wheeler W, Horner D. Power vectors: an application of Fourier analysis to the description and
            statistical analysis of refractive error. Optometry and vision science: official publication of the American
            Academy of Optometry. 1997 Jun;74(6):367-75.
-
 
     Attributes
     ----------
@@ -76,7 +75,7 @@ class FourierPowerVectorRefraction:
         SpheroCylindricalRefraction
             The refraction in sphero-cylindrical form.
         """
-        if cylinder_form not in ("positive", "negative"):
+        if cylinder_form not in {"positive", "negative"}:
             raise ValueError("cylinder_form must be either 'positive' or 'negative'.")
 
         sphero_cylinder = SpheroCylindricalRefraction(
@@ -156,7 +155,7 @@ class SpheroCylindricalRefraction:
 
         Parameters
         ----------
-        to: str
+        to : str
             Indicates if the conversion should be done towards negative cylinder form ("negative") or positive cylinder
             form ("positive").
 
@@ -172,7 +171,7 @@ class SpheroCylindricalRefraction:
             When the parameter "to" is not set to 'positive' or 'negative'.
         """
 
-        if to not in ("negative", "positive"):
+        if to not in {"negative", "positive"}:
             raise ValueError('"to" should be either "negative" or "positive"')
 
         if (to == "negative" and self.has_negative_cylinder) or (to == "positive" and self.has_positive_cylinder):

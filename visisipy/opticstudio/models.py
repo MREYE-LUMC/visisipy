@@ -1,7 +1,9 @@
+"""Build and manage eye models in OpticStudio."""
+
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from visisipy.models import BaseEye, EyeModel
 from visisipy.opticstudio.surfaces import OpticStudioSurface, make_surface
@@ -14,6 +16,8 @@ __all__ = ("OpticStudioEye", "OpticStudioReverseEye")
 
 
 class BaseOpticStudioEye(BaseEye):
+    """Base class for OpticStudio eye models."""
+
     @abstractmethod
     def __init__(self, model: EyeModel): ...
 
@@ -24,7 +28,14 @@ class BaseOpticStudioEye(BaseEye):
         ...
 
     @abstractmethod
-    def build(self, oss: OpticStudioSystem, *, start_from_index: int, replace_existing: bool):
+    def build(
+        self,
+        oss: OpticStudioSystem,
+        *,
+        start_from_index: int = 0,
+        replace_existing: bool = False,
+        object_distance: float = float("inf"),
+    ):
         """Create the eye in OpticStudio.
 
         Create the eye model in the provided `OpticStudioSystem` `oss`, starting from `start_from_index`.
@@ -57,30 +68,6 @@ class BaseOpticStudioEye(BaseEye):
         """Dictionary with surface names as keys and surfaces as values."""
         return {k.lstrip("_"): v for k, v in self.__dict__.items() if isinstance(v, OpticStudioSurface)}
 
-    def update_surfaces(self, attribute: str, value: Any, surfaces: list[str] | None = None) -> None:
-        """Batch update all surfaces.
-
-        Set `attribute` to `value` for multiple surfaces. If `surfaces` is not specified, all surfaces of the eye
-        model are updated.
-
-        Parameters
-        ----------
-        attribute : str
-            Name of the attribute to update
-        value : Any
-            New value of the surface attribute
-        surfaces : list[str]
-            List of surfaces to be updated. If not specified, all surfaces are updated.
-
-        Returns
-        -------
-
-        """
-        surfaces = [self.surfaces[s] for s in surfaces] if surfaces is not None else self.surfaces.values()
-
-        for s in surfaces:
-            setattr(s, attribute, value)
-
     def relink_surfaces(self, oss: OpticStudioSystem) -> bool:
         """Link surfaces to OpticStudio surfaces based on their comments.
 
@@ -101,7 +88,16 @@ class BaseOpticStudioEye(BaseEye):
 
 
 class OpticStudioEye(BaseOpticStudioEye):
+    """Eye model in OpticStudio."""
+
     def __init__(self, eye_model: EyeModel) -> None:
+        """Create a new OpticStudio eye model.
+
+        Parameters
+        ----------
+        eye_model : EyeModel
+            Eye model specification from which the OpticStudio eye model is created.
+        """
         self._eye_model = eye_model
 
         self._cornea_front = make_surface(eye_model.geometry.cornea_front, eye_model.materials.cornea, "cornea front")
@@ -121,6 +117,7 @@ class OpticStudioEye(BaseOpticStudioEye):
 
     @property
     def eye_model(self) -> EyeModel:
+        """Eye model specification from which the OpticStudio eye model is created."""
         return self._eye_model
 
     @property
@@ -183,6 +180,7 @@ class OpticStudioEye(BaseOpticStudioEye):
         *,
         start_from_index: int = 0,
         replace_existing: bool = False,
+        object_distance: float = float("inf"),
     ):
         """Create the eye in OpticStudio.
 
@@ -196,21 +194,36 @@ class OpticStudioEye(BaseOpticStudioEye):
         oss : zospy.zpcore.OpticStudioSystem
             OpticStudioSystem in which the eye model is created.
         start_from_index : int
-            Index at which the first  surface of the eye is located.
+            Index of the surface after which the eye model will be built. Because the pupil will be located at the stop surface,
+            `start_from_index` must be smaller than the index of the stop surface.
         replace_existing : bool
             If `True`, replaces existing surfaces instead of inserting new ones. Defaults to `False`.
+        object_distance : float, optional
+            Distance from the object surface (or the surface before the eye model) to the eye model. Defaults to infinity.
 
         Raises
         ------
-        AssertionError
-            If the retina is not located at the IMAGE surface.
+        ValueError
+            If the pupil is not located at the stop position.
+            If the retina is not located at the image surface.
         """
-        self.cornea_front.build(oss, position=start_from_index + 1, replace_existing=replace_existing)
-        self.cornea_back.build(oss, position=start_from_index + 2, replace_existing=replace_existing)
-        self.pupil.build(oss, position=start_from_index + 3, replace_existing=True)
-        self.lens_front.build(oss, position=start_from_index + 4, replace_existing=replace_existing)
-        self.lens_back.build(oss, position=start_from_index + 5, replace_existing=replace_existing)
-        self.retina.build(oss, position=start_from_index + 6, replace_existing=True)
+        if start_from_index >= oss.LDE.StopSurface:
+            message = "'start_from_index' must be smaller than the index of the stop surface."
+            raise ValueError(message)
+
+        if object_distance != float("inf"):
+            oss.LDE.GetSurfaceAt(start_from_index).Thickness = object_distance
+
+        cornea_front_index = self.cornea_front.build(
+            oss, position=start_from_index + 1, replace_existing=replace_existing
+        )
+        cornea_back_index = self.cornea_back.build(
+            oss, position=cornea_front_index + 1, replace_existing=replace_existing
+        )
+        pupil_index = self.pupil.build(oss, position=cornea_back_index + 1, replace_existing=True)
+        lens_front_index = self.lens_front.build(oss, position=pupil_index + 1, replace_existing=replace_existing)
+        lens_back_index = self.lens_back.build(oss, position=lens_front_index + 1, replace_existing=replace_existing)
+        self.retina.build(oss, position=lens_back_index + 1, replace_existing=True)
 
         # Sanity checks
         if not self.pupil.surface.IsStop:

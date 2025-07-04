@@ -1,6 +1,27 @@
-from typing import Literal
+from __future__ import annotations
+
+import platform
+from typing import TYPE_CHECKING, Any, Literal
 
 import pytest
+
+from visisipy import EyeGeometry, EyeMaterials, EyeModel
+from visisipy.models.geometry import NoSurface, StandardSurface, Stop
+from visisipy.models.materials import MaterialModel
+
+if platform.system() == "Windows":
+    from visisipy.opticstudio import OpticStudioBackend
+    from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS
+
+from visisipy.optiland import OptilandBackend
+from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+# Only run the OpticStudio tests on Windows
+if platform.system() != "Windows":
+    collect_ignore = ["opticstudio"]
 
 
 def pytest_addoption(parser):
@@ -31,7 +52,10 @@ def pytest_collection_modifyitems(config, items):
 
 
 def detect_opticstudio() -> bool:
-    import zospy as zp
+    if platform.system() != "Windows":
+        return False
+
+    import zospy as zp  # noqa: PLC0415
 
     opticstudio_available: bool = False
 
@@ -42,7 +66,6 @@ def detect_opticstudio() -> bool:
         zos.disconnect()
         assert zos.Application is None
 
-        zp.ZOS._instances = set()  # noqa: SLF001
         del zos
 
     except FileNotFoundError:
@@ -69,3 +92,88 @@ def opticstudio_available(request) -> bool:
 def skip_opticstudio(request, opticstudio_available):
     if request.node.get_closest_marker("needs_opticstudio") and not opticstudio_available:
         pytest.skip("OpticStudio is not available.")
+
+
+@pytest.fixture(autouse=True)
+def skip_windows_only(request, opticstudio_available):
+    if request.node.get_closest_marker("windows_only") and platform.system() != "Windows":
+        pytest.skip("Running on a non-Windows platform.")
+
+
+@pytest.fixture
+def opticstudio_backend(opticstudio_connection_mode, request, opticstudio_available):
+    if not opticstudio_available:
+        pytest.skip("OpticStudio is not available.")
+
+    if platform.system() != "Windows":
+        pytest.skip("Running on a non-Windows platform.")
+
+    settings = OPTICSTUDIO_DEFAULT_SETTINGS.copy()
+    settings["mode"] = opticstudio_connection_mode
+    OpticStudioBackend.initialize(**settings)
+
+    if opticstudio_connection_mode == "extension":
+        # Disable UI updates using command line option, making the tests run faster
+        OpticStudioBackend.zos.Application.ShowChangesInUI = request.config.getoption("--os-update-ui")
+
+    yield OpticStudioBackend
+
+    if OpticStudioBackend.zos is not None and OpticStudioBackend.oss is not None:
+        OpticStudioBackend.disconnect()
+
+
+@pytest.fixture
+def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
+    """Fixture to initialize the Optiland backend for testing.
+
+    Returns
+    -------
+    OptilandBackend
+        The initialized Optiland backend.
+    """
+    OptilandBackend.initialize(**OPTILAND_DEFAULT_SETTINGS)
+
+    yield OptilandBackend
+
+    # Reset settings to defaults
+    OptilandBackend.update_settings(**OPTILAND_DEFAULT_SETTINGS)
+    OptilandBackend.clear_model()
+
+
+@pytest.fixture
+def eye_model():
+    geometry = EyeGeometry(
+        cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
+        cornea_back=StandardSurface(radius=6.50, asphericity=0, thickness=3.05),
+        pupil=Stop(semi_diameter=1.348),
+        lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
+        lens_back=StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
+        retina=StandardSurface(radius=-12.0, asphericity=0),
+    )
+
+    materials = EyeMaterials(
+        cornea=MaterialModel(refractive_index=1.3777, abbe_number=0, partial_dispersion=0),
+        aqueous=MaterialModel(refractive_index=1.3391, abbe_number=0, partial_dispersion=0),
+        lens=MaterialModel(refractive_index=1.4222, abbe_number=0, partial_dispersion=0),
+        vitreous=MaterialModel(refractive_index=1.3377, abbe_number=0, partial_dispersion=0),
+    )
+
+    return EyeModel(geometry=geometry, materials=materials)
+
+
+@pytest.fixture
+def three_surface_eye_model():
+    """Eye model with three optical surfaces.
+
+    The cornea back surface is omitted using a `NoSurface` object.
+    """
+    geometry = EyeGeometry(
+        cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
+        cornea_back=NoSurface(),
+        pupil=Stop(semi_diameter=1.348),
+        lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
+        lens_back=StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
+        retina=StandardSurface(radius=-12.0, asphericity=0),
+    )
+
+    return EyeModel(geometry)
