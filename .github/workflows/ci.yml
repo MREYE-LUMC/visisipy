@@ -8,7 +8,7 @@ jobs:
     name: "Format and lint"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up uv
         id: setup-uv
         uses: astral-sh/setup-uv@v6
@@ -29,7 +29,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up uv
         id: setup-uv
         uses: astral-sh/setup-uv@v6
