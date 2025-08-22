@@ -130,7 +130,10 @@ class TestOptilandBackend:
         optiland_backend.set_wavelengths(wavelengths)
 
         assert optiland_backend.get_optic().wavelengths.num_wavelengths == len(wavelengths)
-        assert all(w.value == e for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths, strict=False))
+        assert all(
+            w.value == e
+            for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths, strict=False)
+        )
 
     def test_get_wavelengths(self, optiland_backend: OptilandBackend):
         wavelengths = [0.543, 0.650, 0.450]
@@ -189,7 +192,10 @@ class TestOptilandBackendSettings:
     def test_wavelength(self, wavelengths, optiland_backend: OptilandBackend):
         optiland_backend.update_settings(wavelengths=wavelengths)
 
-        assert all(w.value == e for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths, strict=False))
+        assert all(
+            w.value == e
+            for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths, strict=False)
+        )
 
     @pytest.mark.parametrize(
         "aperture_type,aperture_value,expected_aperture_type,expectation",

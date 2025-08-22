@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -13,6 +12,8 @@ from scipy.optimize import fsolve
 from visisipy.models import EyeGeometry, EyeModel
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from matplotlib.axes import Axes
 
 
