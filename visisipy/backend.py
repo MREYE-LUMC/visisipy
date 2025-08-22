@@ -45,6 +45,7 @@ if TYPE_CHECKING:
     from zospy.zpcore import OpticStudioSystem
 
     from visisipy.analysis.cardinal_points import CardinalPointsResult
+    from visisipy.analysis.mtf import MTFResult
     from visisipy.models import BaseEye, EyeModel
     from visisipy.refraction import FourierPowerVectorRefraction
     from visisipy.types import ApertureType, FieldCoordinate, FieldType, SampleSize
@@ -68,11 +69,11 @@ _DEFAULT_BACKEND: Backend | Literal["opticstudio", "optiland"] = (
 )
 
 
-_Analysis = TypeVar("_Analysis", bound=Callable)
+_Analysis = TypeVar("_Analysis", bound=Callable[..., Any])
 
 
 class _AnalysisMethod(Generic[_Analysis]):
-    def __init__(self, analysis) -> None:
+    def __init__(self, analysis: _Analysis) -> None:
         self._analysis = analysis
 
     @overload
@@ -138,6 +139,16 @@ class BaseAnalysisRegistry(ABC):
         surface_1: int | None = None,
         surface_2: int | None = None,
     ) -> tuple[CardinalPointsResult, Any]: ...
+
+    @abstractmethod
+    def fft_mtf(
+        self,
+        sampling: SampleSize | str | int = 64,
+        field_coordinate: FieldCoordinate | None = None,
+        field_type: FieldType = "angle",
+        wavelength: float | None = None,
+        maximum_frequency: float | Literal["default"] = "default",
+    ) -> tuple[MTFResult, Any]: ...
 
     @abstractmethod
     def fft_psf(
