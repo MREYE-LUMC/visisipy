@@ -99,7 +99,7 @@ def raytrace(
     normalized_fields = backend.get_optic().fields.get_field_coords()
 
     for _, wavelength in backend.iter_wavelengths():
-        for (_, field), normalized_field in zip(backend.iter_fields(), normalized_fields):
+        for (_, field), normalized_field in zip(backend.iter_fields(), normalized_fields, strict=False):
             result = _trace_single_ray(backend.get_optic(), normalized_field, pupil, wavelength)
             result.insert(0, "field", [(float(field[0]), float(field[1]))] * len(result))
             raytrace_results.append(result)

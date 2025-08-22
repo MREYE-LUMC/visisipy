@@ -6,8 +6,9 @@ This module provides the `analysis` decorator for optical analyses.
 from __future__ import annotations
 
 import inspect
+from collections.abc import Callable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from visisipy.backend import BaseBackend, get_backend
 

@@ -22,7 +22,7 @@ dependencies = [
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
     "zospy>=2.1.2; sys_platform == 'win32'",
 ]
-requires-python = ">=3.9, <3.14"
+requires-python = ">=3.10, <3.14"
 dynamic = ["version"]
 
 [project.optional-dependencies]
@@ -120,6 +120,9 @@ max-line-length = 120
 max-summary-lines = 1
 summary-quotes-same-line = true
 linewrap-full-docstring = true
+
+[tool.uv.sources]
+optiland = { git = "https://github.com/HarrisonKramer/optiland.git", rev = "master" }
 
 [dependency-groups]
 dev = [
