@@ -2,18 +2,25 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
+import numpy as np
 import zospy as zp
+from optiland.distribution import HexagonalDistribution
 
 from visisipy.opticstudio.analysis.helpers import set_field, set_wavelength
 from visisipy.types import FieldCoordinate, FieldType, SampleSize
 
 if TYPE_CHECKING:
     import pandas as pd
+    from numpy.typing import NDArray
     from zospy.analyses.psf.huygens_psf import HuygensPSFResult
+    from zospy.zpcore import OpticStudioSystem
 
     from visisipy.opticstudio import OpticStudioBackend
+
+
+__all__ = ("fft_psf", "huygens_psf", "strehl_ratio")
 
 
 def fft_psf(
@@ -67,6 +74,158 @@ def fft_psf(
     return psf_result.data, psf_result.data
 
 
+class RayTraceResult(NamedTuple):
+    """Result of a ray trace in OpticStudio."""
+
+    ray_number: int
+    error_code: int
+    vignette_code: int
+    x: float
+    y: float
+    z: float
+    l: float  # noqa: E741
+    m: float
+    n: float
+    l2: float
+    m2: float
+    n2: float
+    opd: float
+    intensity: float
+
+
+def _opticstudio_batch_raytrace(
+    oss: OpticStudioSystem,
+    wavelength_number: int,
+    h_x: float,
+    h_y: float,
+    p_x: NDArray,
+    p_y: NDArray,
+) -> list[RayTraceResult]:
+    """Perform a batch ray trace in OpticStudio.
+
+    Uses the BatchRayTrace tool with NormUnpol rays to trace rays at specified pupil coordinates.
+
+    Parameters
+    ----------
+    oss : OpticStudioSystem
+        OpticStudio system to perform the ray trace in.
+    wavelength_number : int
+        Wavelength number to use for the ray trace.
+    h_x : float
+        Normalized x-coordinate of the field.
+    h_y : float
+        Normalized y-coordinate of the field.
+    p_x : NDArray
+        Array of x-coordinates in the pupil to trace rays.
+    p_y : NDArray
+        Array of y-coordinates in the pupil to trace rays.
+
+    Returns
+    -------
+    list[RayTraceResult]
+        List of RayTraceResult objects containing the results of the ray trace.
+    """
+    if len(p_x) != len(p_y):
+        raise ValueError("p_x and p_y must have the same length")
+
+    p_x, p_y = np.array(p_x), np.array(p_y)
+
+    if oss.Tools.CurrentTool is not None:
+        oss.Tools.CurrentTool.Close()
+
+    batch_raytrace = oss.Tools.OpenBatchRayTrace()
+    norm_unpol = batch_raytrace.CreateNormUnpol(
+        MaxRays=p_x.size,
+        rayType=zp.constants.Tools.RayTrace.RaysType.Real,
+        toSurface=oss.LDE.NumberOfSurfaces,
+    )
+
+    for x, y in zip(p_x, p_y):
+        norm_unpol.AddRay(
+            waveNumber=wavelength_number,
+            Hx=h_x,
+            Hy=h_y,
+            Px=float(x),  # Make sure Python floats are passed
+            Py=float(y),
+            calcOPD=zp.constants.Tools.RayTrace.OPDMode.None_,
+        )
+
+    batch_raytrace.RunAndWaitForCompletion()
+    norm_unpol.StartReadingResults()
+
+    result = []
+
+    for _ in range(norm_unpol.NumberOfRays):
+        success, *ray_trace_result = norm_unpol.ReadNextResult()
+        if not success:
+            raise RuntimeError("Failed to read ray trace result")
+
+        result.append(RayTraceResult(*ray_trace_result))
+
+    norm_unpol.ClearData()
+    batch_raytrace.Close()
+
+    return result
+
+
+def _get_huygens_psf_extent(oss: OpticStudioSystem, field: int = 1, wavelength_number: int = 1) -> float:
+    """Calculate the extent for the Huygens PSF based on the geometric spot size or ideal extent.
+
+    Parameters
+    ----------
+    oss : OpticStudioSystem
+        OpticStudio system to use for the calculation.
+    field : int, optional
+        Field number to use for the calculation. Defaults to 1.
+    wavelength_number : int, optional
+        Wavelength number to use for the calculation. Defaults to 1.
+
+    Returns
+    -------
+    float
+        The extent for the Huygens PSF in μm.
+    """
+    fields = [
+        [oss.SystemData.Fields.GetField(i).X, oss.SystemData.Fields.GetField(i).Y]
+        for i in range(1, oss.SystemData.Fields.NumberOfFields + 1)
+    ]
+    max_field = np.max(np.linalg.norm(fields, axis=1))
+
+    oss_field = oss.SystemData.Fields.GetField(field)
+    h_x, h_y = (oss_field.X / max_field, oss_field.Y / max_field) if max_field > 0 else (0, 0)
+
+    pupil_distribution = HexagonalDistribution()
+    pupil_distribution.generate_points(6)
+
+    ray_trace_results = _opticstudio_batch_raytrace(
+        oss,
+        wavelength_number=wavelength_number,
+        h_x=h_x,
+        h_y=h_y,
+        p_x=pupil_distribution.x,
+        p_y=pupil_distribution.y,
+    )
+
+    rays_x = np.array([r.x for r in ray_trace_results])
+    rays_y = np.array([r.y for r in ray_trace_results])
+    center_x = np.mean(rays_x)
+    center_y = np.mean(rays_y)
+
+    geometric_spot_size = np.hypot(rays_x - center_x, rays_y - center_y).max() * 1000  # Convert to μm
+
+    system_data = zp.analyses.reports.SystemData().run(oss)
+    wavelength = oss.SystemData.Wavelengths.GetWavelength(wavelength_number).Wavelength
+
+    ideal_extent = (
+        5
+        * system_data.data.general_lens_data.working_f_number  # effective F-number
+        * 1.22
+        * wavelength
+    )
+
+    return 2 * max(geometric_spot_size, ideal_extent)
+
+
 def huygens_psf(
     backend: type[OpticStudioBackend],
     field_coordinate: FieldCoordinate | None = None,
@@ -109,11 +268,13 @@ def huygens_psf(
 
     wavelength_number = set_wavelength(backend, wavelength)
     field_number = set_field(backend, field_coordinate, field_type)
+    extent = _get_huygens_psf_extent(backend.get_oss(), field=field_number, wavelength_number=wavelength_number)
+    image_delta = extent / int(image_sampling)
 
     psf_result = zp.analyses.psf.HuygensPSFAndStrehlRatio(
         pupil_sampling=str(pupil_sampling),
         image_sampling=str(image_sampling),
-        image_delta=0,
+        image_delta=image_delta,
         rotation=0,
         wavelength=wavelength_number,
         field=field_number,

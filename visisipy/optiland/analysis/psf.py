@@ -100,7 +100,7 @@ def fft_psf(
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
     # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
-    df = pd.DataFrame(psf.psf[::-1, :] / 100, index=index, columns=columns)
+    df = pd.DataFrame(psf.psf / 100, index=index, columns=columns)
 
     return df, psf
 
@@ -160,7 +160,7 @@ def huygens_psf(
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
     # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
-    df = pd.DataFrame(psf.psf[::-1, :] / 100, index=index, columns=columns)
+    df = pd.DataFrame(psf.psf / 100, index=index, columns=columns)
 
     return df, psf
 
