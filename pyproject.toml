@@ -15,6 +15,7 @@ maintainers = [
 ]
 dependencies = [
     "matplotlib",
+    "numba>=0.60.0",
     "numpy",
     "optiland>=0.5.6",
     "scipy",
