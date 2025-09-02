@@ -15,14 +15,13 @@ maintainers = [
 ]
 dependencies = [
     "matplotlib",
-    "numba>=0.60.0", # Required for Optiland. Maximum version still supporting Python 3.9.
     "numpy",
-    "optiland>=0.5.2",
+    "optiland>=0.5.6",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
     "zospy>=2.1.2; sys_platform == 'win32'",
 ]
-requires-python = ">=3.9, <3.14"
+requires-python = ">=3.10, <3.14"
 dynamic = ["version"]
 
 [project.optional-dependencies]
