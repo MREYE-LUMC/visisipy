@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 from matplotlib import patches
@@ -12,6 +12,8 @@ from scipy.optimize import fsolve
 from visisipy.models import EyeGeometry, EyeModel
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from matplotlib.axes import Axes
 
 
@@ -116,7 +118,7 @@ def plot_ellipse(
     # This is a bit weird, but necessary to draw the arc in the right direction
     t = np.linspace(-t_max, t_max - 2 * np.pi, 1000)
 
-    vertices = list(zip(x0 + rx * np.cos(t), ry * np.sin(t)))
+    vertices = list(zip(x0 + rx * np.cos(t), ry * np.sin(t), strict=False))
     codes = [Path.MOVETO] + [Path.LINETO] * (len(vertices) - 1)
     ellipse = Path(vertices, codes)
 
@@ -167,7 +169,7 @@ def plot_parabola(
     t_max = np.abs(np.sqrt((cutoff - position) / a))
     t = np.linspace(-t_max, t_max, 1000)
 
-    vertices = list(zip(position + a * t**2, 2 * a * t))
+    vertices = list(zip(position + a * t**2, 2 * a * t, strict=False))
     codes = [Path.MOVETO] + [Path.LINETO] * (len(vertices) - 1)
 
     return Path(vertices, codes)
@@ -218,7 +220,7 @@ def plot_hyperbola(position: float, radius: float, conic: float, cutoff: float) 
     t_max = np.arccosh((cutoff - position) / a)
     t = np.linspace(-t_max, t_max, 1000)
 
-    vertices = list(zip(position + a * np.cosh(t), b * np.sinh(t)))
+    vertices = list(zip(position + a * np.cosh(t), b * np.sinh(t), strict=False))
     codes = [Path.MOVETO] + [Path.LINETO] * (len(vertices) - 1)
 
     return Path(vertices, codes)

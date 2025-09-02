@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import inspect
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from visisipy.backend import BaseBackend, get_backend
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from visisipy.models import EyeModel
 
 __all__ = ("_AUTOMATIC_BACKEND", "analysis")
