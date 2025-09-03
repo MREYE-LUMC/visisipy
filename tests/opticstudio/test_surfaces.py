@@ -334,7 +334,7 @@ class TestBaseOpticStudioZernikeSurface:
             BaseOpticStudioZernikeSurface("Useless comment")
 
     def test_init_large_zernike_coefficient_raises_valueerror(self):
-        with pytest.raises(ValueError, match="Zernike coefficients must be smaller than the maximum term 1"):
+        with pytest.raises(ValueError, match="Zernike coefficients must be less than or equal to the maximum term 1"):
             self.MockOpticStudioZernikeSurface(
                 comment="Test",
                 number_of_terms=1,

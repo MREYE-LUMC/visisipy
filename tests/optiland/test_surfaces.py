@@ -349,12 +349,12 @@ class TestOptilandZernikeSurface:
             (
                 {1: 0.1, 6: 0.2},
                 5,
-                pytest.raises(ValueError, match="Zernike coefficients must be smaller than the maximum term"),
+                pytest.raises(ValueError, match="Zernike coefficients must be less than or equal to the maximum term"),
             ),
             (
                 ZernikeCoefficients({1: 0.1, 6: 0.2}),
                 5,
-                pytest.raises(ValueError, match="Zernike coefficients must be smaller than the maximum term"),
+                pytest.raises(ValueError, match="Zernike coefficients must be less than or equal to the maximum term"),
             ),
             ({-1: 0.1}, 0, pytest.raises(ValueError, match="Zernike coefficients must be positive integers")),
             ({0: 0.1}, 0, pytest.raises(ValueError, match="Zernike coefficients must be positive integers")),
