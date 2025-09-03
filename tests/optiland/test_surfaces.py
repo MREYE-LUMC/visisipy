@@ -7,7 +7,14 @@ from typing import TYPE_CHECKING, Any
 import optiland.materials
 import pytest
 
-from visisipy.models.geometry import NoSurface, StandardSurface, Stop, Surface, ZernikeStandardSagSurface
+from visisipy.models.geometry import (
+    BiconicSurface,
+    NoSurface,
+    StandardSurface,
+    Stop,
+    Surface,
+    ZernikeStandardSagSurface,
+)
 from visisipy.models.materials import MaterialModel
 from visisipy.optiland.surfaces import (
     BaseOptilandSurface,
@@ -475,6 +482,20 @@ class TestMakeSurface:
         assert optiland_surface._semi_diameter == semi_diameter
         assert optiland_surface._material == material
         assert optiland_surface._is_stop is True
+
+    def test_make_biconic_surface(self):
+        surface = BiconicSurface(radius=1, radius_x=2, thickness=2, semi_diameter=3, asphericity=0.5, asphericity_x=0.3)
+
+        optiland_surface = make_surface(surface, material="BK7")
+
+        assert isinstance(optiland_surface, OptilandBiconicSurface)
+        assert optiland_surface._radius == 1
+        assert optiland_surface._radius_x == 2
+        assert optiland_surface._thickness == 2
+        assert optiland_surface._semi_diameter == 3
+        assert optiland_surface._conic == 0.5
+        assert optiland_surface._conic_x == 0.3
+        assert optiland_surface._material == "BK7"
 
     @pytest.mark.parametrize(
         "norm_radius,maximum_term,coefficients",
