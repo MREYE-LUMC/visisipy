@@ -396,13 +396,17 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
 
         if zernike_coefficients is not None:
             if any(key > number_of_terms for key in zernike_coefficients):
-                raise ValueError(f"Zernike coefficients must be smaller than the maximum term {number_of_terms}.")
+                raise ValueError(
+                    f"Zernike coefficients must be less than or equal to the maximum term {number_of_terms}."
+                )
             if any(key < 1 for key in zernike_coefficients):
                 raise ValueError("Zernike coefficients must be larger than 0.")
 
         self._number_of_terms = number_of_terms
         self._norm_radius = norm_radius
-        self._zernike_coefficients = zernike_coefficients or ZernikeCoefficients()
+        self._zernike_coefficients = zernike_coefficients or ZernikeCoefficients(
+            {i: 0 for i in range(1, number_of_terms + 1)}
+        )
 
     number_of_terms: int = OpticStudioSurfaceDataProperty("NumberOfTerms")
     norm_radius: float = OpticStudioSurfaceDataProperty("NormRadius")
