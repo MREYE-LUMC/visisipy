@@ -107,7 +107,7 @@ class TestOptilandBackend:
             optiland_backend.set_fields(coordinates, field_type)
 
             assert optiland_backend.get_optic().fields.num_fields == len(coordinates)
-            for coordinate, field in zip(coordinates, optiland_backend.get_optic().fields.fields):
+            for coordinate, field in zip(coordinates, optiland_backend.get_optic().fields.fields, strict=False):
                 assert coordinate == (field.x, field.y)
 
             assert all(f.field_type == field_type for f in optiland_backend.get_optic().fields.fields)
@@ -130,7 +130,10 @@ class TestOptilandBackend:
         optiland_backend.set_wavelengths(wavelengths)
 
         assert optiland_backend.get_optic().wavelengths.num_wavelengths == len(wavelengths)
-        assert all(w.value == e for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths))
+        assert all(
+            w.value == e
+            for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths, strict=False)
+        )
 
     def test_get_wavelengths(self, optiland_backend: OptilandBackend):
         wavelengths = [0.543, 0.650, 0.450]
@@ -162,7 +165,7 @@ class TestOptilandBackendSettings:
     def _assert_fields_equal(optic_fields: FieldGroup, expected_fields: list[tuple[float, float]]):
         assert len(optic_fields.fields) == len(expected_fields)
 
-        for optiland_field, expected_field in zip(optic_fields.fields, expected_fields):
+        for optiland_field, expected_field in zip(optic_fields.fields, expected_fields, strict=False):
             assert optiland_field.x == expected_field[0]
             assert optiland_field.y == expected_field[1]
 
@@ -189,7 +192,10 @@ class TestOptilandBackendSettings:
     def test_wavelength(self, wavelengths, optiland_backend: OptilandBackend):
         optiland_backend.update_settings(wavelengths=wavelengths)
 
-        assert all(w.value == e for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths))
+        assert all(
+            w.value == e
+            for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths, strict=False)
+        )
 
     @pytest.mark.parametrize(
         "aperture_type,aperture_value,expected_aperture_type,expectation",

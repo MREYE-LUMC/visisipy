@@ -140,7 +140,7 @@ def _opticstudio_batch_raytrace(
         toSurface=oss.LDE.NumberOfSurfaces,
     )
 
-    for x, y in zip(p_x, p_y):
+    for x, y in zip(p_x, p_y, strict=False):
         norm_unpol.AddRay(
             waveNumber=wavelength_number,
             Hx=h_x,
