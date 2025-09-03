@@ -538,7 +538,7 @@ class OptilandZernikeStandardSagSurface(BaseOptilandSurface):
         if zernike_coefficients is not None:
             if any(key > number_of_terms for key in zernike_coefficients):
                 raise ValueError(
-                    f"Zernike coefficient indices must be less than or equal to the maximum term {number_of_terms}."
+                    f"Zernike coefficients must be less than or equal to the maximum term {number_of_terms}."
                 )
             if any(key < 1 for key in zernike_coefficients):
                 raise ValueError("Zernike coefficients must be positive integers.")
