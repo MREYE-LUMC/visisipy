@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from functools import reduce, singledispatch
 from operator import attrgetter
 from typing import TYPE_CHECKING, Generic, TypeVar, Union, overload
+from warnings import warn
 
 from optiland.materials import AbbeMaterial, IdealMaterial, Material
 
@@ -23,6 +24,7 @@ from visisipy.models.geometry import (
 )
 from visisipy.models.materials import MaterialModel
 from visisipy.types import TypedDict
+from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
     import optiland.surfaces
@@ -107,6 +109,14 @@ class OptilandBiconicSurfaceParameters(OptilandCommonSurfaceParameters):
     radius_x: NotRequired[float]
     conic_y: NotRequired[float]
     conic_x: NotRequired[float]
+
+
+class OptilandZernikeSurfaceParameters(OptilandStandardSurfaceParameters):
+    """Optiland Zernike surface parameters."""
+
+    zernike_type: NotRequired[str]
+    norm_radius: NotRequired[float]
+    coefficients: NotRequired[list[float]]
 
 
 class BaseOptilandSurface(BaseSurface, ABC):
@@ -225,6 +235,16 @@ class BaseOptilandSurface(BaseSurface, ABC):
         position: int,
         replace_existing: bool = False,
         **kwargs: Unpack[OptilandBiconicSurfaceParameters],
+    ) -> optiland.surfaces.Surface: ...
+
+    @overload
+    def _create_surface(
+        self,
+        optic: Optic,
+        *,
+        position: int,
+        replace_existing: bool = False,
+        **kwargs: Unpack[OptilandZernikeSurfaceParameters],
     ) -> optiland.surfaces.Surface: ...
 
     def _create_surface(
@@ -484,6 +504,113 @@ class OptilandBiconicSurface(BaseOptilandSurface):
         return position
 
 
+class OptilandZernikeStandardSagSurface(BaseOptilandSurface):
+    """Zernike Standard Sag surface in Optiland."""
+
+    _TYPE: str = "zernike"
+
+    def __init__(
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+        number_of_terms: int = 0,
+        norm_radius: float = 100,
+        zernike_coefficients: ZernikeCoefficients | dict[int, float] | None = None,
+    ) -> None:
+        """Create a new Zernike Optiland surface."""
+        super().__init__()
+
+        self._comment = comment
+        self._radius = radius
+        self._thickness = thickness
+        self._semi_diameter = semi_diameter
+        self._conic = conic
+        self._material = material
+        self._is_stop = is_stop
+        self._norm_radius = norm_radius
+
+        if zernike_coefficients is not None:
+            if any(key > number_of_terms for key in zernike_coefficients):
+                raise ValueError(f"Zernike coefficients must be smaller than the maximum term {number_of_terms}.")
+            if any(key < 1 for key in zernike_coefficients):
+                raise ValueError("Zernike coefficients must be positive integers.")
+
+        self._number_of_terms = number_of_terms
+        self._zernike_coefficients = (
+            zernike_coefficients
+            if zernike_coefficients is not None
+            else ZernikeCoefficients({i: 0 for i in range(1, number_of_terms + 1)})
+        )
+
+    @_built_only_property
+    def radius(self) -> float:
+        """Radius of the surface."""
+        return self.surface.geometry.radius  # type: ignore
+
+    @_built_only_property
+    def conic(self) -> float:
+        """Conic constant of the surface."""
+        return self.surface.geometry.k  # type: ignore
+
+    @_built_only_property
+    def norm_radius(self) -> float:
+        """Normalization radius of the Zernike surface."""
+        return self.surface.geometry.norm_radius  # type: ignore
+
+    @_built_only_property
+    def coefficients(self) -> ZernikeCoefficients:
+        """Zernike coefficients of the surface."""
+        coefficients = self.surface.geometry.coefficients  # type: ignore
+        return ZernikeCoefficients(dict(enumerate(coefficients, start=1)))
+
+    def build(self, optic: Optic, *, position: int, replace_existing: bool = False) -> int:
+        """Create the surface in Optiland.
+
+        Create the surface in the provided `Optic` object at the specified `position`.
+        By default, a new surface will be created. If `replace_existing` is `True`, the existing surface at the
+        specified position will be replaced.
+
+        Parameters
+        ----------
+        optic : Optic
+            The Optic object to which the surface will be added.
+        position : int
+            The index at which the surface will be added, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be after this index.
+        """
+        coefficients = [self._zernike_coefficients.get(i, 0.0) for i in range(1, self._number_of_terms + 1)]
+
+        self._create_surface(
+            optic=optic,
+            position=position,
+            replace_existing=replace_existing,
+            comment=self._comment,
+            radius=self._radius,
+            thickness=self._thickness,
+            semi_diameter=self._semi_diameter,
+            conic=self._conic,
+            material=self._convert_material(self._material),
+            is_stop=bool(self._is_stop),
+            norm_radius=self._norm_radius,
+            zernike_type="noll",
+            coefficients=coefficients,
+        )
+
+        return position
+
+
 @singledispatch
 def make_surface(surface: Surface, material: str | MaterialModel, comment: str = "") -> OptilandSurface:
     """Create an `OptilandSurface` instance from a given `Surface` instance.
@@ -560,8 +687,24 @@ def _make_surface(
     surface: ZernikeStandardSagSurface,
     material: Union[str, MaterialModel] = "",  # noqa: UP007
     comment: str = "",
-) -> OptilandSurface:
-    raise NotImplementedError("ZernikeStandardSagSurface is not supported in Optiland.")
+) -> OptilandZernikeStandardSagSurface:
+    if surface.extrapolate:
+        warn("Zernike surface extrapolation is not supported in Optiland.", UserWarning)
+    if surface.zernike_decenter_x != 0.0 or surface.zernike_decenter_y != 0.0:
+        warn("Zernike surface decentering is not supported in Optiland.", UserWarning)
+
+    return OptilandZernikeStandardSagSurface(
+        comment=comment,
+        radius=surface.radius,
+        thickness=surface.thickness,
+        semi_diameter=surface.semi_diameter,
+        conic=surface.asphericity,
+        material=material,
+        number_of_terms=surface.maximum_term,
+        norm_radius=surface.norm_radius,
+        zernike_coefficients=surface.zernike_coefficients,
+        is_stop=surface.is_stop,
+    )
 
 
 @make_surface.register

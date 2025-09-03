@@ -402,7 +402,9 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
 
         self._number_of_terms = number_of_terms
         self._norm_radius = norm_radius
-        self._zernike_coefficients = zernike_coefficients or ZernikeCoefficients()
+        self._zernike_coefficients = zernike_coefficients or ZernikeCoefficients(
+            {i: 0 for i in range(1, number_of_terms + 1)}
+        )
 
     number_of_terms: int = OpticStudioSurfaceDataProperty("NumberOfTerms")
     norm_radius: float = OpticStudioSurfaceDataProperty("NormRadius")
