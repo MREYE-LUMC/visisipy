@@ -514,12 +514,7 @@ class TestMakeSurface:
 
         optiland_surface = make_surface(surface, material="BK7")
 
-        if coefficients is None:
-            assert all(c == 0.0 for c in optiland_surface._zernike_coefficients.values())  # type: ignore
-            assert len(optiland_surface._zernike_coefficients) == maximum_term  # type: ignore
-            assert max(optiland_surface._zernike_coefficients.keys(), default=0) == maximum_term  # type: ignore
-        else:
-            assert optiland_surface._zernike_coefficients == coefficients  # type: ignore
+        assert optiland_surface._zernike_coefficients == coefficients  # type: ignore
 
         assert optiland_surface._number_of_terms == maximum_term  # type: ignore
         assert optiland_surface._norm_radius == norm_radius  # type: ignore
