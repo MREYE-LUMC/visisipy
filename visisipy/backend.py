@@ -159,6 +159,17 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
+    def opd_map(
+        self,
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 128,
+        *,
+        remove_tilt: bool = True,
+    ) -> tuple[DataFrame, Any]: ...
+
+    @abstractmethod
     def raytrace(
         self,
         coordinates: Iterable[FieldCoordinate] | None = None,
