@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from os import PathLike
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 from warnings import warn
 
@@ -126,6 +128,14 @@ class OpticStudioBackend(BaseBackend):
         cls.new_model()
 
     @classmethod
+    def _apply_settings(cls) -> None:
+        """Apply the currently configured settings to the OpticStudio backend."""
+        cls.set_aperture()
+        cls.set_fields(cls.get_setting("fields"), field_type=cls.get_setting("field_type"))
+        cls.set_ray_aiming(cls.get_oss(), cls.get_setting("ray_aiming"))
+        cls.set_wavelengths(cls.get_setting("wavelengths"))
+
+    @classmethod
     def update_settings(cls, **settings: Unpack[OpticStudioSettings]) -> None:
         """Apply the provided settings to the OpticStudio backend.
 
@@ -140,10 +150,7 @@ class OpticStudioBackend(BaseBackend):
                 "Settings will be applied when the backend is initialized."
             )
         else:
-            cls.set_aperture()
-            cls.set_fields(cls.get_setting("fields"), field_type=cls.get_setting("field_type"))
-            cls.set_ray_aiming(cls.oss, cls.get_setting("ray_aiming"))
-            cls.set_wavelengths(cls.get_setting("wavelengths"))
+            cls._apply_settings()
 
     @classmethod
     def new_model(
@@ -223,7 +230,7 @@ class OpticStudioBackend(BaseBackend):
         cls.model = None
 
     @classmethod
-    def save_model(cls, path: str | PathLike | None = None) -> None:
+    def save_model(cls, filename: str | PathLike | None = None) -> None:
         """Save the current optical system model.
 
         This method saves the current optical system to the specified path. If no path is provided,
@@ -234,10 +241,45 @@ class OpticStudioBackend(BaseBackend):
         path : str | PathLike | None, optional
             The path where the model should be saved. If None, the model is saved in the current working directory.
         """
-        if path is not None:
-            cls.get_oss().save_as(path)
+        if filename is not None:
+            cls.get_oss().save_as(filename)
         else:
             cls.get_oss().save()
+
+    @classmethod
+    def load_model(cls, filename: str | PathLike, *, apply_settings: bool = False) -> None:
+        """Load an optical system model from a file.
+
+        This only loads the optical system into the backend. The model is not parsed to an `OpticStudioEye` or `EyeModel`
+        instance. Furthermore, backend settings are not applied automatically after loading a model.
+
+        Parameters
+        ----------
+        filename : str | PathLike
+            The path to the file from which to load the model.
+        apply_settings : bool, optional
+            If `True`, the currently configured backend settings will be applied after loading the model.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the specified file does not exist.
+        ValueError
+            If the file extension is not supported by the OpticStudio backend.
+        """
+        filename = Path(filename)
+
+        if not filename.exists():
+            msg = f"The specified file does not exist: {filename}"
+            raise FileNotFoundError(msg)
+        if filename.suffix.lower() not in {".zmx", ".zos"}:
+            msg = f"File has extension {filename.suffix}, but only .zmx and .zos are supported."
+            raise ValueError(msg)
+
+        cls.get_oss().load(str(filename))
+
+        if apply_settings:
+            cls._apply_settings()
 
     @classmethod
     def disconnect(cls) -> None:

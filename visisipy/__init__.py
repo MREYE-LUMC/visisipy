@@ -7,7 +7,7 @@ from importlib.metadata import version
 
 from visisipy import analysis, models, optiland, plots, refraction, wavefront
 from visisipy._zospy_loader import install_zospy_loader
-from visisipy.backend import get_backend, get_optic, get_oss, set_backend, update_settings
+from visisipy.backend import get_backend, get_optic, get_oss, load_model, save_model, set_backend, update_settings
 from visisipy.models import (
     EyeGeometry,
     EyeMaterials,
@@ -28,10 +28,12 @@ __all__ = [
     "get_backend",
     "get_optic",
     "get_oss",
+    "load_model",
     "models",
     "optiland",
     "plots",
     "refraction",
+    "save_model",
     "set_backend",
     "update_settings",
     "wavefront",
