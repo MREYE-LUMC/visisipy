@@ -18,6 +18,7 @@ from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from pathlib import Path
 
 # Only run the OpticStudio tests on Windows
 if platform.system() != "Windows":
@@ -177,3 +178,8 @@ def three_surface_eye_model():
     )
 
     return EyeModel(geometry)
+
+
+@pytest.fixture
+def datadir(request) -> Path:
+    return request.config.rootpath / "tests" / "_data"

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import platform
-from typing import Any
+import re
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -14,6 +15,9 @@ if platform.system() == "Windows":
     from visisipy.opticstudio.backend import OpticStudioBackend
 else:
     OpticStudioBackend = object()
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ruff: noqa: SLF001
 # pyright: reportOptionalMemberAccess=false, reportTypedDictNotRequiredAccess=false
@@ -66,7 +70,7 @@ def mock_optiland_backend(monkeypatch):
 
 class TestSetBackend:
     @pytest.mark.windows_only
-    @pytest.mark.parametrize("name", ["opticstudio", backend.Backend.OPTICSTUDIO])
+    @pytest.mark.parametrize("name", ["opticstudio", backend.BackendType.OPTICSTUDIO])
     def test_set_opticstudio_backend(self, name, mock_opticstudio_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend to avoid side effects in other tests
 
@@ -76,7 +80,7 @@ class TestSetBackend:
         assert mock_opticstudio_backend.initialized
         assert mock_opticstudio_backend.settings["field_type"] == "object_height"
 
-    @pytest.mark.parametrize("name", ["optiland", backend.Backend.OPTILAND])
+    @pytest.mark.parametrize("name", ["optiland", backend.BackendType.OPTILAND])
     def test_set_optiland_backend(self, name, mock_optiland_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend to avoid side effects in other tests
 
@@ -106,7 +110,7 @@ class TestGetBackend:
 
     def test_get_backend_sets_backend(self, mock_optiland_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend so get_backend() sets it
-        monkeypatch.setattr(backend, "_DEFAULT_BACKEND", backend.Backend.OPTILAND)
+        monkeypatch.setattr(backend, "_DEFAULT_BACKEND", backend.BackendType.OPTILAND)
 
         assert backend._BACKEND is None
 
@@ -178,8 +182,87 @@ class TestGetSetting:
             backend.BaseBackend.get_setting("undefined_setting")
 
 
+class TestSaveModel:
+    @pytest.mark.parametrize(
+        "backend_type, suffix",
+        [pytest.param(OpticStudioBackend, ".zmx", marks=pytest.mark.windows_only), (OptilandBackend, ".json")],
+    )
+    def test_save_model(self, backend_type: backend.BaseBackend, suffix: str, tmp_path: Path):
+        file = (tmp_path / "model_file").with_suffix(suffix)
+
+        model = visisipy.EyeModel()
+        backend_type.initialize()
+        backend_type.build_model(model)
+
+        visisipy.save_model(file)
+
+        assert file.exists()
+
+    @pytest.mark.parametrize(
+        "backend_type",
+        [pytest.param(OpticStudioBackend, marks=pytest.mark.windows_only), OptilandBackend],
+    )
+    def test_save_no_model_raises_runtimeerror(self, backend_type: backend.BaseBackend):
+        with pytest.raises(RuntimeError, match="No model is currently loaded in the backend"):
+            visisipy.save_model()
+
+
+class TestLoadModel:
+    def test_load_optiland_model(self, optiland_backend: OptilandBackend, datadir: Path):
+        file = datadir / "test_load_models" / "navarro_eye.json"
+
+        visisipy.load_model(file, apply_settings=False)
+
+        assert optiland_backend.model is None
+        assert optiland_backend.get_optic().object_surface.comment == "Test load file"
+
+    @pytest.mark.windows_only
+    def test_load_opticstudio_model(self, opticstudio_backend: OpticStudioBackend, datadir: Path):
+        file = datadir / "test_load_models" / "navarro_eye.zmx"
+
+        opticstudio_backend.load_model(file, apply_settings=False)
+
+        assert opticstudio_backend.model is None
+        assert opticstudio_backend.get_oss().LDE.GetSurfaceAt(0).Comment == "Test load file"
+
+    @pytest.mark.parametrize(
+        "initial_backend",
+        [None, MockBackend, OptilandBackend, pytest.param(OpticStudioBackend, marks=pytest.mark.windows_only)],
+    )
+    @pytest.mark.parametrize(
+        "filename, expected_backend",
+        [
+            pytest.param("navarro_eye.zmx", "OpticStudioBackend", marks=pytest.mark.windows_only),
+            ("navarro_eye.json", "OptilandBackend"),
+        ],
+    )
+    def test_load_select_backend(
+        self,
+        filename: str,
+        initial_backend: type[backend.BaseBackend] | None,
+        expected_backend: str,
+        datadir: Path,
+        monkeypatch,
+    ):
+        monkeypatch.setattr(backend, "_BACKEND", initial_backend)
+
+        file = datadir / "test_load_models" / filename
+
+        visisipy.load_model(file)
+
+        assert backend.get_backend().__name__ == expected_backend
+
+    def test_load_unknown_extension_raises_valueerror(self, tmp_path: Path):
+        file = (tmp_path / "model_file").with_suffix(".unknown")
+
+        with pytest.raises(
+            ValueError, match=re.escape("File type .unknown is not supported by any of the available backends")
+        ):
+            visisipy.load_model(file)
+
+
 def test_default_backend():
     if platform.system() == "Windows":
-        assert backend._DEFAULT_BACKEND == backend.Backend.OPTICSTUDIO
+        assert backend._DEFAULT_BACKEND == backend.BackendType.OPTICSTUDIO
     else:
-        assert backend._DEFAULT_BACKEND == backend.Backend.OPTILAND
+        assert backend._DEFAULT_BACKEND == backend.BackendType.OPTILAND
