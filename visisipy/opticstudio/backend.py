@@ -276,6 +276,7 @@ class OpticStudioBackend(BaseBackend):
             msg = f"File has extension {filename.suffix}, but only .zmx and .zos are supported."
             raise ValueError(msg)
 
+        cls.model = None
         cls.get_oss().load(str(filename))
 
         if apply_settings:

@@ -269,6 +269,7 @@ class OptilandBackend(BaseBackend):
             msg = f"File has extension {filename.suffix}, but only .json is supported."
             raise ValueError(msg)
 
+        cls.model = None
         optic = load_optiland_file(str(filename))
         cls.optic = optic
 
