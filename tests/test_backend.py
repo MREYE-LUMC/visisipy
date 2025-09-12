@@ -212,6 +212,7 @@ class TestLoadModel:
         assert optiland_backend.get_optic().object_surface.comment == "Test load file"
 
     @pytest.mark.windows_only
+    @pytest.mark.needs_opticstudio
     def test_load_opticstudio_model(self, opticstudio_backend: OpticStudioBackend, datadir: Path):
         file = datadir / "test_load_models" / "navarro_eye.zmx"
 
@@ -222,7 +223,7 @@ class TestLoadModel:
 
     @pytest.mark.parametrize(
         "initial_backend",
-        [None, MockBackend, OptilandBackend, pytest.param(OpticStudioBackend, marks=pytest.mark.windows_only)],
+        [None, MockBackend, OptilandBackend, pytest.param(OpticStudioBackend, marks=[pytest.mark.windows_only, pytest.mark.needs_opticstudio])],
     )
     @pytest.mark.parametrize(
         "filename, expected_backend",
