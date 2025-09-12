@@ -154,19 +154,16 @@ class TestUpdateSettings:
         assert backend._BACKEND.settings["wavelengths"] == [550]
 
     @pytest.mark.filterwarnings("ignore:The OpticStudio backend settings")
-    @pytest.mark.parametrize(
-        "backend_type", [pytest.param(OpticStudioBackend, marks=pytest.mark.windows_only), OptilandBackend]
-    )
-    def test_update_settings_by_backend(self, backend_type):
+    def test_update_settings_by_backend(self, configure_backend):
         field_type = "object_height"
         fields = [(0, 0), (1, 1)]
         wavelengths = [550]
 
-        backend.update_settings(backend_type, field_type=field_type, fields=fields, wavelengths=wavelengths)
+        backend.update_settings(configure_backend, field_type=field_type, fields=fields, wavelengths=wavelengths)
 
-        assert backend_type.settings["field_type"] == "object_height"
-        assert backend_type.settings["fields"] == [(0, 0), (1, 1)]
-        assert backend_type.settings["wavelengths"] == [550]
+        assert configure_backend.settings["field_type"] == "object_height"
+        assert configure_backend.settings["fields"] == [(0, 0), (1, 1)]
+        assert configure_backend.settings["wavelengths"] == [550]
 
 
 class TestGetSetting:
@@ -183,26 +180,24 @@ class TestGetSetting:
 
 
 class TestSaveModel:
-    @pytest.mark.parametrize(
-        "backend_type, suffix",
-        [pytest.param(OpticStudioBackend, ".zmx", marks=pytest.mark.windows_only), (OptilandBackend, ".json")],
-    )
-    def test_save_model(self, backend_type: backend.BaseBackend, suffix: str, tmp_path: Path):
+    def test_save_model(self, configure_backend: backend.BaseBackend, tmp_path: Path, monkeypatch):
+        monkeypatch.setattr(backend, "_BACKEND", configure_backend)
+
+        suffix = ".zmx" if configure_backend.type == "opticstudio" else ".json"
+
         file = (tmp_path / "model_file").with_suffix(suffix)
 
         model = visisipy.EyeModel()
-        backend_type.initialize()
-        backend_type.build_model(model)
+        configure_backend.initialize()
+        configure_backend.build_model(model)
 
         visisipy.save_model(file)
 
         assert file.exists()
 
-    @pytest.mark.parametrize(
-        "backend_type",
-        [pytest.param(OpticStudioBackend, marks=pytest.mark.windows_only), OptilandBackend],
-    )
-    def test_save_no_model_raises_runtimeerror(self, backend_type: backend.BaseBackend):
+    def test_save_no_model_raises_runtimeerror(self, configure_backend: backend.BaseBackend, monkeypatch):
+        monkeypatch.setattr(backend, "_BACKEND", configure_backend)
+
         with pytest.raises(RuntimeError, match="No model is currently loaded in the backend"):
             visisipy.save_model()
 
