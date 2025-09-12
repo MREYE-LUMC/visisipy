@@ -156,7 +156,7 @@ class OptilandBackend(BaseBackend):
                 "The Optiland backend settings can only be applied after initialization. "
                 "Settings will be applied when the backend is initialized."
             )
-        if cls.optic is not None:
+        else:
             cls._apply_settings()
 
     @classmethod

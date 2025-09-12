@@ -94,13 +94,15 @@ def skip_opticstudio(request, opticstudio_available):
 
 
 @pytest.fixture(autouse=True)
-def skip_windows_only(request, opticstudio_available):
+def skip_windows_only(request):
     if request.node.get_closest_marker("windows_only") and platform.system() != "Windows":
         pytest.skip("Running on a non-Windows platform.")
 
 
 @pytest.fixture
-def opticstudio_backend(opticstudio_connection_mode, request, opticstudio_available) -> Generator[type[OpticStudioBackend], Any, None]:
+def opticstudio_backend(
+    opticstudio_connection_mode, request, opticstudio_available
+) -> Generator[type[OpticStudioBackend], Any, None]:
     if not opticstudio_available:
         pytest.skip("OpticStudio is not available.")
 
@@ -108,6 +110,7 @@ def opticstudio_backend(opticstudio_connection_mode, request, opticstudio_availa
         pytest.skip("Running on a non-Windows platform.")
 
     from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS, OpticStudioBackend  # noqa: PLC0415
+
     OpticStudioBackend.model = None
     OpticStudioBackend.oss = None
 
@@ -135,6 +138,7 @@ def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
         The initialized Optiland backend.
     """
     from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS, OptilandBackend  # noqa: PLC0415
+
     OptilandBackend.model = None
     OptilandBackend.optic = None
 
@@ -147,7 +151,12 @@ def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
     OptilandBackend.clear_model()
 
 
-@pytest.fixture(params=[pytest.param(BackendType.OPTICSTUDIO, marks=pytest.mark.windows_only), BackendType.OPTILAND])
+@pytest.fixture(
+    params=[
+        pytest.param(BackendType.OPTICSTUDIO, marks=[pytest.mark.windows_only, pytest.mark.needs_opticstudio]),
+        BackendType.OPTILAND,
+    ]
+)
 def configure_backend(request) -> BaseBackend:
     if request.param == BackendType.OPTICSTUDIO:
         return request.getfixturevalue("opticstudio_backend")

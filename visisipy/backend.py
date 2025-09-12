@@ -230,7 +230,7 @@ class BaseBackend(ABC):
 
     @_classproperty
     @abstractmethod
-    def type(cls) -> BackendType: ...
+    def type(cls) -> BackendType: ...  # noqa: N805
 
     model: BaseEye | None
     settings: BackendSettings
