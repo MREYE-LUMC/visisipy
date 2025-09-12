@@ -228,6 +228,10 @@ class BaseBackend(ABC):
     Backends should implement this interface to provide a unified interface for optical simulations.
     """
 
+    @_classproperty
+    @abstractmethod
+    def type(cls) -> BackendType: ...
+
     model: BaseEye | None
     settings: BackendSettings
 
@@ -475,12 +479,12 @@ def load_model(filename: str | PathLike, *, apply_settings: bool = False) -> Non
         msg = f"File type {filename.suffix} is not supported by any of the available backends."
         raise ValueError(msg)
 
-    match getattr(_BACKEND, "__name__", None):
+    match getattr(_BACKEND, "type", None):
         case None:
             current_backend = None
-        case "OpticStudioBackend":
+        case BackendType.OPTICSTUDIO:
             current_backend = BackendType.OPTICSTUDIO
-        case "OptilandBackend":
+        case BackendType.OPTILAND:
             current_backend = BackendType.OPTILAND
         case _:
             current_backend = None

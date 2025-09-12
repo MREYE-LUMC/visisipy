@@ -11,7 +11,7 @@ import optiland.backend
 from optiland.fileio import load_optiland_file, save_optiland_file
 from optiland.optic import Optic
 
-from visisipy.backend import BackendSettings, BaseBackend, Unpack, _classproperty
+from visisipy.backend import BackendSettings, BackendType, BaseBackend, Unpack, _classproperty
 from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
 
@@ -81,6 +81,8 @@ OPTILAND_APERTURES: dict[ApertureType, str] = {
 
 class OptilandBackend(BaseBackend):
     """Optiland backend."""
+
+    type = BackendType.OPTILAND
 
     optic: Optic | None = None
     model: OptilandEye | None = None

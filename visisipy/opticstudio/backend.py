@@ -12,6 +12,7 @@ from zospy.zpcore import OpticStudioSystem
 
 from visisipy.backend import (
     BackendSettings,
+    BackendType,
     BaseBackend,
     _classproperty,
 )
@@ -63,6 +64,8 @@ OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
 
 class OpticStudioBackend(BaseBackend):
     """OpticStudio backend."""
+
+    type = BackendType.OPTICSTUDIO
 
     zos: ZOS | None = None
     oss: OpticStudioSystem | None = None
