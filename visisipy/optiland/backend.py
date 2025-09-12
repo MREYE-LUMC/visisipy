@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+from os import PathLike
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
+from warnings import warn
 
 import optiland.backend
-from optiland.fileio import save_optiland_file
+from optiland.fileio import load_optiland_file, save_optiland_file
 from optiland.optic import Optic
 
-from visisipy.backend import BackendSettings, BaseBackend, Unpack, _classproperty
+from visisipy.backend import BackendSettings, BackendType, BaseBackend, Unpack, _classproperty
 from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
 
@@ -79,6 +82,8 @@ OPTILAND_APERTURES: dict[ApertureType, str] = {
 class OptilandBackend(BaseBackend):
     """Optiland backend."""
 
+    type = BackendType.OPTILAND
+
     optic: Optic | None = None
     model: OptilandEye | None = None
     settings: OptilandSettings = OptilandSettings(**OPTILAND_DEFAULT_SETTINGS)
@@ -123,6 +128,21 @@ class OptilandBackend(BaseBackend):
         cls.new_model()
 
     @classmethod
+    def _apply_settings(cls) -> None:
+        cls.set_aperture()
+        cls.set_fields(
+            field_type=cls.get_setting("field_type"),
+            coordinates=cls.get_setting("fields"),
+        )
+        cls.set_wavelengths(cls.get_setting("wavelengths"))
+        cls.set_computation_backend(
+            cls.get_setting("computation_backend"),
+            torch_device=cls.get_setting("torch_device"),
+            torch_precision=cls.get_setting("torch_precision"),
+            torch_use_grad_mode=cls.get_setting("torch_use_grad_mode"),
+        )
+
+    @classmethod
     def update_settings(cls, **settings: Unpack[OptilandSettings]) -> None:
         """Apply the provided settings to the Optiland backend.
 
@@ -131,19 +151,13 @@ class OptilandBackend(BaseBackend):
         if len(settings) > 0:
             cls.settings.update(settings)
 
-        if cls.optic is not None:
-            cls.set_aperture()
-            cls.set_fields(
-                field_type=cls.get_setting("field_type"),
-                coordinates=cls.get_setting("fields"),
+        if cls.optic is None:
+            warn(
+                "The Optiland backend settings can only be applied after initialization. "
+                "Settings will be applied when the backend is initialized."
             )
-            cls.set_wavelengths(cls.get_setting("wavelengths"))
-            cls.set_computation_backend(
-                cls.get_setting("computation_backend"),
-                torch_device=cls.get_setting("torch_device"),
-                torch_precision=cls.get_setting("torch_precision"),
-                torch_use_grad_mode=cls.get_setting("torch_use_grad_mode"),
-            )
+        else:
+            cls._apply_settings()
 
     @classmethod
     def new_model(
@@ -245,6 +259,24 @@ class OptilandBackend(BaseBackend):
             raise ValueError("filename must end in .json")
 
         save_optiland_file(cls.optic, path)
+
+    @classmethod
+    def load_model(cls, filename: str | PathLike, *, apply_settings: bool = False) -> None:
+        filename = Path(filename)
+
+        if not filename.exists():
+            msg = f"The specified file does not exist: {filename}"
+            raise FileNotFoundError(msg)
+        if filename.suffix.lower() != ".json":
+            msg = f"File has extension {filename.suffix}, but only .json is supported."
+            raise ValueError(msg)
+
+        cls.model = None
+        optic = load_optiland_file(str(filename))
+        cls.optic = optic
+
+        if apply_settings:
+            cls._apply_settings()
 
     @classmethod
     def get_optic(cls) -> Optic:

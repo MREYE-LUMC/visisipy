@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import re
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
@@ -11,6 +12,7 @@ from tests.helpers import build_args
 
 if TYPE_CHECKING:
     from optiland.fields import FieldGroup
+    from optiland.optic import Optic
 
     from visisipy import EyeModel
     from visisipy.optiland.backend import OptilandBackend, OptilandSettings
@@ -77,6 +79,43 @@ class TestOptilandBackend:
     def test_save_model_invalid_filename_raises_valueerror(self, optiland_backend: OptilandBackend):
         with pytest.raises(ValueError, match=r"filename must end in \.json"):
             optiland_backend.save_model(path="invalid_path/test_model.zmx")
+
+    @pytest.mark.parametrize(
+        "filename,expectation",
+        [
+            ("navarro_eye.json", does_not_raise()),
+            ("nonexistent.json", pytest.raises(FileNotFoundError, match="The specified file does not exist:")),
+            (
+                "navarro_eye.zmx",
+                pytest.raises(ValueError, match=re.escape("File has extension .zmx, but only .json is supported.")),
+            ),
+        ],
+    )
+    def test_load_model(self, optiland_backend, datadir, filename, expectation):
+        file = datadir / "test_load_models" / filename
+
+        with expectation:
+            optiland_backend.load_model(file, apply_settings=False)
+            optic: Optic = optiland_backend.get_optic()
+
+            assert optiland_backend.model is None
+            assert optic.surface_group.num_surfaces == 7
+            assert optic.object_surface.comment == "Test load file"
+            assert optic.aperture.ap_type == "EPD"
+            assert optic.wavelengths.num_wavelengths == 4
+            assert optic.fields.num_fields == 4
+
+    def test_load_model_apply_settings(self, optiland_backend, datadir):
+        file = datadir / "test_load_models" / "navarro_eye.json"
+
+        optiland_backend.load_model(file, apply_settings=True)
+        optic: Optic = optiland_backend.get_optic()
+
+        assert optiland_backend.model is None
+        assert optic.surface_group.num_surfaces == 7
+        assert optic.aperture.ap_type == "float_by_stop_size"
+        assert optic.wavelengths.num_wavelengths == 1
+        assert optic.fields.num_fields == 1
 
     @pytest.mark.parametrize(
         "coordinates,field_type,expectation",
