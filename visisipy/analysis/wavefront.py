@@ -23,6 +23,7 @@ def opd_map(
     sampling: SampleSize | str | int = 128,
     *,
     remove_tilt: bool = True,
+    use_exit_pupil: bool = False,
     return_raw_result: Literal[False] = False,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> DataFrame: ...
@@ -37,6 +38,7 @@ def opd_map(
     sampling: SampleSize | str | int = 128,
     *,
     remove_tilt: bool = True,
+    use_exit_pupil: bool = False,
     return_raw_result: Literal[True] = True,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> tuple[DataFrame, Any]: ...
@@ -51,6 +53,7 @@ def opd_map(
     sampling: SampleSize | str | int = 128,
     *,
     remove_tilt: bool = True,
+    use_exit_pupil_shape: bool = False,
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> DataFrame | tuple[DataFrame, Any]:
@@ -69,6 +72,11 @@ def opd_map(
     sampling : SampleSize | str | int
         The sampling of the OPD map. Can be an integer (e.g., 128 for 128x128), a string like '128x128', or a `SampleSize` object.
         Defaults to 128.
+    remove_tilt : bool, optional
+        If `True`, the tilt component is removed from the OPD map. Defaults to `True`.
+    use_exit_pupil_shape : bool, optional
+        If `True`, the OPD map is distorted to show the shape of the exit pupil. Defaults to `False`. This option is not supported
+        by all backends.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
     backend : type[BaseBackend]
@@ -87,4 +95,5 @@ def opd_map(
         field_type=field_type,
         sampling=SampleSize(sampling),
         remove_tilt=remove_tilt,
+        use_exit_pupil_shape=use_exit_pupil_shape,
     )

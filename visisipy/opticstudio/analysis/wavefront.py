@@ -56,7 +56,35 @@ def opd_map(
     sampling: SampleSize | str | int = 128,
     *,
     remove_tilt: bool = True,
+    use_exit_pupil_shape: bool = False,
 ) -> tuple[DataFrame, DataFrame]:
+    """Calculate the Optical Path Difference (OPD) map at the retina surface.
+
+    Parameters
+    ----------
+    model : EyeModel | None
+        The eye model to use for the wavefront calculation. If `None`, the currently built model will be used.
+    field_coordinate : FieldCoordinate | None
+        The coordinate of the field for which the wavefront is calculated. If `None`, the current field coordinate will be used.
+    wavelength : float | None
+        The wavelength (in nm) for which the wavefront is calculated. If `None`, the current wavelength will be used.
+    field_type : FieldType
+        The type of field coordinate provided. Either 'angle' (degrees) or 'object_height' (mm). Defaults to 'angle'.
+    sampling : SampleSize | str | int
+        The sampling of the OPD map. Can be an integer (e.g., 128 for 128x128), a string like '128x128', or a `SampleSize` object.
+        Defaults to 128.
+    remove_tilt : bool, optional
+        If `True`, the tilt component is removed from the OPD map. Defaults to `True`.
+    use_exit_pupil_shape : bool, optional
+        If `True`, the OPD map is distorted to show the shape of the exit pupil. Defaults to `False`.
+
+    Returns
+    -------
+    DataFrame
+        A pandas DataFrame containing the OPD map values in waves.
+    DataFrame
+        The raw analysis result from the backend.
+    """
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
@@ -72,7 +100,7 @@ def opd_map(
         sampling=str(sampling),
         polarization=zp.constants.Analysis.Settings.Polarizations.None_,
         reference_to_primary=False,
-        use_exit_pupil=False,
+        use_exit_pupil=use_exit_pupil_shape,
         remove_tilt=remove_tilt,
         scale=1.0,
         sub_aperture_x=0.0,

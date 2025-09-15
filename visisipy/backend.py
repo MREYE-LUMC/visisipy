@@ -167,6 +167,7 @@ class BaseAnalysisRegistry(ABC):
         sampling: SampleSize | str | int = 128,
         *,
         remove_tilt: bool = True,
+        use_exit_pupil_shape: bool = False,
     ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
