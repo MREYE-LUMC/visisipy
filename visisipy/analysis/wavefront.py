@@ -23,7 +23,7 @@ def opd_map(
     sampling: SampleSize | str | int = 128,
     *,
     remove_tilt: bool = True,
-    use_exit_pupil: bool = False,
+    use_exit_pupil_shape: bool = False,
     return_raw_result: Literal[False] = False,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> DataFrame: ...
@@ -38,7 +38,7 @@ def opd_map(
     sampling: SampleSize | str | int = 128,
     *,
     remove_tilt: bool = True,
-    use_exit_pupil: bool = False,
+    use_exit_pupil_shape: bool = False,
     return_raw_result: Literal[True] = True,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> tuple[DataFrame, Any]: ...
