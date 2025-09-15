@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import re
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
@@ -11,6 +12,8 @@ import zospy as zp
 from visisipy import EyeModel
 
 if TYPE_CHECKING:
+    from zospy.zpcore import OpticStudioSystem
+
     from visisipy.opticstudio.backend import OpticStudioSettings
 
 pytestmark = [pytest.mark.needs_opticstudio]
@@ -99,6 +102,45 @@ class TestOpticStudioBackend:
         opticstudio_backend.save_model()
 
         assert model_path.exists()
+
+    @pytest.mark.parametrize(
+        "filename,expectation",
+        [
+            ("navarro_eye.zmx", does_not_raise()),
+            ("nonexistent.zmx", pytest.raises(FileNotFoundError, match="The specified file does not exist:")),
+            (
+                "navarro_eye.json",
+                pytest.raises(
+                    ValueError, match=re.escape("File has extension .json, but only .zmx and .zos are supported.")
+                ),
+            ),
+        ],
+    )
+    def test_load_model(self, opticstudio_backend, datadir, filename, expectation):
+        file = datadir / "test_load_models" / filename
+        oss: OpticStudioSystem = opticstudio_backend.get_oss()
+
+        with expectation:
+            opticstudio_backend.load_model(file, apply_settings=False)
+
+            assert opticstudio_backend.model is None
+            assert oss.LDE.NumberOfSurfaces == 7
+            assert oss.LDE.GetSurfaceAt(0).Comment == "Test load file"
+            assert str(oss.SystemData.Aperture.ApertureType) == "EntrancePupilDiameter"
+            assert oss.SystemData.Wavelengths.NumberOfWavelengths == 4
+            assert oss.SystemData.Fields.NumberOfFields == 4
+
+    def test_load_model_apply_settings(self, opticstudio_backend, datadir):
+        file = datadir / "test_load_models" / "navarro_eye.zmx"
+        oss: OpticStudioSystem = opticstudio_backend.get_oss()
+
+        opticstudio_backend.load_model(file, apply_settings=True)
+
+        assert opticstudio_backend.model is None
+        assert oss.LDE.NumberOfSurfaces == 7
+        assert str(oss.SystemData.Aperture.ApertureType) == "FloatByStopSize"
+        assert oss.SystemData.Wavelengths.NumberOfWavelengths == 1
+        assert oss.SystemData.Fields.NumberOfFields == 1
 
     def test_disconnect(self, opticstudio_backend):
         opticstudio_backend.disconnect()

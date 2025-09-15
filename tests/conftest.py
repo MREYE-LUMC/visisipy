@@ -1,23 +1,22 @@
 from __future__ import annotations
 
 import platform
+from collections.abc import Generator
 from typing import TYPE_CHECKING, Any, Literal
 
 import pytest
 
 from visisipy import EyeGeometry, EyeMaterials, EyeModel
+from visisipy.backend import BackendType, BaseBackend
 from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.models.materials import MaterialModel
 
-if platform.system() == "Windows":
-    from visisipy.opticstudio import OpticStudioBackend
-    from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS
-
-from visisipy.optiland import OptilandBackend
-from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS
-
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from pathlib import Path
+
+    from visisipy.opticstudio.backend import OpticStudioBackend
+    from visisipy.optiland.backend import OptilandBackend
 
 # Only run the OpticStudio tests on Windows
 if platform.system() != "Windows":
@@ -95,18 +94,25 @@ def skip_opticstudio(request, opticstudio_available):
 
 
 @pytest.fixture(autouse=True)
-def skip_windows_only(request, opticstudio_available):
+def skip_windows_only(request):
     if request.node.get_closest_marker("windows_only") and platform.system() != "Windows":
         pytest.skip("Running on a non-Windows platform.")
 
 
 @pytest.fixture
-def opticstudio_backend(opticstudio_connection_mode, request, opticstudio_available):
+def opticstudio_backend(
+    opticstudio_connection_mode, request, opticstudio_available
+) -> Generator[type[OpticStudioBackend], Any, None]:
     if not opticstudio_available:
         pytest.skip("OpticStudio is not available.")
 
     if platform.system() != "Windows":
         pytest.skip("Running on a non-Windows platform.")
+
+    from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS, OpticStudioBackend  # noqa: PLC0415
+
+    OpticStudioBackend.model = None
+    OpticStudioBackend.oss = None
 
     settings = OPTICSTUDIO_DEFAULT_SETTINGS.copy()
     settings["mode"] = opticstudio_connection_mode
@@ -131,6 +137,11 @@ def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
     OptilandBackend
         The initialized Optiland backend.
     """
+    from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS, OptilandBackend  # noqa: PLC0415
+
+    OptilandBackend.model = None
+    OptilandBackend.optic = None
+
     OptilandBackend.initialize(**OPTILAND_DEFAULT_SETTINGS)
 
     yield OptilandBackend
@@ -138,6 +149,22 @@ def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
     # Reset settings to defaults
     OptilandBackend.update_settings(**OPTILAND_DEFAULT_SETTINGS)
     OptilandBackend.clear_model()
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(BackendType.OPTICSTUDIO, marks=[pytest.mark.windows_only, pytest.mark.needs_opticstudio]),
+        BackendType.OPTILAND,
+    ]
+)
+def configure_backend(request) -> BaseBackend:
+    if request.param == BackendType.OPTICSTUDIO:
+        return request.getfixturevalue("opticstudio_backend")
+
+    if request.param == BackendType.OPTILAND:
+        return request.getfixturevalue("optiland_backend")
+
+    raise ValueError(f"Unknown backend type: {request.param}")
 
 
 @pytest.fixture
@@ -177,3 +204,8 @@ def three_surface_eye_model():
     )
 
     return EyeModel(geometry)
+
+
+@pytest.fixture
+def datadir(request) -> Path:
+    return request.config.rootpath / "tests" / "_data"

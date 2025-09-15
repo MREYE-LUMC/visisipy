@@ -51,19 +51,20 @@ if TYPE_CHECKING:
     from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
-    "Backend",
     "BackendSettings",
+    "BackendType",
     "BaseBackend",
     "get_backend",
     "get_optic",
     "get_oss",
+    "save_model",
     "set_backend",
     "update_settings",
 )
 
 
 _BACKEND: type[BaseBackend] | None = None
-_DEFAULT_BACKEND: Backend | Literal["opticstudio", "optiland"] = (
+_DEFAULT_BACKEND: BackendType | Literal["opticstudio", "optiland"] = (
     "opticstudio" if platform.system() == "Windows" else "optiland"
 )
 
@@ -227,6 +228,10 @@ class BaseBackend(ABC):
     Backends should implement this interface to provide a unified interface for optical simulations.
     """
 
+    @_classproperty
+    @abstractmethod
+    def type(cls) -> BackendType: ...  # noqa: N805
+
     model: BaseEye | None
     settings: BackendSettings
 
@@ -255,6 +260,10 @@ class BaseBackend(ABC):
     @classmethod
     @abstractmethod
     def save_model(cls, filename: str | PathLike | None = None) -> None: ...
+
+    @classmethod
+    @abstractmethod
+    def load_model(cls, filename: str | PathLike, *, apply_settings: bool = False) -> None: ...
 
     @classmethod
     def get_setting(cls, name: str) -> Any:
@@ -291,7 +300,7 @@ class BaseBackend(ABC):
         Path(filename).write_text(json.dumps(cls.settings, indent=4, sort_keys=True), encoding="utf-8")
 
 
-class Backend(str, Enum):
+class BackendType(str, Enum):
     """Available backends for optical simulations."""
 
     OPTICSTUDIO = "opticstudio"
@@ -299,7 +308,7 @@ class Backend(str, Enum):
 
 
 def set_backend(
-    backend: Backend | Literal["opticstudio", "optiland"] = Backend.OPTICSTUDIO,
+    backend: BackendType | Literal["opticstudio", "optiland"] = BackendType.OPTICSTUDIO,
     **settings: Unpack[BackendSettings],
 ) -> None:
     """Set the backend to use for optical simulations.
@@ -324,12 +333,12 @@ def set_backend(
             f"Reconfiguring the backend is not recommended and may cause issues."
         )
 
-    if backend == Backend.OPTICSTUDIO:
+    if backend == BackendType.OPTICSTUDIO:
         from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
         _BACKEND = OpticStudioBackend
         _BACKEND.initialize(**settings)
-    elif backend == Backend.OPTILAND:
+    elif backend == BackendType.OPTILAND:
         from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
         _BACKEND = OptilandBackend
@@ -410,3 +419,78 @@ def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack
         backend = get_backend()
 
     backend.update_settings(**settings)
+
+
+def save_model(filename: str | PathLike | None = None) -> None:
+    """Save the current model to a file.
+
+    Parameters
+    ----------
+    filename : str | PathLike | None
+        The filename to save the model to. If `None`, a default filename is used.
+        The default filename depends on the backend.
+
+    Raises
+    ------
+    RuntimeError
+        If no model is currently loaded in the backend.
+    """
+    backend = get_backend()
+
+    if backend.model is None:
+        raise RuntimeError("No model is currently loaded in the backend.")
+
+    backend.save_model(filename)
+
+
+def load_model(filename: str | PathLike, *, apply_settings: bool = False) -> None:
+    """Load a model from a file.
+
+    The backend is automatically selected based on the file extension. For `.zmx` and `.zos` files,
+    the OpticStudio backend is used. For `.json` files, the Optiland backend is used.
+
+    Parameters
+    ----------
+    filename : str | PathLike
+        The filename to load the model from.
+    apply_settings : bool, optional
+        If `True`, the currently configured backend settings will be applied after loading the model.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the specified file does not exist.
+    RuntimeError
+        If an OpticStudio file is specified on a non-Windows platform.
+        If the model could not be loaded.
+    ValueError
+        If the file extension is not supported by any of the available backends.
+    """
+    filename = Path(filename)
+
+    if filename.suffix.lower() in {".zmx", ".zos"}:
+        if platform.system() != "Windows":
+            msg = f"Cannot load {filename.suffix}. The OpticStudio backend is only available on Windows."
+            raise RuntimeError(msg)
+        load_backend = BackendType.OPTICSTUDIO
+    elif filename.suffix.lower() == ".json":
+        load_backend = BackendType.OPTILAND
+    else:
+        msg = f"File type {filename.suffix} is not supported by any of the available backends."
+        raise ValueError(msg)
+
+    match getattr(_BACKEND, "type", None):
+        case None:
+            current_backend = None
+        case BackendType.OPTICSTUDIO:
+            current_backend = BackendType.OPTICSTUDIO
+        case BackendType.OPTILAND:
+            current_backend = BackendType.OPTILAND
+        case _:
+            current_backend = None
+
+    if current_backend != load_backend:
+        set_backend(load_backend)
+
+    backend = get_backend()
+    backend.load_model(filename, apply_settings=apply_settings)
