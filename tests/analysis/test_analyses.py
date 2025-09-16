@@ -30,6 +30,18 @@ class MockAnalysis:
     ):
         return None, None
 
+    def opd_map(
+        self,
+        field_coordinate,
+        wavelength,
+        field_type,
+        sampling,
+        *,
+        remove_tilt,
+        use_exit_pupil_shape,
+    ):
+        return None, None
+
     def raytrace(
         self,
         coordinates,
@@ -89,6 +101,13 @@ def test_huygens_psf_analysis(monkeypatch):
 
     assert visisipy.analysis.huygens_psf() is None
     assert visisipy.analysis.huygens_psf(return_raw_result=True) == (None, None)
+
+
+def test_opd_map_analysis(monkeypatch):
+    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+
+    assert visisipy.analysis.opd_map() is None
+    assert visisipy.analysis.opd_map(return_raw_result=True) == (None, None)
 
 
 def test_raytracing_analysis(monkeypatch):
