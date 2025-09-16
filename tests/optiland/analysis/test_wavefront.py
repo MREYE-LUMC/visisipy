@@ -32,3 +32,9 @@ class TestOPDMapAnalysis:
         )
 
         assert optiland_analysis.opd_map(**args)
+
+    def test_opd_map_use_exit_pupil_shape_warning(self, optiland_backend, optiland_analysis):
+        optiland_backend.build_model(EyeModel())
+
+        with pytest.warns(UserWarning, match="Correcting for the exit pupil shape is not supported in Optiland."):
+            optiland_analysis.opd_map(use_exit_pupil_shape=True)

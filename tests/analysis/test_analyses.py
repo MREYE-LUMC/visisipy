@@ -38,6 +38,7 @@ class MockAnalysis:
         sampling,
         *,
         remove_tilt,
+        use_exit_pupil_shape,
     ):
         return None, None
 
