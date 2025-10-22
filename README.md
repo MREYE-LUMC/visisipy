@@ -17,13 +17,17 @@ If you want to contribute, please email us (visisipy@mreye.nl) or [open a new di
 
 ## Installation
 
-Visisipy can be installed through `pip`:
+Visisipy can be installed through [`pip`](https://pypi.org/project/visisipy/):
 
 ```bash
 pip install visisipy
 ```
 
-Visisipy will be made available through Conda as soon as possible.
+Visisipy is also available on [Conda Forge](https://anaconda.org/conda-forge/visisipy):
+
+```bash
+conda install -c conda-forge visisipy
+```
 
 ## Example
 
