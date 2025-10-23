@@ -3,14 +3,66 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from warnings import warn
 
+import numpy as np
 from optiland.wavefront import OPD
+from optiland.wavefront.opd import OPDData
 from pandas import DataFrame
 
 from visisipy.optiland.analysis.helpers import set_field, set_wavelength
 from visisipy.types import FieldCoordinate, FieldType, SampleSize
 
 if TYPE_CHECKING:
+    from optiland.distribution import BaseDistribution
+    from optiland.wavefront import WavefrontData
+
     from visisipy.optiland.backend import OptilandBackend
+
+
+__all__ = ("opd_map",)
+
+
+def generate_opd_map(wavefront: WavefrontData, distribution: BaseDistribution, sampling: int) -> OPDData:
+    """Fast generation of an OPD map from wavefront data with uniform sampling.
+
+    Optiland's `OPD.generate_opd_map` method uses cubic grid interpolation, which is unnecessarily slow
+    for wavefront data generated with a uniform distribution. This function provides a faster alternative
+    by using direct indexing.
+
+    Parameters
+    ----------
+    wavefront : WavefrontData
+        The wavefront data containing OPD values.
+    distribution : BaseDistribution
+        The pupil sampling distribution used for the wavefront.
+    sampling : int
+        The desired sampling size of the OPD map (e.g., 128 for a 128x128 map).
+
+    Returns
+    -------
+    OPDData
+        A dictionary containing the x and y coordinates and the OPD map (z values).
+    """
+    pupil_x = np.linspace(-1, 1, sampling)
+    pupil_y = np.linspace(-1, 1, sampling)
+
+    opd_map = np.full((sampling, sampling), np.nan)
+
+    x_indices = np.searchsorted(pupil_x, distribution.x)
+    y_indices = np.searchsorted(pupil_y, distribution.y)
+
+    # Due to the use of meshgrid in Optilands opd map generation, the x-direction is along the columns
+    opd_map[y_indices, x_indices] = wavefront.opd
+
+    x_opd, y_opd = np.meshgrid(
+        pupil_x,
+        pupil_y,
+    )
+
+    return OPDData(
+        x=x_opd,
+        y=y_opd,
+        z=opd_map,
+    )
 
 
 def opd_map(
@@ -70,7 +122,11 @@ def opd_map(
         remove_tilt=remove_tilt,
     )
 
-    data = opd_result.generate_opd_map(num_points=int(sampling))
+    data = generate_opd_map(
+        opd_result.get_data(field=normalized_field, wl=wavelength),
+        distribution=opd_result.distribution,
+        sampling=int(sampling),
+    )
 
     opd_dataframe = DataFrame(
         data["z"],
