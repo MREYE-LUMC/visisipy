@@ -7,15 +7,24 @@ from typing import TYPE_CHECKING
 
 import optiland.backend
 import pytest
+from optiland.fields import field_types
 
 from tests.helpers import build_args
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from optiland.fields import FieldGroup
     from optiland.optic import Optic
 
     from visisipy import EyeModel
     from visisipy.optiland.backend import OptilandBackend, OptilandSettings
+
+
+OPTILAND_FIELD_TYPES: dict[str, type[field_types.BaseFieldDefinition]] = {
+    "angle": field_types.AngleField,
+    "object_height": field_types.ObjectHeightField,
+}
 
 
 class TestOptilandBackend:
@@ -149,7 +158,7 @@ class TestOptilandBackend:
             for coordinate, field in zip(coordinates, optiland_backend.get_optic().fields.fields, strict=False):
                 assert coordinate == (field.x, field.y)
 
-            assert all(f.field_type == field_type for f in optiland_backend.get_optic().fields.fields)
+            assert isinstance(optiland_backend.get_optic().field_definition, OPTILAND_FIELD_TYPES[field_type])
 
     def test_get_fields(self, optiland_backend: OptilandBackend):
         coordinates = [(10, 10), (20, 20)]
@@ -201,7 +210,7 @@ class TestOptilandBackendSettings:
         assert all(optiland_backend.settings[k] == v for k, v in settings.items())
 
     @staticmethod
-    def _assert_fields_equal(optic_fields: FieldGroup, expected_fields: list[tuple[float, float]]):
+    def _assert_fields_equal(optic_fields: FieldGroup, expected_fields: Sequence[tuple[float, float]]):
         assert len(optic_fields.fields) == len(expected_fields)
 
         for optiland_field, expected_field in zip(optic_fields.fields, expected_fields, strict=False):
@@ -222,7 +231,7 @@ class TestOptilandBackendSettings:
         optiland_backend.update_settings(field_type=field_type, fields=fields)
 
         self._assert_fields_equal(optiland_backend.get_optic().fields, fields)
-        assert all(f.field_type == field_type for f in optiland_backend.get_optic().fields.fields)
+        assert isinstance(optiland_backend.get_optic().field_definition, OPTILAND_FIELD_TYPES[field_type])
 
     @pytest.mark.parametrize(
         "wavelengths",
