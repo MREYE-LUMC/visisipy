@@ -41,9 +41,7 @@ class TestGenerateOPDMap:
 
         # Replace the OPD data with random data
         np.random.seed(0)
-        opd.data[field, wavelength].opd = np.random.randint(
-            -100, 100, size=opd.data[field, wavelength].opd.shape
-        )
+        opd.data[field, wavelength].opd = np.random.randint(-100, 100, size=opd.data[field, wavelength].opd.shape)
 
         # Generate OPD map using Optiland's interpolation method
         data_optiland = opd.generate_opd_map(num_points=sampling)
