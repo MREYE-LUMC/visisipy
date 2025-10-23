@@ -53,9 +53,14 @@ def generate_opd_map(wavefront: WavefrontData, distribution: BaseDistribution, s
     # Due to the use of meshgrid in Optilands opd map generation, the x-direction is along the columns
     opd_map[y_indices, x_indices] = wavefront.opd
 
+    x_opd, y_opd = np.meshgrid(
+        pupil_x,
+        pupil_y,
+    )
+
     return OPDData(
-        x=pupil_x,
-        y=pupil_y,
+        x=x_opd,
+        y=y_opd,
         z=opd_map,
     )
 

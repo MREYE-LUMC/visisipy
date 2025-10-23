@@ -1,9 +1,59 @@
 from __future__ import annotations
 
+import numpy as np
 import pytest
+from optiland.samples import NavarroWideAngleEye
+from optiland.wavefront import OPD
 
 from tests.helpers import build_args
 from visisipy import EyeModel
+from visisipy.optiland.analysis.wavefront import generate_opd_map
+
+
+class TestGenerateOPDMap:
+    @pytest.mark.parametrize("field", [(0, 0), (1 / np.sqrt(2), 1 / np.sqrt(2)), (0, 1)])
+    def test_generate_opd_map(self, field):
+        model = NavarroWideAngleEye()
+        wavelength = 0.543
+        sampling = 32
+
+        opd = OPD(model, field=field, wavelength=wavelength, num_rays=sampling, distribution="uniform")
+
+        # Generate OPD map using Optiland's interpolation method
+        data_optiland = opd.generate_opd_map(num_points=sampling)
+
+        # Generate OPD map using the index-based method
+        data_fast = generate_opd_map(
+            opd.get_data(field=field, wl=wavelength), distribution=opd.distribution, sampling=sampling
+        )
+
+        np.testing.assert_allclose(data_fast["z"], data_optiland["z"])
+        np.testing.assert_array_equal(data_fast["x"], data_optiland["x"])
+        np.testing.assert_array_equal(data_fast["y"], data_optiland["y"])
+
+    def test_generate_opd_map_random(self):
+        model = NavarroWideAngleEye()
+        field = (0, 0)
+        wavelength = 0.543
+        sampling = 32
+
+        opd = OPD(model, field=field, wavelength=wavelength, num_rays=sampling, distribution="uniform")
+
+        # Replace the OPD data with random data
+        np.random.seed(0)
+        opd.data[field, wavelength].opd = np.random.randint(
+            -100, 100, size=opd.data[field, wavelength].opd.shape
+        )
+
+        # Generate OPD map using Optiland's interpolation method
+        data_optiland = opd.generate_opd_map(num_points=sampling)
+
+        # Generate OPD map using the index-based method
+        data_fast = generate_opd_map(
+            opd.get_data(field=field, wl=wavelength), distribution=opd.distribution, sampling=sampling
+        )
+
+        np.testing.assert_allclose(data_fast["z"], data_optiland["z"])
 
 
 class TestOPDMapAnalysis:
