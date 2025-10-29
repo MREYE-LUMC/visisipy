@@ -41,6 +41,7 @@ def pytest_addoption(parser):
         help="Connect to OpticStudio in standalone mode.",
     )
     parser.addoption("--os-update-ui", action="store_true", help="Show updates in the OpticStudio UI.")
+    parser.addoption("--gpu", action="store_true", help="Enable GPU acceleration for the Optiland backend.")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -128,6 +129,11 @@ def opticstudio_backend(
         OpticStudioBackend.disconnect()
 
 
+@pytest.fixture(scope="session")
+def use_gpu(request) -> bool:
+    return request.config.getoption("--gpu")
+
+
 @pytest.fixture
 def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
     """Fixture to initialize the Optiland backend for testing.
@@ -142,7 +148,12 @@ def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
     OptilandBackend.model = None
     OptilandBackend.optic = None
 
-    OptilandBackend.initialize(**OPTILAND_DEFAULT_SETTINGS)
+    settings = OPTILAND_DEFAULT_SETTINGS
+
+    if use_gpu:
+        settings.update({"computation_backend": "torch", "torch_device": "cuda"})
+
+    OptilandBackend.initialize(**settings)
 
     yield OptilandBackend
 
