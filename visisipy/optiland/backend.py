@@ -67,7 +67,7 @@ OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
     "aperture_value": 1,
     "computation_backend": "numpy",
     "torch_device": "cpu",
-    "torch_precision": "float32",
+    "torch_precision": "float64",
     "torch_use_grad_mode": False,
 }
 """Default settings for the Optiland backend."""
