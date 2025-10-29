@@ -135,7 +135,7 @@ def use_gpu(request) -> bool:
 
 
 @pytest.fixture
-def optiland_backend() -> Generator[type[OptilandBackend], Any, None]:
+def optiland_backend(use_gpu) -> Generator[type[OptilandBackend], Any, None]:
     """Fixture to initialize the Optiland backend for testing.
 
     Returns
