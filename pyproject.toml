@@ -39,6 +39,7 @@ python = "3.12"
 [tool.hatch.envs.default.scripts]
 # Format docstrings according to numpydoc
 format-docstrings = "{env:HATCH_UV:uv} tool run pydocstringformatter --write {args:scripts tests visisipy}"
+test-gpu = "hatch test {args} --no-opticstudio --gpu"
 
 [tool.hatch.envs.docs]
 installer = "uv"
