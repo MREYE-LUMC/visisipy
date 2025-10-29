@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from visisipy.opticstudio.backend import OpticStudioBackend
-    from visisipy.optiland.backend import OptilandBackend
+    from visisipy.optiland.backend import OptilandBackend, OptilandSettings
 
 # Only run the OpticStudio tests on Windows
 if platform.system() != "Windows":
@@ -41,7 +41,13 @@ def pytest_addoption(parser):
         help="Connect to OpticStudio in standalone mode.",
     )
     parser.addoption("--os-update-ui", action="store_true", help="Show updates in the OpticStudio UI.")
-    parser.addoption("--gpu", action="store_true", help="Enable GPU acceleration for the Optiland backend.")
+    parser.addoption(
+        "--optiland-backend",
+        action="store",
+        default="numpy",
+        help="Select the Optiland backend to use.",
+        choices=("numpy", "torch-cpu", "torch-gpu"),
+    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -130,12 +136,31 @@ def opticstudio_backend(
 
 
 @pytest.fixture(scope="session")
-def use_gpu(request) -> bool:
-    return request.config.getoption("--gpu")
+def optiland_computation_backend(request) -> Literal["numpy", "torch-cpu", "torch-gpu"]:
+    return request.config.getoption("--optiland-backend")
+
+
+@pytest.fixture(scope="session")
+def optiland_backend_settings(optiland_computation_backend) -> OptilandSettings:
+    from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS  # noqa: PLC0415
+
+    settings = OPTILAND_DEFAULT_SETTINGS.copy()
+
+    match optiland_computation_backend:
+        case "numpy":
+            pass  # Use default settings
+        case "torch-cpu":
+            settings.update({"computation_backend": "torch", "torch_device": "cpu"})
+        case "torch-gpu":
+            settings.update({"computation_backend": "torch", "torch_device": "cuda"})
+        case _:
+            raise ValueError(f"Unknown Optiland backend: {optiland_computation_backend}")
+
+    return settings
 
 
 @pytest.fixture
-def optiland_backend(use_gpu) -> Generator[type[OptilandBackend], Any, None]:
+def optiland_backend(optiland_backend_settings) -> Generator[type[OptilandBackend], Any, None]:
     """Fixture to initialize the Optiland backend for testing.
 
     Returns
@@ -143,22 +168,17 @@ def optiland_backend(use_gpu) -> Generator[type[OptilandBackend], Any, None]:
     OptilandBackend
         The initialized Optiland backend.
     """
-    from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS, OptilandBackend  # noqa: PLC0415
+    from visisipy.optiland.backend import OptilandBackend  # noqa: PLC0415
 
     OptilandBackend.model = None
     OptilandBackend.optic = None
 
-    settings = OPTILAND_DEFAULT_SETTINGS
-
-    if use_gpu:
-        settings.update({"computation_backend": "torch", "torch_device": "cuda"})
-
-    OptilandBackend.initialize(**settings)
+    OptilandBackend.initialize(**optiland_backend_settings)
 
     yield OptilandBackend
 
     # Reset settings to defaults
-    OptilandBackend.update_settings(**OPTILAND_DEFAULT_SETTINGS)
+    OptilandBackend.update_settings(**optiland_backend_settings)
     OptilandBackend.clear_model()
 
 
