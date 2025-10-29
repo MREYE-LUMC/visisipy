@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+import optiland.backend as be
 import pytest
 from optiland.samples import NavarroWideAngleEye
 from optiland.wavefront import OPD
@@ -10,9 +11,19 @@ from visisipy import EyeModel
 from visisipy.optiland.analysis.wavefront import generate_opd_map
 
 
+@pytest.fixture
+def configure_optiland_backend(optiland_backend_settings):
+    be.set_backend(optiland_backend_settings["computation_backend"])
+
+    if optiland_backend_settings["computation_backend"] == "torch":
+        be.set_device(optiland_backend_settings["torch_device"])
+
+    be.set_backend("torch")
+
+
 class TestGenerateOPDMap:
     @pytest.mark.parametrize("field", [(0, 0), (1 / np.sqrt(2), 1 / np.sqrt(2)), (0, 1)])
-    def test_generate_opd_map(self, field):
+    def test_generate_opd_map(self, field, configure_optiland_backend):
         model = NavarroWideAngleEye()
         wavelength = 0.543
         sampling = 32
@@ -31,7 +42,7 @@ class TestGenerateOPDMap:
         np.testing.assert_array_equal(data_fast["x"], data_optiland["x"])
         np.testing.assert_array_equal(data_fast["y"], data_optiland["y"])
 
-    def test_generate_opd_map_random(self):
+    def test_generate_opd_map_random(self, configure_optiland_backend):
         model = NavarroWideAngleEye()
         field = (0, 0)
         wavelength = 0.543
