@@ -123,6 +123,9 @@ max-summary-lines = 1
 summary-quotes-same-line = true
 linewrap-full-docstring = true
 
+[tool.uv.sources]
+optiland = { git = "https://github.com/HarrisonKramer/optiland.git", rev = "crnh/fix/abbe_material_k" }
+
 [dependency-groups]
 dev = [
     "jupyter>=1.1.1",
