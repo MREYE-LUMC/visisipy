@@ -62,7 +62,7 @@ OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
 }
 
 
-class OpticStudioBackend(BaseBackend):
+class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
     """OpticStudio backend."""
 
     type = BackendType.OPTICSTUDIO
@@ -71,6 +71,7 @@ class OpticStudioBackend(BaseBackend):
     oss: OpticStudioSystem | None = None
     model: BaseOpticStudioEye | None = None
     settings: OpticStudioSettings = OpticStudioSettings(**OPTICSTUDIO_DEFAULT_SETTINGS)
+    _settings_type = OpticStudioSettings
     _analysis: OpticStudioAnalysisRegistry | None = None
 
     @_classproperty
@@ -112,6 +113,7 @@ class OpticStudioBackend(BaseBackend):
             The settings to be used for the OpticStudio backend. If None, the default settings are used.
         """
         if len(settings) > 0:
+            cls.validate_settings(settings)
             cls.settings.update(settings)
 
         if cls.zos is None:
@@ -145,6 +147,7 @@ class OpticStudioBackend(BaseBackend):
         This method applies the provided settings to the OpticStudio backend.
         """
         if len(settings) > 0:
+            cls.validate_settings(settings)
             cls.settings.update(settings)
 
         if cls.oss is None:

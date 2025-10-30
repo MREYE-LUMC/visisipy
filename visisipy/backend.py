@@ -29,6 +29,7 @@ import platform
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
 from enum import Enum
+from inspect import get_annotations
 from pathlib import Path
 from types import MethodType
 from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
@@ -234,7 +235,10 @@ class BackendSettings(TypedDict, total=False):
     """The aperture value to use in the optical system. Not required for 'float_by_stop_size'."""
 
 
-class BaseBackend(ABC):
+_Settings = TypeVar("_Settings", bound=BackendSettings)
+
+
+class BaseBackend(ABC, Generic[_Settings]):
     """Base class for optical simulation backends.
 
     Backends should implement this interface to provide a unified interface for optical simulations.
@@ -245,7 +249,8 @@ class BaseBackend(ABC):
     def type(cls) -> BackendType: ...  # noqa: N805
 
     model: BaseEye | None
-    settings: BackendSettings
+    settings: _Settings
+    _settings_type: type[_Settings]
 
     analysis: ClassVar[BaseAnalysisRegistry]
 
@@ -278,6 +283,44 @@ class BaseBackend(ABC):
     def load_model(cls, filename: str | PathLike, *, apply_settings: bool = False) -> None: ...
 
     @classmethod
+    def validate_settings(cls, name: str | _Settings | Sequence[str]) -> None:
+        """Check if the backend has the specified setting.
+
+        Parameters
+        ----------
+        name : str | BackendSettings | Sequence[str]
+            The name or settings to check.
+
+        Raises
+        ------
+        KeyError
+            If the setting does not exist.
+        TypeError
+            If the name parameter is not a string, a settings dictionary, or a sequence of strings.
+        """
+        if cls is BaseBackend:
+            return
+
+        allowed_keys = get_annotations(cls._settings_type).keys()
+
+        if isinstance(name, str):
+            if name not in allowed_keys:
+                msg = f"Setting {name} is not a valid backend setting."
+                raise KeyError(msg)
+
+            return
+
+        if isinstance(name, dict | Sequence):
+            if set(name).issubset(allowed_keys) is False:
+                invalid_keys = [key for key in name if key not in allowed_keys]
+                msg = f"Settings {', '.join(invalid_keys)} are not valid backend settings."
+                raise KeyError(msg)
+
+            return
+
+        raise TypeError("name must be a string, dictionary, or a sequence of strings.")
+
+    @classmethod
     def get_setting(cls, name: str) -> Any:
         """Get a value from the backend settings.
 
@@ -299,6 +342,8 @@ class BaseBackend(ABC):
         KeyError
             If the setting does not exist.
         """
+        cls.validate_settings(name)
+
         if name not in cls.settings:
             raise KeyError(f"Setting '{name}' does not exist.")
 
