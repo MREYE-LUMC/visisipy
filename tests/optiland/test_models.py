@@ -79,7 +79,7 @@ class TestOptilandEye:
 
         # Surfaces are inserted before an existing surface if a surface is already present at the specified index.
         optic.add_surface(index=0, comment="Dummy 1")
-        optic.add_surface(index=0, comment="Dummy 2")
+        optic.add_surface(index=1, comment="Dummy 2")
 
         with pytest.raises(ValueError, match="The retina is not located at the image position"):
             optiland_eye.build(optic)
