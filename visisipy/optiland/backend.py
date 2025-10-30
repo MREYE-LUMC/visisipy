@@ -80,7 +80,7 @@ OPTILAND_APERTURES: dict[ApertureType, str] = {
 }
 
 
-class OptilandBackend(BaseBackend):
+class OptilandBackend(BaseBackend[OptilandSettings]):
     """Optiland backend."""
 
     type = BackendType.OPTILAND
@@ -88,6 +88,8 @@ class OptilandBackend(BaseBackend):
     optic: Optic | None = None
     model: OptilandEye | None = None
     settings: OptilandSettings = OptilandSettings(**OPTILAND_DEFAULT_SETTINGS)
+    _settings_type = OptilandSettings
+
     _analysis: OptilandAnalysisRegistry | None = None
 
     @_classproperty
@@ -124,6 +126,7 @@ class OptilandBackend(BaseBackend):
             The settings to be used for the Optiland backend. If None, the default settings are used.
         """
         if len(settings) > 0:
+            cls.validate_settings(settings)
             cls.settings.update(settings)
 
         cls.new_model()
@@ -150,6 +153,7 @@ class OptilandBackend(BaseBackend):
         This method applies the provided settings to the Optiland backend.
         """
         if len(settings) > 0:
+            cls.validate_settings(settings)
             cls.settings.update(settings)
 
         if cls.optic is None:

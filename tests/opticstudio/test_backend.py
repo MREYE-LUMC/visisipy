@@ -10,8 +10,10 @@ import pytest
 import zospy as zp
 
 from visisipy import EyeModel
+from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS
 
 if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
     from zospy.zpcore import OpticStudioSystem
 
     from visisipy.opticstudio.backend import OpticStudioSettings
@@ -364,3 +366,57 @@ class TestOpticStudioBackendSettings:
         assert opticstudio_backend.oss.SystemData.RayAiming.RayAiming == zp.constants.process_constant(
             zp.constants.SystemData.RayAimingMethod, expected
         )
+
+    @pytest.mark.parametrize(
+        "settings,expectation",
+        [
+            (OPTICSTUDIO_DEFAULT_SETTINGS, does_not_raise()),
+            (
+                "name",
+                pytest.raises(KeyError, match="Setting name is not a valid backend setting"),
+            ),
+            (
+                {"name": "invalid_field"},
+                pytest.raises(KeyError, match="Settings name are not valid backend settings"),
+            ),
+            (
+                {"field_type": "invalid_field_type", "a": 123, "b": 456},
+                pytest.raises(KeyError, match="Settings a, b are not valid backend settings"),
+            ),
+            (
+                ["field_type", "a", "b"],
+                pytest.raises(KeyError, match="Settings a, b are not valid backend settings"),
+            ),
+            (
+                12345,
+                pytest.raises(TypeError, match="name must be a string, dictionary, or a sequence of strings"),
+            ),
+        ],
+    )
+    def test_validate_settings(self, settings, expectation, opticstudio_backend):
+        with expectation:
+            opticstudio_backend.validate_settings(settings)
+
+    @pytest.mark.parametrize(
+        "method,kwargs",
+        [
+            (
+                "initialize",
+                {"name": "invalid_field"},
+            ),
+            (
+                "update_settings",
+                {"name": "invalid_field"},
+            ),
+            (
+                "get_setting",
+                {"name": "name"},
+            ),
+        ],
+    )
+    def test_validate_settings_is_called(self, method, kwargs, mocker: MockerFixture, opticstudio_backend):
+        patch = mocker.patch.object(opticstudio_backend, "validate_settings")
+
+        getattr(opticstudio_backend, method)(**kwargs)
+
+        patch.assert_called()

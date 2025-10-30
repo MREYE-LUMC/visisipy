@@ -10,12 +10,14 @@ import pytest
 from optiland.fields import field_types
 
 from tests.helpers import build_args
+from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from optiland.fields import FieldGroup
     from optiland.optic import Optic
+    from pytest_mock import MockerFixture
 
     from visisipy import EyeModel
     from visisipy.optiland.backend import OptilandBackend, OptilandSettings
@@ -343,3 +345,57 @@ class TestOptilandBackendSettings:
                 assert str(optiland.backend.get_precision()) == f"torch.{torch_precision}"
             if torch_gradient_mode is not None:
                 assert optiland.backend.grad_mode.requires_grad == torch_gradient_mode
+
+    @pytest.mark.parametrize(
+        "settings,expectation",
+        [
+            (OPTILAND_DEFAULT_SETTINGS, does_not_raise()),
+            (
+                "name",
+                pytest.raises(KeyError, match="Setting name is not a valid backend setting"),
+            ),
+            (
+                {"name": "invalid_field"},
+                pytest.raises(KeyError, match="Settings name are not valid backend settings"),
+            ),
+            (
+                {"field_type": "invalid_field_type", "a": 123, "b": 456},
+                pytest.raises(KeyError, match="Settings a, b are not valid backend settings"),
+            ),
+            (
+                ["field_type", "a", "b"],
+                pytest.raises(KeyError, match="Settings a, b are not valid backend settings"),
+            ),
+            (
+                12345,
+                pytest.raises(TypeError, match="name must be a string, dictionary, or a sequence of strings"),
+            ),
+        ],
+    )
+    def test_validate_settings(self, settings, expectation, optiland_backend):
+        with expectation:
+            optiland_backend.validate_settings(settings)
+
+    @pytest.mark.parametrize(
+        "method,kwargs",
+        [
+            (
+                "initialize",
+                {"name": "invalid_field"},
+            ),
+            (
+                "update_settings",
+                {"name": "invalid_field"},
+            ),
+            (
+                "get_setting",
+                {"name": "name"},
+            ),
+        ],
+    )
+    def test_validate_settings_is_called(self, method, kwargs, mocker: MockerFixture, optiland_backend):
+        patch = mocker.patch.object(optiland_backend, "validate_settings")
+
+        getattr(optiland_backend, method)(**kwargs)
+
+        patch.assert_called()
