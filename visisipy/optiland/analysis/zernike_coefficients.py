@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from optiland.backend import to_numpy
 from optiland.wavefront import ZernikeOPD
 
 from visisipy.types import SampleSize
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 def _build_zernike_coefficients(
     zernike_opd: ZernikeOPD,
 ) -> ZernikeCoefficients:
-    return ZernikeCoefficients(dict(enumerate(zernike_opd.coeffs, start=1)))
+    return ZernikeCoefficients(dict(enumerate(to_numpy(zernike_opd.coeffs), start=1)))
 
 
 def zernike_standard_coefficients(

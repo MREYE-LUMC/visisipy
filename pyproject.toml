@@ -130,5 +130,6 @@ optiland = { git = "https://github.com/HarrisonKramer/optiland.git", rev = "crnh
 dev = [
     "jupyter>=1.1.1",
     "pytest>=8.3.5",
+    "pytest-mock>=3.15.1",
     "torch>=2.7.0",
 ]

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import pandas as pd
+from optiland.backend import to_numpy
 from optiland.psf import FFTPSF, HuygensPSF
 
 from visisipy.optiland.analysis.helpers import set_field, set_wavelength
@@ -103,7 +104,7 @@ def fft_psf(
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
     # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
-    df = pd.DataFrame(psf.psf / 100, index=index, columns=columns)
+    df = pd.DataFrame(to_numpy(psf.psf) / 100, index=index, columns=columns)
 
     return df, psf
 
