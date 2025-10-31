@@ -68,4 +68,4 @@ conda install pytorch
 
 ::::
 
-GPU acceleration is only available for the [Optiland backend](backend.ipynb).
+GPU acceleration is only available for the [Optiland backend](#optiland-gpu).
