@@ -144,10 +144,18 @@ class TestRefractionAnalysis:
         [
             ("entrance_pupil_diameter", 1.0),
             ("image_f_number", 2.0),
-            ("object_numeric_aperture", 1e-10),
+            pytest.param("object_numeric_aperture", 1e-10, marks=pytest.mark.xfail_if_torch_backend),
         ],
     )
-    def test_change_pupil_warns_aperture(self, pupil_diameter, aperture_type, optiland_backend, optiland_analysis):
+    def test_change_pupil_warns_aperture(
+        self, pupil_diameter, aperture_type, optiland_backend, optiland_analysis, request
+    ):
+        if (
+            request.node.get_closest_marker("xfail_if_torch_backend")
+            and optiland_backend.settings["computation_backend"] == "torch"
+        ):
+            pytest.xfail("Test fails due to internal error in Torch.")
+
         optiland_backend.build_model(EyeModel())
         optiland_backend.update_settings(aperture_type=aperture_type)
 

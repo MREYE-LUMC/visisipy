@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from warnings import warn
 
 import numpy as np
+from optiland.backend import to_numpy
 from optiland.wavefront import OPD
 from optiland.wavefront.opd import OPDData
 from pandas import DataFrame
@@ -19,6 +20,31 @@ if TYPE_CHECKING:
 
 
 __all__ = ("opd_map",)
+
+
+def _calculate_indices(pupil_coordinates: np.ndarray, sampling: int) -> np.ndarray:
+    """Convert pupil coordinates in the range [-1, 1] to array indices for a given sampling size.
+
+    How it works:
+
+    1. Shift the pupil coordinates from the range [-1, 1] to [0, 2] by adding 1.
+    2. Scale the coordinates to the range [0, 2 * (sampling - 1)] by multiplying by (sampling - 1).
+    3. Scale the coordinates back to the range [0, sampling - 1] by dividing by 2.
+    4. Round the resulting values to the nearest integer and convert to integers.
+
+    Parameters
+    ----------
+    pupil_coordinates : np.ndarray
+        The pupil coordinates in the range [-1, 1].
+    sampling : int
+        The sampling size (number of points along one dimension).
+
+    Returns
+    -------
+    np.ndarray
+        The corresponding array indices.
+    """
+    return np.clip(np.round((pupil_coordinates + 1) * (sampling - 1) / 2).astype(int), 0, sampling - 1)
 
 
 def generate_opd_map(wavefront: WavefrontData, distribution: BaseDistribution, sampling: int) -> OPDData:
@@ -47,11 +73,11 @@ def generate_opd_map(wavefront: WavefrontData, distribution: BaseDistribution, s
 
     opd_map = np.full((sampling, sampling), np.nan)
 
-    x_indices = np.searchsorted(pupil_x, distribution.x)
-    y_indices = np.searchsorted(pupil_y, distribution.y)
+    x_indices = _calculate_indices(to_numpy(distribution.x), sampling)
+    y_indices = _calculate_indices(to_numpy(distribution.y), sampling)
 
     # Due to the use of meshgrid in Optilands opd map generation, the x-direction is along the columns
-    opd_map[y_indices, x_indices] = wavefront.opd
+    opd_map[y_indices, x_indices] = to_numpy(wavefront.opd)
 
     x_opd, y_opd = np.meshgrid(
         pupil_x,

@@ -39,6 +39,8 @@ python = "3.12"
 [tool.hatch.envs.default.scripts]
 # Format docstrings according to numpydoc
 format-docstrings = "{env:HATCH_UV:uv} tool run pydocstringformatter --write {args:scripts tests visisipy}"
+test-torch = "hatch test {args} --no-opticstudio --optiland-backend=torch-cpu"
+test-gpu = "hatch test {args} --no-opticstudio --optiland-backend=torch-gpu"
 
 [tool.hatch.envs.docs]
 installer = "uv"
@@ -121,8 +123,13 @@ max-summary-lines = 1
 summary-quotes-same-line = true
 linewrap-full-docstring = true
 
+[tool.uv.sources]
+optiland = { git = "https://github.com/HarrisonKramer/optiland.git", rev = "crnh/fix/abbe_material_k" }
+
 [dependency-groups]
 dev = [
     "jupyter>=1.1.1",
     "pytest>=8.3.5",
+    "pytest-mock>=3.15.1",
+    "torch>=2.7.0",
 ]

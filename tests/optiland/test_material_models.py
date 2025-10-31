@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from optiland.backend import to_numpy
 from optiland.materials import AbbeMaterial, IdealMaterial
 from optiland.optic import Optic
 
@@ -59,11 +60,11 @@ def build_model(wavelength: float, n: float, abbe: float) -> Optic:
         (NavarroMaterials().vitreous, 0.6328, 1.3347),
     ],
 )
-def test_material_model_refractive_index(material_model, wavelength, expected_index):
+def test_material_model_refractive_index(material_model, wavelength, expected_index, optiland_backend):
     system = build_model(wavelength, material_model.refractive_index, material_model.abbe_number)
 
     system.trace_generic(0, 1, 0, 0, wavelength=wavelength)
-    trace_z, trace_y = system.surface_group.z, system.surface_group.y
+    trace_z, trace_y = to_numpy(system.surface_group.z), to_numpy(system.surface_group.y)
     sin_angle_out = trace_y[2] / np.sqrt(trace_z[2] ** 2 + trace_y[2] ** 2)  # Assuming the ray passes through (0, 0)
     refractive_index = np.sin(np.deg2rad(20)) / sin_angle_out
 
