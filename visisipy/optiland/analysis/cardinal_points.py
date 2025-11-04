@@ -19,28 +19,28 @@ __all__ = ("cardinal_points",)
 def _build_cardinal_points_result(paraxial: Paraxial) -> CardinalPointsResult:
     return CardinalPointsResult(
         focal_lengths=CardinalPoints(
-            object=paraxial.f1(),
-            image=paraxial.f2(),
+            object=float(paraxial.f1()),
+            image=float(paraxial.f2()),
         ),
         focal_points=CardinalPoints(
-            object=paraxial.F1(),
-            image=paraxial.F2(),
+            object=float(paraxial.F1()),
+            image=float(paraxial.F2()),
         ),
         principal_points=CardinalPoints(
-            object=paraxial.P1(),
-            image=paraxial.P2(),
+            object=float(paraxial.P1()),
+            image=float(paraxial.P2()),
         ),
         anti_principal_points=CardinalPoints(
-            object=paraxial.P1anti(),
-            image=paraxial.P2anti(),
+            object=float(paraxial.P1anti()),
+            image=float(paraxial.P2anti()),
         ),
         nodal_points=CardinalPoints(
-            object=paraxial.N1(),
-            image=paraxial.N2(),
+            object=float(paraxial.N1()),
+            image=float(paraxial.N2()),
         ),
         anti_nodal_points=CardinalPoints(
-            object=paraxial.N1anti(),
-            image=paraxial.N2anti(),
+            object=float(paraxial.N1anti()),
+            image=float(paraxial.N2anti()),
         ),
     )
 
