@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from visisipy.models import EyeGeometry, NavarroGeometry, StandardSurface, Stop
-from visisipy.plots import plot_eye, plot_ellipse, plot_hyperbola, plot_parabola
+from visisipy.plots import plot_ellipse, plot_eye, plot_hyperbola, plot_parabola
 
 
 class TestConicSections:
@@ -109,8 +109,8 @@ class TestPlotEye:
         # This should now work without crashing
         geometry = NavarroGeometry()
         # Override the retina validation to test robustness
-        geometry._retina = StandardSurface(radius=12.0, asphericity=0)  # Positive radius
-        
+        geometry.retina = StandardSurface(radius=12.0, asphericity=0)  # Positive radius
+
         fig, ax = plt.subplots()
         result_ax = plot_eye(ax, geometry)
         assert result_ax is ax
@@ -120,8 +120,8 @@ class TestPlotEye:
         """Test plotting an eye with a very strongly curved retina that might not intersect lens."""
         geometry = NavarroGeometry()
         # Create a very strongly curved retina
-        geometry._retina = StandardSurface(radius=-5.0, asphericity=0)
-        
+        geometry.retina = StandardSurface(radius=-5.0, asphericity=0)
+
         fig, ax = plt.subplots()
         result_ax = plot_eye(ax, geometry)
         assert result_ax is ax
@@ -137,7 +137,7 @@ class TestPlotEye:
             lens_back=StandardSurface(radius=-2.0, asphericity=0, thickness=16.3203),  # Very flat
             retina=StandardSurface(radius=-12.0, asphericity=0),
         )
-        
+
         fig, ax = plt.subplots()
         result_ax = plot_eye(ax, geometry)
         assert result_ax is ax
@@ -147,7 +147,7 @@ class TestPlotEye:
         """Test plotting an eye with a parabolic surface (conic = -1)."""
         geometry = NavarroGeometry()
         geometry.lens_back.asphericity = -1  # Make it parabolic
-        
+
         fig, ax = plt.subplots()
         result_ax = plot_eye(ax, geometry)
         assert result_ax is ax
@@ -157,7 +157,7 @@ class TestPlotEye:
         """Test plotting an eye with a hyperbolic surface (conic < -1)."""
         geometry = NavarroGeometry()
         geometry.lens_front.asphericity = -2  # Make it hyperbolic
-        
+
         fig, ax = plt.subplots()
         result_ax = plot_eye(ax, geometry)
         assert result_ax is ax
@@ -167,20 +167,20 @@ class TestPlotEye:
         """Test that negative lens edge thickness raises ValueError."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
-        
+
         with pytest.raises(ValueError, match="lens_edge_thickness should be a positive number"):
             plot_eye(ax, geometry, lens_edge_thickness=-1.0)
-        
+
         plt.close(fig)
 
     def test_plot_eye_invalid_retina_cutoff(self):
         """Test that retina cutoff behind retina raises ValueError."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
-        
+
         with pytest.raises(ValueError, match="retina_cutoff_position is located behind the retina"):
             plot_eye(ax, geometry, retina_cutoff_position=100.0)
-        
+
         plt.close(fig)
 
     def test_plot_eye_extreme_asphericities(self):
@@ -193,7 +193,7 @@ class TestPlotEye:
             lens_back=StandardSurface(radius=-6.0, asphericity=-1.5, thickness=16.3203),
             retina=StandardSurface(radius=-12.0, asphericity=0.5),
         )
-        
+
         fig, ax = plt.subplots()
         result_ax = plot_eye(ax, geometry)
         assert result_ax is ax
@@ -203,14 +203,14 @@ class TestPlotEye:
         """Test that surfaces are correctly cut off at adjacent apex positions."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
-        result_ax = plot_eye(ax, geometry)
-        
+        _ = plot_eye(ax, geometry)
+
         # Get the compound path
         patches = ax.patches
         assert len(patches) > 0
-        
+
         # The patch should have been successfully created
         compound_path = patches[0].get_path()
         assert compound_path is not None
-        
+
         plt.close(fig)

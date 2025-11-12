@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import warnings
+from typing import TYPE_CHECKING, Literal, overload
 
 import numpy as np
 from matplotlib import patches
@@ -18,6 +19,30 @@ if TYPE_CHECKING:
 
 
 __all__ = ("plot_eye",)
+
+
+@overload
+def plot_surface(
+    position: float,
+    radius: float,
+    conic: float,
+    cutoff: float,
+    *,
+    return_endpoint: Literal[False] = False,
+    max_thickness: float = 15.0,
+) -> Path: ...
+
+
+@overload
+def plot_surface(
+    position: float,
+    radius: float,
+    conic: float,
+    cutoff: float,
+    *,
+    return_endpoint: Literal[True],
+    max_thickness: float = 15.0,
+) -> tuple[Path, float]: ...
 
 
 def plot_surface(
@@ -58,7 +83,9 @@ def plot_surface(
         Maximum thickness to draw when cutoff is unreachable (for robustness).
     """
     if conic > -1:
-        return plot_ellipse(position, radius, conic, cutoff, return_endpoint=return_endpoint, max_thickness=max_thickness)
+        return plot_ellipse(
+            position, radius, conic, cutoff, return_endpoint=return_endpoint, max_thickness=max_thickness
+        )
     if conic == -1:
         return plot_parabola(position, radius, cutoff, return_endpoint=return_endpoint, max_thickness=max_thickness)
 
@@ -69,6 +96,30 @@ def _get_ellipse_sizes(radius: float, conic: float) -> tuple[float, float]:
     """Calculate rx and ry (axial and radial radii) of an ellipse from its radius of curvature and conic."""
     # Prolate or oblate does not matter in this case
     return radius / (conic + 1), radius / np.sqrt(conic + 1)
+
+
+@overload
+def plot_ellipse(
+    position: float,
+    radius: float,
+    conic: float,
+    cutoff: float,
+    *,
+    return_endpoint: Literal[False] = False,
+    max_thickness: float = 15.0,
+) -> Path: ...
+
+
+@overload
+def plot_ellipse(
+    position: float,
+    radius: float,
+    conic: float,
+    cutoff: float,
+    *,
+    return_endpoint: Literal[True],
+    max_thickness: float = 15.0,
+) -> tuple[Path, float]: ...
 
 
 def plot_ellipse(
@@ -123,7 +174,7 @@ def plot_ellipse(
         else:
             # Backward curving - cutoff can't be beyond position (apex)
             cutoff = min(cutoff, position)
-        
+
         # Recalculate relative position
         cutoff_relative = cutoff - x0
         if abs(cutoff_relative / rx) > 1:
@@ -139,6 +190,28 @@ def plot_ellipse(
     ellipse = Path(vertices, codes)
 
     return (ellipse, ry * np.sin(t_max)) if return_endpoint else ellipse
+
+
+@overload
+def plot_parabola(
+    position: float,
+    radius: float,
+    cutoff: float,
+    *,
+    return_endpoint: Literal[False] = False,
+    max_thickness: float = 15.0,
+) -> Path: ...
+
+
+@overload
+def plot_parabola(
+    position: float,
+    radius: float,
+    cutoff: float,
+    *,
+    return_endpoint: Literal[True],
+    max_thickness: float = 15.0,
+) -> tuple[Path, float]: ...
 
 
 def plot_parabola(
@@ -200,6 +273,30 @@ def plot_parabola(
 
 def _get_hyperbola_sizes(radius: float, conic: float) -> tuple[float, float]:
     return -radius / (conic + 1), radius / np.sqrt(-conic - 1)
+
+
+@overload
+def plot_hyperbola(
+    position: float,
+    radius: float,
+    conic: float,
+    cutoff: float,
+    *,
+    return_endpoint: Literal[False] = False,
+    max_thickness: float = 15.0,
+) -> Path: ...
+
+
+@overload
+def plot_hyperbola(
+    position: float,
+    radius: float,
+    conic: float,
+    cutoff: float,
+    *,
+    return_endpoint: Literal[True],
+    max_thickness: float = 15.0,
+) -> tuple[Path, float]: ...
 
 
 def plot_hyperbola(
@@ -373,8 +470,6 @@ def plot_eye(
     ValueError
         If `lens_edge_thickness` is less than 0 or `retina_cutoff_position` is located behind the retina.
     """
-    import warnings
-    
     # Extract geometry when an EyeModel is supplied
     geometry = geometry if isinstance(geometry, EyeGeometry) else geometry.geometry
 
@@ -396,17 +491,17 @@ def plot_eye(
     lens_front_pos = pupil_pos + geometry.pupil_lens_distance
     lens_back_pos = lens_front_pos + geometry.lens_thickness
     retina_pos = lens_back_pos + geometry.vitreous_thickness
-    
+
     # Determine curvatures
     cornea_front_convex = _is_convex(geometry.cornea_front.radius)
     cornea_back_concave = _is_concave(geometry.cornea_back.radius)
     lens_front_convex = _is_convex(geometry.lens_front.radius)
     lens_back_concave = _is_concave(geometry.lens_back.radius)
     retina_concave = _is_concave(geometry.retina.radius)
-    
+
     # CORNEA LOGIC
     cornea_edges = Path(np.zeros((0, 2)))
-    
+
     if cornea_front_convex and cornea_back_concave:
         # Normal convex-concave cornea: both cut at pupil, connect with lines
         cornea_front, cornea_front_y = plot_surface(
@@ -433,7 +528,7 @@ def plot_eye(
         ]
         cornea_edges = Path(vertices, codes)
         cornea_cutoff_y = cornea_front_y
-        
+
     elif cornea_front_convex and not cornea_back_concave:
         # Biconvex cornea: cut at intersection
         cf_func = _lens_surface_function(
@@ -447,7 +542,7 @@ def plot_eye(
             cornea_back_pos,
         )
         cornea_intersection = _find_intersection(cf_func, cb_func, (cornea_front_pos + cornea_back_pos) / 2)
-        
+
         if cornea_intersection is not None:
             cornea_front, cornea_front_y = plot_surface(
                 cornea_front_pos,
@@ -489,7 +584,7 @@ def plot_eye(
             ]
             cornea_edges = Path(vertices, codes)
             cornea_cutoff_y = cornea_front_y
-            
+
     else:
         # Unusual configuration (concave front)
         warnings.warn("Concave cornea front detected. Drawing to maximum thickness of 5 mm.", stacklevel=2)
@@ -518,10 +613,10 @@ def plot_eye(
         ]
         cornea_edges = Path(vertices, codes)
         cornea_cutoff_y = max(abs(cornea_front_y), abs(cornea_back_y))
-    
+
     # LENS LOGIC
     lens_edges = Path(np.zeros((0, 2)))
-    
+
     if lens_front_convex and lens_back_concave:
         # Normal biconvex lens: cut at intersection (or edge thickness point)
         lf_func = _lens_surface_function(
@@ -535,7 +630,7 @@ def plot_eye(
             lens_back_pos,
         )
         lens_intersection = _find_intersection(lf_func, lb_func, (lens_front_pos + lens_back_pos) / 2)
-        
+
         if lens_intersection is not None:
             lens_front = plot_surface(
                 lens_front_pos,
@@ -549,7 +644,7 @@ def plot_eye(
                 geometry.lens_back.asphericity,
                 cutoff=lens_intersection,
             )
-            
+
             if lens_edge_thickness > 0:
                 codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
                 vertices = [
@@ -581,7 +676,7 @@ def plot_eye(
                 lens_back.vertices[-1],
             ]
             lens_edges = Path(vertices, codes)
-            
+
     elif not lens_front_convex and not lens_back_concave:
         # Biconcave lens: front at pupil, back at retina intersection
         lb_func = _lens_surface_function(
@@ -595,7 +690,7 @@ def plot_eye(
             retina_pos,
         )
         retina_intersection = _find_intersection(lb_func, r_func, (lens_back_pos + retina_pos) / 2)
-        
+
         lens_front = plot_surface(
             lens_front_pos,
             geometry.lens_front.radius,
@@ -617,7 +712,7 @@ def plot_eye(
             lens_back.vertices[-1],
         ]
         lens_edges = Path(vertices, codes)
-        
+
     elif lens_front_convex and not lens_back_concave:
         # Convex-concave lens: like cornea but cut at 2x lens thickness
         max_cutoff = lens_front_pos + 2 * geometry.lens_thickness
@@ -642,7 +737,7 @@ def plot_eye(
             lens_back.vertices[-1],
         ]
         lens_edges = Path(vertices, codes)
-        
+
     else:
         # Concave-convex lens: both at pupil
         lens_front = plot_surface(
@@ -666,7 +761,7 @@ def plot_eye(
             lens_back.vertices[-1],
         ]
         lens_edges = Path(vertices, codes)
-    
+
     # RETINA LOGIC
     if retina_concave and lens_back_concave:
         # Normal: concave retina, convex lens back - cut at lens back apex
@@ -710,7 +805,7 @@ def plot_eye(
             cutoff=retina_cutoff,
             max_thickness=5.0,
         )
-    
+
     # IRIS (connects cornea surfaces at pupil)
     codes = [
         Path.MOVETO,
@@ -726,7 +821,9 @@ def plot_eye(
     ]
     iris = Path(vertices, codes)
 
-    eye = Path.make_compound_path(cornea_front, cornea_back, cornea_edges, iris, lens_front, lens_back, lens_edges, retina)
+    eye = Path.make_compound_path(
+        cornea_front, cornea_back, cornea_edges, iris, lens_front, lens_back, lens_edges, retina
+    )
     ax.add_patch(patches.PathPatch(eye, fill=None, **kwargs))
 
     return ax
