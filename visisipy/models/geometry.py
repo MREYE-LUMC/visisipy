@@ -610,13 +610,13 @@ def _calculate_vitreous_thickness(geometry: EyeGeometry, parameters: GeometryPar
 GeometryType = TypeVar("GeometryType", bound=EyeGeometry)
 
 
-def check_sign(value: float, name: str, sign: Literal["+", "-"]) -> None:
+def check_sign(value: float | None, name: str, sign: Literal["+", "-"]) -> None:
     """Check the sign of a value and warn if it does not match the expected sign.
 
     Parameters
     ----------
-    value : float
-        The value to check.
+    value : float, optional
+        The value to check. If `None`, no check is performed.
     name : str
         The name of the parameter.
     sign : Literal["+", "-"]
@@ -624,11 +624,17 @@ def check_sign(value: float, name: str, sign: Literal["+", "-"]) -> None:
 
     Raises
     ------
-    UserWarning
-        If the value does not have the expected sign.
     ValueError
         If an invalid sign is specified.
+
+    Warns
+    -----
+    UserWarning
+        If the value does not have the expected sign.
     """
+    if value is None:
+        return
+
     msg = "Expected a {} value for {}, got {}. Check if the sign is correct."
 
     if sign == "+" and value <= 0:
@@ -744,13 +750,13 @@ def create_geometry(
         warn("The cornea back radius was provided, but it will be ignored because estimate_cornea_back is True.")
 
     # Check signs of parameters
-    check_sign(parameters.get("cornea_front_radius", 0), "cornea_front_radius", "+")
-    check_sign(parameters.get("cornea_back_radius", 0), "cornea_back_radius", "+")
-    check_sign(parameters.get("lens_front_radius", 0), "lens_front_radius", "+")
-    check_sign(parameters.get("lens_back_radius", 0), "lens_back_radius", "-")
-    check_sign(parameters.get("retina_radius", 0), "retina_radius", "-")
-    check_sign(parameters.get("retina_ellipsoid_z_radius", 0), "retina_ellipsoid_z_radius", "-")
-    check_sign(parameters.get("retina_ellipsoid_y_radius", 0), "retina_ellipsoid_y_radius", "+")
+    check_sign(parameters.get("cornea_front_radius"), "cornea_front_radius", "+")
+    check_sign(parameters.get("cornea_back_radius"), "cornea_back_radius", "+")
+    check_sign(parameters.get("lens_front_radius"), "lens_front_radius", "+")
+    check_sign(parameters.get("lens_back_radius"), "lens_back_radius", "-")
+    check_sign(parameters.get("retina_radius"), "retina_radius", "-")
+    check_sign(parameters.get("retina_ellipsoid_z_radius"), "retina_ellipsoid_z_radius", "-")
+    check_sign(parameters.get("retina_ellipsoid_y_radius"), "retina_ellipsoid_y_radius", "+")
 
     has_retina_radius_or_asphericity = ("retina_radius" in parameters) or ("retina_asphericity" in parameters)
     has_retina_ellipsoid_radii = ("retina_ellipsoid_z_radius" in parameters) or (
