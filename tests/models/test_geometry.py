@@ -15,6 +15,7 @@ from visisipy.models.geometry import (
     Stop,
     ZernikeStandardPhaseSurface,
     ZernikeStandardSagSurface,
+    _check_sign,
 )
 
 
@@ -403,3 +404,136 @@ class TestCreateGeometry:
         assert pytest.approx(geometry.retina.ellipsoid_radii.z) == 12.34
         assert pytest.approx(geometry.retina.ellipsoid_radii.y) == 10
         assert pytest.approx(geometry.retina.ellipsoid_radii.x) == 10
+
+
+class TestCheckSign:
+    @pytest.mark.parametrize(
+        "sign,value,expectation",
+        [
+            ("+", 5, does_not_raise()),
+            ("+", 0, does_not_raise()),
+            (
+                "+",
+                -5,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape("Expected a positive value for test_param, got -5. Check if the sign is correct."),
+                ),
+            ),
+            ("-", -5, does_not_raise()),
+            ("-", 0, does_not_raise()),
+            (
+                "-",
+                5,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape("Expected a negative value for test_param, got 5. Check if the sign is correct."),
+                ),
+            ),
+            (
+                "invalid",
+                0,
+                pytest.raises(
+                    ValueError, match=re.escape("Invalid sign 'invalid' specified for test_param. Must be '+' or '-'.")
+                ),
+            ),
+        ],
+    )
+    @pytest.mark.filterwarnings("error")  # Fail on unexpected warnings
+    def test_check_sign(self, sign, value, expectation):
+        with expectation:
+            _check_sign(value, "test_param", sign)
+
+    @pytest.mark.parametrize(
+        "parameter,value,expectation",
+        [
+            ("cornea_front_radius", 1, does_not_raise()),
+            (
+                "cornea_front_radius",
+                -1,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape(
+                        "Expected a positive value for cornea_front_radius, got -1. Check if the sign is correct."
+                    ),
+                ),
+            ),
+            ("cornea_back_radius", 1, does_not_raise()),
+            (
+                "cornea_back_radius",
+                -1,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape(
+                        "Expected a positive value for cornea_back_radius, got -1. Check if the sign is correct."
+                    ),
+                ),
+            ),
+            ("lens_front_radius", 1, does_not_raise()),
+            (
+                "lens_front_radius",
+                -1,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape(
+                        "Expected a positive value for lens_front_radius, got -1. Check if the sign is correct."
+                    ),
+                ),
+            ),
+            ("lens_back_radius", -1, does_not_raise()),
+            (
+                "lens_back_radius",
+                1,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape(
+                        "Expected a negative value for lens_back_radius, got 1. Check if the sign is correct."
+                    ),
+                ),
+            ),
+            ("retina_radius", -1, does_not_raise()),
+            (
+                "retina_radius",
+                1,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape(
+                        "Expected a negative value for retina_radius, got 1. Check if the sign is correct."
+                    ),
+                ),
+            ),
+            ("retina_ellipsoid_z_radius", -1, does_not_raise()),
+            (
+                "retina_ellipsoid_z_radius",
+                1,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape(
+                        "Expected a negative value for retina_ellipsoid_z_radius, got 1. Check if the sign is correct."
+                    ),
+                ),
+            ),
+            ("retina_ellipsoid_y_radius", 1, does_not_raise()),
+            (
+                "retina_ellipsoid_y_radius",
+                -1,
+                pytest.warns(
+                    UserWarning,
+                    match=re.escape(
+                        "Expected a positive value for retina_ellipsoid_y_radius, got -1. Check if the sign is correct."
+                    ),
+                ),
+            ),
+        ],
+    )
+    @pytest.mark.filterwarnings("error")  # Fail on unexpected warnings
+    def test_create_geometry_checks_signs(self, parameter, value, expectation):
+        if parameter == "retina_ellipsoid_z_radius":
+            params = {"retina_ellipsoid_y_radius": 1, parameter: value}
+        elif parameter == "retina_ellipsoid_y_radius":
+            params = {"retina_ellipsoid_z_radius": -1, parameter: value}
+        else:
+            params = {parameter: value}
+
+        with expectation:
+            create_geometry(**params)
