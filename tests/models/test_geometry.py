@@ -439,6 +439,7 @@ class TestCheckSign:
             ),
         ],
     )
+    @pytest.mark.filterwarnings("error")  # Fail on unexpected warnings
     def test_check_sign(self, sign, value, expectation):
         with expectation:
             _check_sign(value, "test_param", sign)
@@ -525,6 +526,7 @@ class TestCheckSign:
             ),
         ],
     )
+    @pytest.mark.filterwarnings("error")  # Fail on unexpected warnings
     def test_create_geometry_checks_signs(self, parameter, value, expectation):
         if parameter == "retina_ellipsoid_z_radius":
             params = {"retina_ellipsoid_y_radius": 1, parameter: value}

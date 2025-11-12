@@ -640,9 +640,9 @@ def _check_sign(value: float | None, name: str, sign: Literal["+", "-"]) -> None
 
     msg = "Expected a {} value for {}, got {}. Check if the sign is correct."
 
-    if sign == "+" and value <= 0:
+    if sign == "+" and value < 0:
         warn(msg.format("positive", name, value), UserWarning, stacklevel=2)
-    elif sign == "-" and value >= 0:
+    elif sign == "-" and value > 0:
         warn(msg.format("negative", name, value), UserWarning, stacklevel=2)
 
 
