@@ -392,9 +392,10 @@ def plot_eye(
     # Positions
     cornea_front_pos = -1 * (geometry.cornea_thickness + geometry.anterior_chamber_depth)
     cornea_back_pos = -geometry.anterior_chamber_depth
-    lens_front_pos = 0.0
-    lens_back_pos = geometry.lens_thickness
-    retina_pos = geometry.lens_thickness + geometry.vitreous_thickness
+    pupil_pos = 0.0
+    lens_front_pos = pupil_pos + geometry.pupil_lens_distance
+    lens_back_pos = lens_front_pos + geometry.lens_thickness
+    retina_pos = lens_back_pos + geometry.vitreous_thickness
     
     # Determine curvatures
     cornea_front_convex = _is_convex(geometry.cornea_front.radius)
@@ -412,14 +413,14 @@ def plot_eye(
             cornea_front_pos,
             geometry.cornea_front.radius,
             geometry.cornea_front.asphericity,
-            cutoff=lens_front_pos,
+            cutoff=pupil_pos,
             return_endpoint=True,
         )
         cornea_back, cornea_back_y = plot_surface(
             cornea_back_pos,
             geometry.cornea_back.radius,
             geometry.cornea_back.asphericity,
-            cutoff=lens_front_pos,
+            cutoff=pupil_pos,
             return_endpoint=True,
         )
         # Connect cornea surfaces
@@ -469,14 +470,14 @@ def plot_eye(
                 cornea_front_pos,
                 geometry.cornea_front.radius,
                 geometry.cornea_front.asphericity,
-                cutoff=lens_front_pos,
+                cutoff=pupil_pos,
                 return_endpoint=True,
             )
             cornea_back, cornea_back_y = plot_surface(
                 cornea_back_pos,
                 geometry.cornea_back.radius,
                 geometry.cornea_back.asphericity,
-                cutoff=lens_front_pos,
+                cutoff=pupil_pos,
                 return_endpoint=True,
             )
             codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
@@ -504,7 +505,7 @@ def plot_eye(
             cornea_back_pos,
             geometry.cornea_back.radius,
             geometry.cornea_back.asphericity,
-            cutoff=lens_front_pos,
+            cutoff=pupil_pos,
             return_endpoint=True,
         )
         # Connect surfaces
@@ -599,7 +600,7 @@ def plot_eye(
             lens_front_pos,
             geometry.lens_front.radius,
             geometry.lens_front.asphericity,
-            cutoff=lens_front_pos,
+            cutoff=pupil_pos,
         )
         lens_back = plot_surface(
             lens_back_pos,
@@ -648,13 +649,13 @@ def plot_eye(
             lens_front_pos,
             geometry.lens_front.radius,
             geometry.lens_front.asphericity,
-            cutoff=lens_front_pos,
+            cutoff=pupil_pos,
         )
         lens_back = plot_surface(
             lens_back_pos,
             geometry.lens_back.radius,
             geometry.lens_back.asphericity,
-            cutoff=lens_front_pos,
+            cutoff=pupil_pos,
         )
         # Connect surfaces
         codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
