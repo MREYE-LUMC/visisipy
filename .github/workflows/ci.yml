@@ -35,5 +35,7 @@ jobs:
       - name: Set up uv
         id: setup-uv
         uses: astral-sh/setup-uv@v7
-      - name: Run tests
+      - name: Run tests with Optiland numpy backend
         run: uvx hatch test --python ${{ matrix.python-version }} ./tests --no-opticstudio
+      - name: Run tests with Optiland torch-cpu backend
+        run: uvx hatch test --python ${{ matrix.python-version }} ./tests --no-opticstudio --optiland-backend torch-cpu

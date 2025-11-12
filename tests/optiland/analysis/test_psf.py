@@ -39,6 +39,12 @@ class TestFFTPSFAnalysis:
         assert optiland_analysis.fft_psf(**args)
 
 
+@pytest.fixture(scope="session")
+def skip_if_not_numpy_backend(optiland_computation_backend):
+    if optiland_computation_backend != "numpy":
+        pytest.skip("Huygens PSF analysis only supports the numpy backend.")
+
+
 class TestHuygensPSFAnalysis:
     @pytest.mark.parametrize(
         "field_coordinate,wavelength,field_type,pupil_sampling,image_sampling",
@@ -59,6 +65,7 @@ class TestHuygensPSFAnalysis:
         field_type,
         pupil_sampling,
         image_sampling,
+        skip_if_not_numpy_backend,
     ):
         optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
 
@@ -90,15 +97,11 @@ class TestStrehlRatioAnalysis:
         ["fft", "huygens"],
     )
     def test_strehl_ratio(
-        self,
-        optiland_backend,
-        optiland_analysis,
-        field_coordinate,
-        wavelength,
-        field_type,
-        sampling,
-        psf_type,
+        self, optiland_backend, optiland_analysis, field_coordinate, wavelength, field_type, sampling, psf_type, request
     ):
+        if psf_type == "huygens":
+            request.getfixturevalue("skip_if_not_numpy_backend")
+
         optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
 
         args = build_args(
