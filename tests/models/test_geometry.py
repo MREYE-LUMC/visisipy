@@ -15,7 +15,7 @@ from visisipy.models.geometry import (
     Stop,
     ZernikeStandardPhaseSurface,
     ZernikeStandardSagSurface,
-    check_sign,
+    _check_sign,
 )
 
 
@@ -441,7 +441,7 @@ class TestCheckSign:
     )
     def test_check_sign(self, sign, value, expectation):
         with expectation:
-            check_sign(value, "test_param", sign)
+            _check_sign(value, "test_param", sign)
 
     @pytest.mark.parametrize(
         "parameter,value,expectation",
