@@ -89,8 +89,8 @@ def _get_ellipse_max_extent(position: float, radius: float, conic: float) -> flo
         The maximum x-coordinate extent of the ellipse from the apex.
     """
     rx, _ = _get_ellipse_sizes(radius, conic)
-    # For positive radius (curving left), max extent is at position + 2*rx
-    # For negative radius (curving right), max extent is at position
+    # For positive radius (curving forward/right), max extent is at position + 2*|rx|
+    # For negative radius (curving backward/left), the apex is the max extent at position
     if radius > 0:
         return position + 2 * abs(rx)
     return position
@@ -138,7 +138,7 @@ def plot_ellipse(
     max_extent = _get_ellipse_max_extent(position, radius, conic)
     if radius > 0 and cutoff > max_extent:
         cutoff = max_extent
-    elif radius < 0 and cutoff < max_extent:
+    elif radius < 0 and cutoff > max_extent:
         cutoff = max_extent
 
     # Check if cutoff is within valid range for ellipse equation
