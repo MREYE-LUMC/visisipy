@@ -484,7 +484,7 @@ def plot_eye(
             lens_back_pos,
             geometry.lens_back.radius,
             geometry.lens_back.asphericity,
-            cutoff=lens_back_pos,
+            cutoff=retina_pos,
         )
 
         lens_edges = Path(np.zeros((0, 2)))
