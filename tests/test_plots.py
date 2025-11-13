@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
-from visisipy.models import EyeGeometry, NavarroGeometry, StandardSurface, Stop
+from visisipy.models.geometry import EyeGeometry, NavarroGeometry, StandardSurface, Stop
 from visisipy.plots import plot_ellipse, plot_eye, plot_hyperbola, plot_parabola
 
 
