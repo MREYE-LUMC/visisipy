@@ -89,7 +89,7 @@ def plot_surface(
         codes = [Path.MOVETO, Path.LINETO]
         flat_surface = Path(vertices, codes)
         return (flat_surface, max_thickness) if return_endpoint else flat_surface
-
+    
     if conic > -1:
         return plot_ellipse(
             position, radius, conic, cutoff, return_endpoint=return_endpoint, max_thickness=max_thickness
@@ -444,16 +444,16 @@ def _find_intersection(func1: Callable[[float], float], func2: Callable[[float],
 
 def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list:
     """Match vertices from two surfaces by y-coordinate to ensure proper edge connections.
-
+    
     Returns list of vertices for connecting edges: [front_top, back_top, front_bottom, back_bottom]
     or [front_top, back_bottom, front_bottom, back_top] depending on which pairing minimizes distance.
     """
     # Get y-coordinates of endpoints
     front_y0 = front_surface.vertices[0][1]
-    _ = front_surface.vertices[-1][1]
+    front_y1 = front_surface.vertices[-1][1]
     back_y0 = back_surface.vertices[0][1]
     back_y1 = back_surface.vertices[-1][1]
-
+    
     # Match vertices: if front_y0 and back_y0 are closer, connect 0-0 and -1--1
     # Otherwise connect 0--1 and -1-0
     if abs(front_y0 - back_y0) < abs(front_y0 - back_y1):
@@ -464,18 +464,19 @@ def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list:
             front_surface.vertices[-1],
             back_surface.vertices[-1],
         ]
-    # Connect opposite ends
-    return [
-        front_surface.vertices[0],
-        back_surface.vertices[-1],
-        front_surface.vertices[-1],
-        back_surface.vertices[0],
-    ]
+    else:
+        # Connect opposite ends
+        return [
+            front_surface.vertices[0],
+            back_surface.vertices[-1],
+            front_surface.vertices[-1],
+            back_surface.vertices[0],
+        ]
 
 
 def _get_max_radius_cutoff(position: float, radius: float, conic: float) -> float:
     """Calculate the x-position where a conic surface reaches its maximum vertical radius.
-
+    
     For an ellipse with negative radius (concave), this is where the semi-minor axis is located.
     """
     if conic > -1:  # Ellipse
@@ -483,21 +484,23 @@ def _get_max_radius_cutoff(position: float, radius: float, conic: float) -> floa
         # For a concave surface (negative radius), the maximum radius is at position + rx
         # For a convex surface (positive radius), the maximum radius is at position + rx
         return position + rx
-    if conic == -1:  # Parabola
+    elif conic == -1:  # Parabola
         # For parabola, use a reasonable default based on max_thickness
         a = radius / 2
         max_thickness = 15.0
         if radius > 0:
             return position + max_thickness**2 / (4 * abs(a))
-        return position - max_thickness**2 / (4 * abs(a))
-    # Hyperbola
-    a, b = _get_hyperbola_sizes(radius, conic)
-    max_thickness = 15.0
-    # Adjust position for hyperbola apex
-    position -= a
-    if radius > 0:
-        return position + abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
-    return position - abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
+        else:
+            return position - max_thickness**2 / (4 * abs(a))
+    else:  # Hyperbola
+        a, b = _get_hyperbola_sizes(radius, conic)
+        max_thickness = 15.0
+        # Adjust position for hyperbola apex
+        position -= a
+        if radius > 0:
+            return position + abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
+        else:
+            return position - abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
 
 
 def plot_eye(
@@ -645,19 +648,29 @@ def plot_eye(
         # Unusual configuration (concave front)
         warnings.warn("Concave cornea front detected. Drawing to maximum thickness of 5 mm.", stacklevel=2)
         # Concave cornea curves backward, so extend 5mm backward from apex
+        cornea_front_cutoff = cornea_front_pos - 5.0
         cornea_front, cornea_front_y = plot_surface(
             cornea_front_pos,
             geometry.cornea_front.radius,
             geometry.cornea_front.asphericity,
-            cutoff=cornea_front_pos - 5.0,
+            cutoff=cornea_front_cutoff,
             return_endpoint=True,
             max_thickness=5.0,
         )
+        # For concave-convex cornea, back should be cut at same location as front
+        # For other cases, cut at pupil
+        if not cornea_back_concave:
+            # Convex back - cut at same location as concave front
+            cornea_back_cutoff = cornea_front_cutoff
+        else:
+            # Concave back - cut at pupil
+            cornea_back_cutoff = pupil_pos
+        
         cornea_back, cornea_back_y = plot_surface(
             cornea_back_pos,
             geometry.cornea_back.radius,
             geometry.cornea_back.asphericity,
-            cutoff=pupil_pos,
+            cutoff=cornea_back_cutoff,
             return_endpoint=True,
         )
         # Connect surfaces
@@ -826,7 +839,17 @@ def plot_eye(
             retina_cutoff = retina_intersection
         else:
             # No intersection - cut at maximum vertical radius to avoid complete circle
-            retina_cutoff = _get_max_radius_cutoff(retina_pos, geometry.retina.radius, geometry.retina.asphericity)
+            # For concave retina, only draw posterior half (cutoff at or behind retina apex)
+            max_cutoff = _get_max_radius_cutoff(
+                retina_pos,
+                geometry.retina.radius,
+                geometry.retina.asphericity
+            )
+            # For negative radius (concave), ensure we don't go beyond the apex (only posterior half)
+            if geometry.retina.radius < 0:
+                retina_cutoff = min(max_cutoff, retina_pos)
+            else:
+                retina_cutoff = max_cutoff
         if retina_cutoff_position is not None:
             retina_cutoff = retina_cutoff_position
         retina = plot_surface(
