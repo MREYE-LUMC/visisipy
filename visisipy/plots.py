@@ -442,6 +442,67 @@ def _find_intersection(func1: Callable[[float], float], func2: Callable[[float],
     return None
 
 
+def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list:
+    """Match vertices from two surfaces by y-coordinate to ensure proper edge connections.
+    
+    Returns list of vertices for connecting edges: [front_top, back_top, front_bottom, back_bottom]
+    or [front_top, back_bottom, front_bottom, back_top] depending on which pairing minimizes distance.
+    """
+    # Get y-coordinates of endpoints
+    front_y0 = front_surface.vertices[0][1]
+    front_y1 = front_surface.vertices[-1][1]
+    back_y0 = back_surface.vertices[0][1]
+    back_y1 = back_surface.vertices[-1][1]
+    
+    # Match vertices: if front_y0 and back_y0 are closer, connect 0-0 and -1--1
+    # Otherwise connect 0--1 and -1-0
+    if abs(front_y0 - back_y0) < abs(front_y0 - back_y1):
+        # Connect matching ends
+        return [
+            front_surface.vertices[0],
+            back_surface.vertices[0],
+            front_surface.vertices[-1],
+            back_surface.vertices[-1],
+        ]
+    else:
+        # Connect opposite ends
+        return [
+            front_surface.vertices[0],
+            back_surface.vertices[-1],
+            front_surface.vertices[-1],
+            back_surface.vertices[0],
+        ]
+
+
+def _get_max_radius_cutoff(position: float, radius: float, conic: float) -> float:
+    """Calculate the x-position where a conic surface reaches its maximum vertical radius.
+    
+    For an ellipse with negative radius (concave), this is where the semi-minor axis is located.
+    """
+    if conic > -1:  # Ellipse
+        rx, _ = _get_ellipse_sizes(radius, conic)
+        # For a concave surface (negative radius), the maximum radius is at position + rx
+        # For a convex surface (positive radius), the maximum radius is at position + rx
+        return position + rx
+    elif conic == -1:  # Parabola
+        # For parabola, use a reasonable default based on max_thickness
+        a = radius / 2
+        max_thickness = 15.0
+        if radius > 0:
+            return position + max_thickness**2 / (4 * abs(a))
+        else:
+            return position - max_thickness**2 / (4 * abs(a))
+    else:  # Hyperbola
+        a, b = _get_hyperbola_sizes(radius, conic)
+        max_thickness = 15.0
+        # Adjust position for hyperbola apex
+        position -= a
+        if radius > 0:
+            return position + abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
+        else:
+            return position - abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
+
+
 def plot_eye(
     ax: Axes,
     geometry: EyeModel | EyeGeometry,
@@ -528,12 +589,7 @@ def plot_eye(
         )
         # Connect cornea surfaces
         codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
-        vertices = [
-            cornea_front.vertices[0],
-            cornea_back.vertices[0],
-            cornea_front.vertices[-1],
-            cornea_back.vertices[-1],
-        ]
+        vertices = _match_surface_vertices(cornea_front, cornea_back)
         cornea_edges = Path(vertices, codes)
         cornea_cutoff_y = cornea_front_y
 
@@ -584,12 +640,7 @@ def plot_eye(
                 return_endpoint=True,
             )
             codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
-            vertices = [
-                cornea_front.vertices[0],
-                cornea_back.vertices[0],
-                cornea_front.vertices[-1],
-                cornea_back.vertices[-1],
-            ]
+            vertices = _match_surface_vertices(cornea_front, cornea_back)
             cornea_edges = Path(vertices, codes)
             cornea_cutoff_y = cornea_front_y
 
@@ -614,12 +665,7 @@ def plot_eye(
         )
         # Connect surfaces
         codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
-        vertices = [
-            cornea_front.vertices[0],
-            cornea_back.vertices[0],
-            cornea_front.vertices[-1],
-            cornea_back.vertices[-1],
-        ]
+        vertices = _match_surface_vertices(cornea_front, cornea_back)
         cornea_edges = Path(vertices, codes)
         cornea_cutoff_y = max(abs(cornea_front_y), abs(cornea_back_y))
 
@@ -714,30 +760,7 @@ def plot_eye(
         )
         # Connect surfaces - match by y-coordinate (top to top, bottom to bottom)
         codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
-        # Get y-coordinates of endpoints
-        front_y0 = lens_front.vertices[0][1]
-        front_y1 = lens_front.vertices[-1][1]
-        back_y0 = lens_back.vertices[0][1]
-        back_y1 = lens_back.vertices[-1][1]
-        
-        # Match vertices: if front_y0 and back_y0 are closer, connect 0-0 and -1--1
-        # Otherwise connect 0--1 and -1-0
-        if abs(front_y0 - back_y0) < abs(front_y0 - back_y1):
-            # Connect matching ends
-            vertices = [
-                lens_front.vertices[0],
-                lens_back.vertices[0],
-                lens_front.vertices[-1],
-                lens_back.vertices[-1],
-            ]
-        else:
-            # Connect opposite ends
-            vertices = [
-                lens_front.vertices[0],
-                lens_back.vertices[-1],
-                lens_front.vertices[-1],
-                lens_back.vertices[0],
-            ]
+        vertices = _match_surface_vertices(lens_front, lens_back)
         lens_edges = Path(vertices, codes)
 
     elif lens_front_convex and not lens_back_concave:
@@ -757,12 +780,7 @@ def plot_eye(
         )
         # Connect surfaces
         codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
-        vertices = [
-            lens_front.vertices[0],
-            lens_back.vertices[0],
-            lens_front.vertices[-1],
-            lens_back.vertices[-1],
-        ]
+        vertices = _match_surface_vertices(lens_front, lens_back)
         lens_edges = Path(vertices, codes)
 
     else:
@@ -781,12 +799,7 @@ def plot_eye(
         )
         # Connect surfaces
         codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
-        vertices = [
-            lens_front.vertices[0],
-            lens_back.vertices[0],
-            lens_front.vertices[-1],
-            lens_back.vertices[-1],
-        ]
+        vertices = _match_surface_vertices(lens_front, lens_back)
         lens_edges = Path(vertices, codes)
 
     # RETINA LOGIC
@@ -812,7 +825,15 @@ def plot_eye(
             retina_pos,
         )
         retina_intersection = _find_intersection(lb_func, r_func, (lens_back_pos + retina_pos) / 2)
-        retina_cutoff = retina_intersection if retina_intersection is not None else lens_back_pos
+        if retina_intersection is not None:
+            retina_cutoff = retina_intersection
+        else:
+            # No intersection - cut at maximum vertical radius to avoid complete circle
+            retina_cutoff = _get_max_radius_cutoff(
+                retina_pos,
+                geometry.retina.radius,
+                geometry.retina.asphericity
+            )
         if retina_cutoff_position is not None:
             retina_cutoff = retina_cutoff_position
         retina = plot_surface(
