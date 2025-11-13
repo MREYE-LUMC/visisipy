@@ -588,11 +588,12 @@ def plot_eye(
     else:
         # Unusual configuration (concave front)
         warnings.warn("Concave cornea front detected. Drawing to maximum thickness of 5 mm.", stacklevel=2)
+        # Concave cornea curves backward, so extend 5mm backward from apex
         cornea_front, cornea_front_y = plot_surface(
             cornea_front_pos,
             geometry.cornea_front.radius,
             geometry.cornea_front.asphericity,
-            cutoff=cornea_front_pos + 5.0,
+            cutoff=cornea_front_pos - 5.0,
             return_endpoint=True,
             max_thickness=5.0,
         )
@@ -797,7 +798,8 @@ def plot_eye(
     else:
         # Convex retina - draw to 5mm thickness and warn
         warnings.warn("Convex retina detected. Drawing to maximum thickness of 5 mm.", stacklevel=2)
-        retina_cutoff = retina_pos - 5.0 if retina_cutoff_position is None else retina_cutoff_position
+        # Convex retina curves forward, so extend 5mm forward from apex
+        retina_cutoff = retina_pos + 5.0 if retina_cutoff_position is None else retina_cutoff_position
         retina = plot_surface(
             retina_pos,
             geometry.retina.radius,
