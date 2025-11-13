@@ -82,6 +82,14 @@ def plot_surface(
     max_thickness : float
         Maximum thickness to draw when cutoff is unreachable (for robustness).
     """
+    # Special case: radius = 0 means a flat (vertical) surface
+    if radius == 0:
+        # Draw a straight vertical line from position to cutoff
+        vertices = [(position, -max_thickness), (position, max_thickness)]
+        codes = [Path.MOVETO, Path.LINETO]
+        flat_surface = Path(vertices, codes)
+        return (flat_surface, max_thickness) if return_endpoint else flat_surface
+    
     if conic > -1:
         return plot_ellipse(
             position, radius, conic, cutoff, return_endpoint=return_endpoint, max_thickness=max_thickness
@@ -704,14 +712,32 @@ def plot_eye(
             geometry.lens_back.asphericity,
             cutoff=retina_intersection if retina_intersection is not None else retina_pos,
         )
-        # Connect surfaces
+        # Connect surfaces - match by y-coordinate (top to top, bottom to bottom)
         codes = [Path.MOVETO, Path.LINETO, Path.MOVETO, Path.LINETO]
-        vertices = [
-            lens_front.vertices[0],
-            lens_back.vertices[0],
-            lens_front.vertices[-1],
-            lens_back.vertices[-1],
-        ]
+        # Get y-coordinates of endpoints
+        front_y0 = lens_front.vertices[0][1]
+        front_y1 = lens_front.vertices[-1][1]
+        back_y0 = lens_back.vertices[0][1]
+        back_y1 = lens_back.vertices[-1][1]
+        
+        # Match vertices: if front_y0 and back_y0 are closer, connect 0-0 and -1--1
+        # Otherwise connect 0--1 and -1-0
+        if abs(front_y0 - back_y0) < abs(front_y0 - back_y1):
+            # Connect matching ends
+            vertices = [
+                lens_front.vertices[0],
+                lens_back.vertices[0],
+                lens_front.vertices[-1],
+                lens_back.vertices[-1],
+            ]
+        else:
+            # Connect opposite ends
+            vertices = [
+                lens_front.vertices[0],
+                lens_back.vertices[-1],
+                lens_front.vertices[-1],
+                lens_back.vertices[0],
+            ]
         lens_edges = Path(vertices, codes)
 
     elif lens_front_convex and not lens_back_concave:
