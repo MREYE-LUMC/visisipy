@@ -31,7 +31,6 @@ def _plot_surface(
     cutoff: float,
     *,
     return_endpoint: Literal[False] = False,
-    max_thickness: float = 15.0,
 ) -> Path: ...
 
 
@@ -43,7 +42,6 @@ def _plot_surface(
     cutoff: float,
     *,
     return_endpoint: Literal[True],
-    max_thickness: float = 15.0,
 ) -> tuple[Path, float]: ...
 
 
@@ -54,7 +52,6 @@ def _plot_surface(
     cutoff: float,
     *,
     return_endpoint: bool = False,
-    max_thickness: float = 15.0,
 ) -> Path | tuple[Path, float]:
     """Plot a conic surface.
 
@@ -82,26 +79,22 @@ def _plot_surface(
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
     max_thickness : float
-        Maximum thickness to draw when cutoff is unreachable (for robustness).
+        Maximum thickness to draw when cutoff is unreachable.
     """
     # Special case: radius = 0 means a flat (vertical) surface
     if radius == 0:
         # Draw a straight vertical line from position to cutoff
-        vertices = [(position, -max_thickness), (position, max_thickness)]
+        vertices = [(position, -np.inf), (position, np.inf)]
         codes = [Path.MOVETO, Path.LINETO]
         flat_surface = Path(vertices, codes)
-        return (flat_surface, max_thickness) if return_endpoint else flat_surface
+        return (flat_surface, np.inf) if return_endpoint else flat_surface
 
     if conic > -1:
-        return _plot_ellipse(
-            position, radius, conic, cutoff, return_endpoint=return_endpoint, max_thickness=max_thickness
-        )
+        return _plot_ellipse(position, radius, conic, cutoff, return_endpoint=return_endpoint)
     if conic == -1:
-        return _plot_parabola(position, radius, cutoff, return_endpoint=return_endpoint, max_thickness=max_thickness)
+        return _plot_parabola(position, radius, cutoff, return_endpoint=return_endpoint)
 
-    return _plot_hyperbola(
-        position, radius, conic, cutoff, return_endpoint=return_endpoint, max_thickness=max_thickness
-    )
+    return _plot_hyperbola(position, radius, conic, cutoff, return_endpoint=return_endpoint)
 
 
 def _get_ellipse_sizes(radius: float, conic: float) -> tuple[float, float]:
@@ -118,7 +111,6 @@ def _plot_ellipse(
     cutoff: float,
     *,
     return_endpoint: Literal[False] = False,
-    max_thickness: float = 15.0,
 ) -> Path: ...
 
 
@@ -130,7 +122,6 @@ def _plot_ellipse(
     cutoff: float,
     *,
     return_endpoint: Literal[True],
-    max_thickness: float = 15.0,
 ) -> tuple[Path, float]: ...
 
 
@@ -141,7 +132,6 @@ def _plot_ellipse(
     cutoff: float,
     *,
     return_endpoint: bool = False,
-    max_thickness: float = 15.0,
 ) -> Path | tuple[Path, float]:
     """Plot a segment of an ellipse.
 
@@ -174,24 +164,11 @@ def _plot_ellipse(
     rx, ry = _get_ellipse_sizes(radius, conic)
 
     x0 = position + rx
-
-    # Check if cutoff is reachable
     cutoff_relative = cutoff - x0
-    if abs(cutoff_relative / rx) > 1:
-        # Cutoff is beyond ellipse extent - clamp to maximum extent or use max_thickness
-        if radius > 0:
-            # Forward curving - limit by max_thickness
-            max_x_from_thickness = position + max_thickness if abs(ry) >= max_thickness else position + 2 * abs(rx)
-            cutoff = min(cutoff, max_x_from_thickness)
-        else:
-            # Backward curving - cutoff can't be beyond position (apex)
-            cutoff = min(cutoff, position)
 
-        # Recalculate relative position
-        cutoff_relative = cutoff - x0
-        if abs(cutoff_relative / rx) > 1:
-            # Still out of range, clamp to valid domain
-            cutoff_relative = np.sign(cutoff_relative) * abs(rx)
+    if abs(cutoff_relative / rx) > 1:
+        message = f"Cutoff is located outside the ellipse: {cutoff=}, {rx=}"
+        raise ValueError(message)
 
     t_max = np.abs(np.arccos(cutoff_relative / rx))
     # This is a bit weird, but necessary to draw the arc in the right direction
@@ -211,7 +188,6 @@ def _plot_parabola(
     cutoff: float,
     *,
     return_endpoint: Literal[False] = False,
-    max_thickness: float = 15.0,
 ) -> Path: ...
 
 
@@ -222,7 +198,6 @@ def _plot_parabola(
     cutoff: float,
     *,
     return_endpoint: Literal[True],
-    max_thickness: float = 15.0,
 ) -> tuple[Path, float]: ...
 
 
@@ -232,7 +207,6 @@ def _plot_parabola(
     cutoff: float,
     *,
     return_endpoint: bool = False,
-    max_thickness: float = 15.0,
 ) -> Path | tuple[Path, float]:
     """Plot a segment of a parabola.
 
@@ -263,11 +237,8 @@ def _plot_parabola(
     a = radius / 2  # The radius of curvature of a parabola is twice its focal length
 
     if (cutoff < position and radius > 0) or (cutoff > position and radius < 0):
-        # Cutoff is outside domain - use max_thickness constraint
-        if radius > 0:
-            cutoff = position + max_thickness**2 / (4 * abs(a))
-        else:
-            cutoff = position - max_thickness**2 / (4 * abs(a))
+        message = "Cutoff is outside the domain of the parabola."
+        raise ValueError(message)
 
     t_max = np.abs(np.sqrt((cutoff - position) / a))
     t = np.linspace(-t_max, t_max, 1000)
@@ -295,7 +266,6 @@ def _plot_hyperbola(
     cutoff: float,
     *,
     return_endpoint: Literal[False] = False,
-    max_thickness: float = 15.0,
 ) -> Path: ...
 
 
@@ -307,7 +277,6 @@ def _plot_hyperbola(
     cutoff: float,
     *,
     return_endpoint: Literal[True],
-    max_thickness: float = 15.0,
 ) -> tuple[Path, float]: ...
 
 
@@ -318,7 +287,6 @@ def _plot_hyperbola(
     cutoff: float,
     *,
     return_endpoint: bool = False,
-    max_thickness: float = 15.0,
 ) -> Path | tuple[Path, float]:
     """Plot a segment of a hyperbola.
 
@@ -354,11 +322,8 @@ def _plot_hyperbola(
     position -= a
 
     if (cutoff < position and radius > 0) or (cutoff > position and radius < 0):
-        # Cutoff is outside domain - use max_thickness constraint
-        if radius > 0:
-            cutoff = position + abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
-        else:
-            cutoff = position - abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
+        message = "The cutoff coordinate is located outside the domain of the hyperbola."
+        raise ValueError(message)
 
     t_max = np.arccosh((cutoff - position) / a)
     t = np.linspace(-t_max, t_max, 1000)
@@ -489,33 +454,6 @@ def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list:
         front_surface.vertices[-1],
         back_surface.vertices[0],
     ]
-
-
-def _get_max_radius_cutoff(position: float, radius: float, conic: float) -> float:
-    """Calculate the x-position where a conic surface reaches its maximum vertical radius.
-
-    For an ellipse with negative radius (concave), this is where the semi-minor axis is located.
-    """
-    if conic > -1:  # Ellipse
-        rx, _ = _get_ellipse_sizes(radius, conic)
-        # For a concave surface (negative radius), the maximum radius is at position + rx
-        # For a convex surface (positive radius), the maximum radius is at position + rx
-        return position + rx
-    if conic == -1:  # Parabola
-        # For parabola, use a reasonable default based on max_thickness
-        a = radius / 2
-        max_thickness = 15.0
-        if radius > 0:
-            return position + max_thickness**2 / (4 * abs(a))
-        return position - max_thickness**2 / (4 * abs(a))
-    # Hyperbola
-    a, b = _get_hyperbola_sizes(radius, conic)
-    max_thickness = 15.0
-    # Adjust position for hyperbola apex
-    position -= a
-    if radius > 0:
-        return position + abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
-    return position - abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
 
 
 def _plot_cornea(
@@ -670,7 +608,6 @@ def _plot_retina(
     retina_concave = _is_concave(geometry.retina.radius, side="object")
 
     cutoff: float
-    max_thickness: float = 15.0
 
     if retina_cutoff_position is not None:
         # Use the specified cutoff position
@@ -678,12 +615,12 @@ def _plot_retina(
 
     elif retina_concave and lens_back_convex:
         # Normal: concave retina, convex lens back - cut at lens back apex
-        if (
-            _is_ellipse(geometry.retina)
-            and abs(retina_pos - lens_back_pos) > 2 * geometry.retina.ellipsoid_radii.anterior_posterior
+        if _is_ellipse(geometry.retina) and abs(retina_pos - lens_back_pos) > 2 * abs(
+            geometry.retina.ellipsoid_radii.anterior_posterior
         ):
             # Distance between lens back and retina is more than retina diameter - cut at max radius
-            cutoff = _get_max_radius_cutoff(retina_pos, geometry.retina.radius, geometry.retina.asphericity)
+            # Retina is concave, so the radius is already negative
+            cutoff = retina_pos + geometry.retina.ellipsoid_radii.anterior_posterior
         else:
             # Cut at lens back apex
             cutoff = lens_back_pos
@@ -707,7 +644,7 @@ def _plot_retina(
         else:
             # No intersection - cut at maximum vertical radius to avoid complete circle
             # For concave retina, only draw posterior half (cutoff at or behind retina apex)
-            max_cutoff = _get_max_radius_cutoff(retina_pos, geometry.retina.radius, geometry.retina.asphericity)
+            max_cutoff = retina_pos - geometry.retina.ellipsoid_radii.anterior_posterior
             # For negative radius (concave), ensure we don't go beyond the apex (only posterior half)
             cutoff = min(max_cutoff, retina_pos) if geometry.retina.radius < 0 else max_cutoff
     else:
@@ -715,14 +652,12 @@ def _plot_retina(
         warnings.warn("Convex retina detected. Drawing to maximum thickness of 5 mm.", stacklevel=2)
         # Convex retina curves forward, so extend 5mm forward from apex
         cutoff = retina_pos + 5.0 if retina_cutoff_position is None else retina_cutoff_position
-        max_thickness = 5.0
 
     return _plot_surface(
         retina_pos,
         geometry.retina.radius,
         geometry.retina.asphericity,
         cutoff=cutoff,
-        max_thickness=max_thickness,
     )
 
 
