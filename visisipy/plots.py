@@ -78,8 +78,6 @@ def _plot_surface(
         Position coordinate at which the surface is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-    max_thickness : float
-        Maximum thickness to draw when cutoff is unreachable.
     """
     # Special case: radius = 0 means a flat (vertical) surface
     if radius == 0:
@@ -158,8 +156,6 @@ def _plot_ellipse(
         x-coordinate at which the ellipse is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-    max_thickness : float
-        Maximum thickness to draw when cutoff is unreachable.
     """
     rx, ry = _get_ellipse_sizes(radius, conic)
 
@@ -231,8 +227,6 @@ def _plot_parabola(
         x-coordinate at which the parabola is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-    max_thickness : float
-        Maximum thickness to draw when cutoff is unreachable.
     """
     a = radius / 2  # The radius of curvature of a parabola is twice its focal length
 
@@ -313,8 +307,6 @@ def _plot_hyperbola(
         x-coordinate at which the hyperbola is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-    max_thickness : float
-        Maximum thickness to draw when cutoff is unreachable.
     """
     a, b = _get_hyperbola_sizes(radius, conic)
 
@@ -365,7 +357,12 @@ def _hyperbola(x, rx, ry) -> float:
 
 def _lens_surface_function(radius, conic, position) -> Callable[[float], float]:
     """Function for the upper segment of a lens surface. Used to find intersections between lens surfaces."""
-    if conic < -1:  # Hyperbola
+    if radius in {0, np.inf}:
+
+        def surface_function(x: float) -> float:
+            return np.inf if x == position else 0.0
+
+    elif conic < -1:  # Hyperbola
         rx, ry = _get_hyperbola_sizes(radius, conic)
         x0 = position - rx
 
@@ -395,7 +392,10 @@ def _is_ellipse(surface: StandardSurface) -> bool:
 
 
 def _is_convex(radius: float, side: Literal["image", "object"]) -> bool:
-    """Determine if a surface is convex (positive radius)."""
+    """Determine if a surface is convex.
+
+    Convex surfaces have a positive radius on the object side and a negative radius on the image side.
+    """
     if side == "object":
         return radius > 0
 
@@ -406,7 +406,10 @@ def _is_convex(radius: float, side: Literal["image", "object"]) -> bool:
 
 
 def _is_concave(radius: float, side: Literal["image", "object"]) -> bool:
-    """Determine if a surface is concave (negative radius)."""
+    """Determine if a surface is concave (negative radius).
+
+    Concave surfaces have a negative radius on the object side and a positive radius on the image side.
+    """
     if radius == 0:
         return False
 
@@ -417,11 +420,11 @@ def _find_intersection(func1: Callable[[float], float], func2: Callable[[float],
     """Find intersection of two surface functions. Returns None if no intersection found."""
     try:
         result = fsolve(lambda x: func1(x) - func2(x), x0=x0, full_output=True)
-        x_intersect, info, ier, _ = result
+        x_intersect, _, ier, _ = result
         if ier == 1:  # Solution found
             return float(x_intersect[0])
-    except (ValueError, RuntimeWarning):
-        pass
+    except ValueError as e:
+        warnings.warn(f"_find_intersection: Exception occurred while finding intersection: {e}", RuntimeWarning)
     return None
 
 
@@ -433,7 +436,6 @@ def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list:
     """
     # Get y-coordinates of endpoints
     front_y0 = front_surface.vertices[0][1]
-    _ = front_surface.vertices[-1][1]
     back_y0 = back_surface.vertices[0][1]
     back_y1 = back_surface.vertices[-1][1]
 
@@ -641,12 +643,15 @@ def _plot_retina(
 
         if retina_intersection is not None:
             cutoff = retina_intersection
-        else:
+        elif _is_ellipse(geometry.retina):
             # No intersection - cut at maximum vertical radius to avoid complete circle
             # For concave retina, only draw posterior half (cutoff at or behind retina apex)
             max_cutoff = retina_pos - geometry.retina.ellipsoid_radii.anterior_posterior
             # For negative radius (concave), ensure we don't go beyond the apex (only posterior half)
             cutoff = min(max_cutoff, retina_pos) if geometry.retina.radius < 0 else max_cutoff
+        else:
+            # Cutoff halway between lens back and retina apex
+            cutoff = (lens_back_pos + retina_pos) / 2
     else:
         # Convex retina - draw to 5mm thickness and warn
         warnings.warn("Convex retina detected. Drawing to maximum thickness of 5 mm.", stacklevel=2)
@@ -793,6 +798,12 @@ def plot_eye(
     eye = Path.make_compound_path(cornea, pupil, lens, retina)
     ax.add_patch(patches.PathPatch(eye, fill=None, **kwargs))
 
-    _set_axis_limits(ax, cornea_front_pos, retina_pos, geometry.retina.ellipsoid_radii.inferior_superior)
+    if _is_ellipse(geometry.retina):
+        max_retina_radius = geometry.retina.ellipsoid_radii.inferior_superior
+    else:
+        bbox = retina.get_extents()
+        max_retina_radius = max(abs(bbox.y0), abs(bbox.y1))
+
+    _set_axis_limits(ax, cornea_front_pos, retina_pos, max_retina_radius)
 
     return ax

@@ -61,10 +61,8 @@ class TestConicSections:
 
     def test_plot_hyperbola_out_of_range_cutoff(self):
         """Test hyperbola plotting with cutoff beyond domain."""
-        # Should not raise ValueError, should use max_radius constraint
-        path = _plot_hyperbola(position=0, radius=10, conic=-2, cutoff=-5)
-        assert path is not None
-        assert len(path.vertices) > 0
+        with pytest.raises(ValueError, match="The cutoff coordinate is located outside the domain of the hyperbola"):
+            _plot_hyperbola(position=0, radius=10, conic=-2, cutoff=-50)
 
     def test_plot_hyperbola_with_endpoint(self):
         """Test hyperbola plotting with endpoint return."""
