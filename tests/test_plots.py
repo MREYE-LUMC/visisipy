@@ -21,10 +21,8 @@ class TestConicSections:
 
     def test_plot_ellipse_out_of_range_cutoff(self):
         """Test ellipse plotting with cutoff beyond surface extent."""
-        # Should not raise ValueError, should clamp to valid range
-        path = _plot_ellipse(position=0, radius=10, conic=0.5, cutoff=100)
-        assert path is not None
-        assert len(path.vertices) > 0
+        with pytest.raises(ValueError, match="Cutoff is located outside the ellipse"):
+            _plot_ellipse(position=0, radius=10, conic=0.5, cutoff=100)
 
     def test_plot_ellipse_negative_radius(self):
         """Test ellipse plotting with negative radius (reversed orientation)."""
@@ -46,10 +44,8 @@ class TestConicSections:
 
     def test_plot_parabola_out_of_range_cutoff(self):
         """Test parabola plotting with cutoff beyond domain."""
-        # Should not raise ValueError, should use max_radius constraint
-        path = _plot_parabola(position=0, radius=10, cutoff=-5, max_radius=10.0)
-        assert path is not None
-        assert len(path.vertices) > 0
+        with pytest.raises(ValueError, match="Cutoff is outside the domain of the parabola"):
+            _plot_parabola(position=0, radius=10, cutoff=-10)
 
     def test_plot_parabola_with_endpoint(self):
         """Test parabola plotting with endpoint return."""
@@ -66,7 +62,7 @@ class TestConicSections:
     def test_plot_hyperbola_out_of_range_cutoff(self):
         """Test hyperbola plotting with cutoff beyond domain."""
         # Should not raise ValueError, should use max_radius constraint
-        path = _plot_hyperbola(position=0, radius=10, conic=-2, cutoff=-5, max_radius=10.0)
+        path = _plot_hyperbola(position=0, radius=10, conic=-2, cutoff=-5)
         assert path is not None
         assert len(path.vertices) > 0
 
