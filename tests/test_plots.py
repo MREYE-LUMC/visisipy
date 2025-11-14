@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from visisipy.models.geometry import EyeGeometry, NavarroGeometry, StandardSurface, Stop
-from visisipy.plots import plot_ellipse, plot_eye, plot_hyperbola, plot_parabola
+from visisipy.plots import _plot_ellipse, _plot_hyperbola, _plot_parabola, plot_eye
 
 
 class TestConicSections:
@@ -15,64 +15,64 @@ class TestConicSections:
 
     def test_plot_ellipse_normal_cutoff(self):
         """Test ellipse plotting with a normal cutoff."""
-        path = plot_ellipse(position=0, radius=10, conic=0.5, cutoff=5)
+        path = _plot_ellipse(position=0, radius=10, conic=0.5, cutoff=5)
         assert path is not None
         assert len(path.vertices) > 0
 
     def test_plot_ellipse_out_of_range_cutoff(self):
         """Test ellipse plotting with cutoff beyond surface extent."""
         # Should not raise ValueError, should clamp to valid range
-        path = plot_ellipse(position=0, radius=10, conic=0.5, cutoff=100)
+        path = _plot_ellipse(position=0, radius=10, conic=0.5, cutoff=100)
         assert path is not None
         assert len(path.vertices) > 0
 
     def test_plot_ellipse_negative_radius(self):
         """Test ellipse plotting with negative radius (reversed orientation)."""
-        path = plot_ellipse(position=0, radius=-10, conic=0.5, cutoff=-5)
+        path = _plot_ellipse(position=0, radius=-10, conic=0.5, cutoff=-5)
         assert path is not None
         assert len(path.vertices) > 0
 
     def test_plot_ellipse_with_endpoint(self):
         """Test ellipse plotting with endpoint return."""
-        path, endpoint_y = plot_ellipse(position=0, radius=10, conic=0.5, cutoff=5, return_endpoint=True)
+        path, endpoint_y = _plot_ellipse(position=0, radius=10, conic=0.5, cutoff=5, return_endpoint=True)
         assert path is not None
         assert isinstance(endpoint_y, (float, np.floating))
 
     def test_plot_parabola_normal_cutoff(self):
         """Test parabola plotting with a normal cutoff."""
-        path = plot_parabola(position=0, radius=10, cutoff=5)
+        path = _plot_parabola(position=0, radius=10, cutoff=5)
         assert path is not None
         assert len(path.vertices) > 0
 
     def test_plot_parabola_out_of_range_cutoff(self):
         """Test parabola plotting with cutoff beyond domain."""
         # Should not raise ValueError, should use max_radius constraint
-        path = plot_parabola(position=0, radius=10, cutoff=-5, max_radius=10.0)
+        path = _plot_parabola(position=0, radius=10, cutoff=-5, max_radius=10.0)
         assert path is not None
         assert len(path.vertices) > 0
 
     def test_plot_parabola_with_endpoint(self):
         """Test parabola plotting with endpoint return."""
-        path, endpoint_y = plot_parabola(position=0, radius=10, cutoff=5, return_endpoint=True)
+        path, endpoint_y = _plot_parabola(position=0, radius=10, cutoff=5, return_endpoint=True)
         assert path is not None
         assert isinstance(endpoint_y, (float, np.floating))
 
     def test_plot_hyperbola_normal_cutoff(self):
         """Test hyperbola plotting with a normal cutoff."""
-        path = plot_hyperbola(position=0, radius=10, conic=-2, cutoff=5)
+        path = _plot_hyperbola(position=0, radius=10, conic=-2, cutoff=5)
         assert path is not None
         assert len(path.vertices) > 0
 
     def test_plot_hyperbola_out_of_range_cutoff(self):
         """Test hyperbola plotting with cutoff beyond domain."""
         # Should not raise ValueError, should use max_radius constraint
-        path = plot_hyperbola(position=0, radius=10, conic=-2, cutoff=-5, max_radius=10.0)
+        path = _plot_hyperbola(position=0, radius=10, conic=-2, cutoff=-5, max_radius=10.0)
         assert path is not None
         assert len(path.vertices) > 0
 
     def test_plot_hyperbola_with_endpoint(self):
         """Test hyperbola plotting with endpoint return."""
-        path, endpoint_y = plot_hyperbola(position=0, radius=10, conic=-2, cutoff=5, return_endpoint=True)
+        path, endpoint_y = _plot_hyperbola(position=0, radius=10, conic=-2, cutoff=5, return_endpoint=True)
         assert path is not None
         assert isinstance(endpoint_y, (float, np.floating))
 
