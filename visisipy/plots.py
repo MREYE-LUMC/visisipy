@@ -500,6 +500,41 @@ def _get_max_radius_cutoff(position: float, radius: float, conic: float) -> floa
     return position - abs(a) * np.sqrt(1 + (max_thickness / abs(b)) ** 2)
 
 
+def _set_axis_limits(
+    ax: Axes, cornea_front_position: float, retina_position: float, retina_radius: float, padding: float = 3.0
+) -> None:
+    """Set axis limits to fit the eye geometry with some padding.
+
+    If the current limits are larger, they are preserved.
+
+    Parameters
+    ----------
+    ax : matplotlib.pyplot.Axes
+        Matplotlib axes to set limits on.
+    cornea_front_position : float
+        Position of the anterior corneal surface.
+    retina_position : float
+        Position of the retina.
+    retina_radius : float
+        Transversal radius of the retina.
+    padding : float
+        Padding in mm to add around the eye geometry.
+    """
+    if padding < 0:
+        raise ValueError("Padding must be positive.")
+
+    current_xlims = ax.get_xlim()
+    current_ylims = ax.get_ylim()
+
+    x_min = cornea_front_position - padding
+    x_max = retina_position + padding
+    y_max = abs(retina_radius) + padding
+    y_min = -y_max
+
+    ax.set_xlim(min(current_xlims[0], x_min), max(current_xlims[1], x_max))
+    ax.set_ylim(min(current_ylims[0], y_min), max(current_ylims[1], y_max))
+
+
 def plot_eye(
     ax: Axes,
     geometry: EyeModel | EyeGeometry,
@@ -816,11 +851,7 @@ def plot_eye(
             retina_cutoff = retina_cutoff_position
         elif abs(retina_pos - lens_back_pos) > 2 * geometry.retina.ellipsoid_radii.anterior_posterior:
             # Distance between lens back and retina is more than retina diameter - cut at max radius
-            retina_cutoff = _get_max_radius_cutoff(
-                retina_pos,
-                geometry.retina.radius,
-                geometry.retina.asphericity
-            )
+            retina_cutoff = _get_max_radius_cutoff(retina_pos, geometry.retina.radius, geometry.retina.asphericity)
         else:
             # Cut at lens back apex
             retina_cutoff = lens_back_pos
@@ -849,11 +880,7 @@ def plot_eye(
         else:
             # No intersection - cut at maximum vertical radius to avoid complete circle
             # For concave retina, only draw posterior half (cutoff at or behind retina apex)
-            max_cutoff = _get_max_radius_cutoff(
-                retina_pos,
-                geometry.retina.radius,
-                geometry.retina.asphericity
-            )
+            max_cutoff = _get_max_radius_cutoff(retina_pos, geometry.retina.radius, geometry.retina.asphericity)
             # For negative radius (concave), ensure we don't go beyond the apex (only posterior half)
             if geometry.retina.radius < 0:
                 retina_cutoff = min(max_cutoff, retina_pos)
@@ -899,5 +926,7 @@ def plot_eye(
         cornea_front, cornea_back, cornea_edges, iris, lens_front, lens_back, lens_edges, retina
     )
     ax.add_patch(patches.PathPatch(eye, fill=None, **kwargs))
+
+    _set_axis_limits(ax, cornea_front_pos, retina_pos, geometry.retina.ellipsoid_radii.inferior_superior)
 
     return ax
