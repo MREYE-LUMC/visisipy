@@ -25,6 +25,7 @@ ApertureType = Literal[
 ]
 FieldType = Literal["angle", "object_height"]
 FieldCoordinate = tuple[float, float]
+ZernikeUnit = Literal["microns", "waves"]
 
 
 RE_SAMPLE_SIZE = re.compile(r"^(?P<sampling>\d+)x(?P=sampling)$", re.IGNORECASE)

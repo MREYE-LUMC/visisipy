@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from tests.helpers import build_args
@@ -45,6 +46,31 @@ class TestZernikeStandardCoefficientsAnalysis:
         )
 
         assert opticstudio_analysis.zernike_standard_coefficients(**args)
+
+    @pytest.mark.parametrize("wavelengths", [(), (0.543,), (0.543, 0.632), (0.632, 0.543, 0.780)])
+    def test_zernike_standard_coefficients_unit(self, wavelengths, opticstudio_backend, opticstudio_analysis):
+        opticstudio_backend.set_wavelengths(wavelengths or (0.543,))
+
+        wavelength = wavelengths[0] if wavelengths else None
+
+        opticstudio_backend.build_model(EyeModel())
+
+        coefficients_waves, _ = opticstudio_analysis.zernike_standard_coefficients(wavelength=wavelength, unit="waves")
+        coefficients_microns, _ = opticstudio_analysis.zernike_standard_coefficients(
+            wavelength=wavelength, unit="microns"
+        )
+
+        # If no wavelength is specified, the analysis should use the first wavelength in the backend
+        if wavelength is None:
+            wavelength = opticstudio_backend.get_wavelengths()[0]
+
+        assert not np.allclose(
+            list(coefficients_waves.values()), 0
+        )  # Sanity check; the test is meaningless if all coefficients are zero
+        assert all(
+            coefficients_microns[index] == pytest.approx(coefficients_waves[index] * wavelength)
+            for index in coefficients_waves
+        )
 
     def test_zernike_standard_coefficients_maximum_term(self, opticstudio_analysis):
         coefficients, _ = opticstudio_analysis.zernike_standard_coefficients(maximum_term=20)
