@@ -87,6 +87,7 @@ def refraction(
         wavelength=wavelength,
         field_type=field_type,
         sampling=SampleSize(sampling),
+        unit="waves",
     )
 
     # Restore the original pupil diameter

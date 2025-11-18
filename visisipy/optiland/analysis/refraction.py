@@ -81,6 +81,7 @@ def refraction(
         wavelength=wavelength,
         field_type=field_type,
         sampling=SampleSize(sampling),
+        unit="waves",
     )
 
     exit_pupil_semi_diameter = backend.get_optic().paraxial.XPD() / 2
