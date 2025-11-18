@@ -15,7 +15,16 @@ else:
     from typing import NotRequired, TypedDict, Unpack
 
 
-__all__ = ("ApertureType", "FieldCoordinate", "FieldType", "NotRequired", "SampleSize", "TypedDict", "Unpack")
+__all__ = (
+    "ApertureType",
+    "FieldCoordinate",
+    "FieldType",
+    "NotRequired",
+    "SampleSize",
+    "TypedDict",
+    "Unpack",
+    "ZernikeUnit",
+)
 
 ApertureType = Literal[
     "float_by_stop_size",

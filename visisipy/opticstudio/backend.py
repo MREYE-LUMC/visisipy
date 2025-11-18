@@ -476,8 +476,8 @@ class OpticStudioBackend(BaseBackend):
 
         Parameters
         ----------
-        wavelengths : Iterable[float]
-            An iterable of wavelengths to be set for the optical system.
+        wavelengths : Sequence[float]
+            A sequence of wavelengths to be set for the optical system.
         """
         if len(wavelengths) == 0:
             raise ValueError("At least one wavelength must be provided.")
