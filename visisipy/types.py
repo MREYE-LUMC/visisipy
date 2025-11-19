@@ -15,7 +15,16 @@ else:
     from typing import NotRequired, TypedDict, Unpack
 
 
-__all__ = ("ApertureType", "FieldCoordinate", "FieldType", "NotRequired", "SampleSize", "TypedDict", "Unpack")
+__all__ = (
+    "ApertureType",
+    "FieldCoordinate",
+    "FieldType",
+    "NotRequired",
+    "SampleSize",
+    "TypedDict",
+    "Unpack",
+    "ZernikeUnit",
+)
 
 ApertureType = Literal[
     "float_by_stop_size",
@@ -25,6 +34,7 @@ ApertureType = Literal[
 ]
 FieldType = Literal["angle", "object_height"]
 FieldCoordinate = tuple[float, float]
+ZernikeUnit = Literal["microns", "waves"]
 
 
 RE_SAMPLE_SIZE = re.compile(r"^(?P<sampling>\d+)x(?P=sampling)$", re.IGNORECASE)

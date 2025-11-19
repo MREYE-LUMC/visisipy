@@ -125,4 +125,5 @@ linewrap-full-docstring = true
 dev = [
     "jupyter>=1.1.1",
     "pytest>=8.3.5",
+    "pytest-mock>=3.15.1",
 ]

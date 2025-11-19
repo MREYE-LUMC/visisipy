@@ -172,16 +172,24 @@ class TestOptilandBackend:
 
         assert optiland_backend.get_fields() == coordinates
 
-    def test_set_wavelengths(self, optiland_backend: OptilandBackend):
-        wavelengths = [0.543, 0.650, 0.450]
+    @pytest.mark.parametrize(
+        "wavelengths,expectation",
+        [
+            ([0.543], does_not_raise()),
+            ([0.543, 0.650], does_not_raise()),
+            ([0.543, 0.650, 0.450], does_not_raise()),
+            ([], pytest.raises(ValueError, match="At least one wavelength must be provided")),
+        ],
+    )
+    def test_set_wavelengths(self, wavelengths, expectation, optiland_backend: OptilandBackend):
+        with expectation:
+            optiland_backend.set_wavelengths(wavelengths)
 
-        optiland_backend.set_wavelengths(wavelengths)
-
-        assert optiland_backend.get_optic().wavelengths.num_wavelengths == len(wavelengths)
-        assert all(
-            w.value == e
-            for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths, strict=False)
-        )
+            assert optiland_backend.get_optic().wavelengths.num_wavelengths == len(wavelengths)
+            assert all(
+                w.value == e
+                for w, e in zip(optiland_backend.get_optic().wavelengths.wavelengths, wavelengths, strict=False)
+            )
 
     def test_get_wavelengths(self, optiland_backend: OptilandBackend):
         wavelengths = [0.543, 0.650, 0.450]

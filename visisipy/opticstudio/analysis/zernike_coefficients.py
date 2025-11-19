@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import zospy as zp
 
-from visisipy.types import SampleSize
+from visisipy.types import SampleSize, ZernikeUnit
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
@@ -16,8 +16,22 @@ if TYPE_CHECKING:
     from visisipy.types import FieldCoordinate, FieldType
 
 
-def _build_zernike_result(zernike_result: ZernikeStandardCoefficientsResult, maximum_term: int) -> ZernikeCoefficients:
-    return ZernikeCoefficients({k: v.value for k, v in zernike_result.coefficients.items() if k <= maximum_term})
+def _build_zernike_result(
+    zernike_result: ZernikeStandardCoefficientsResult,
+    maximum_term: int,
+    wavelength: float,
+    unit: ZernikeUnit = "microns",
+) -> ZernikeCoefficients:
+    if unit == "waves":
+        factor = 1
+    elif unit == "microns":
+        factor = wavelength
+    else:
+        raise ValueError('unit must be either "microns" or "waves"')
+
+    return ZernikeCoefficients(
+        {k: v.value * factor for k, v in zernike_result.coefficients.items() if k <= maximum_term}
+    )
 
 
 def zernike_standard_coefficients(
@@ -27,6 +41,7 @@ def zernike_standard_coefficients(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int = 45,
+    unit: ZernikeUnit = "microns",
 ) -> tuple[ZernikeCoefficients, ZernikeStandardCoefficientsResult]:
     """Calculate the Zernike standard coefficients at the retina surface.
 
@@ -47,6 +62,8 @@ def zernike_standard_coefficients(
         The sampling for the Zernike calculation. Defaults to 512.
     maximum_term : int, optional
         The maximum term for the Zernike calculation. Defaults to 45.
+    unit : ZernikeUnit, optional
+        The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
 
     Returns
     -------
@@ -56,7 +73,11 @@ def zernike_standard_coefficients(
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
-    wavelength_number = 1 if wavelength is None else backend.get_wavelength_number(wavelength)
+    if wavelength is None:
+        wavelength_number = 1
+        wavelength = backend.get_wavelengths()[0]
+    else:
+        wavelength_number = backend.get_wavelength_number(wavelength)
 
     if wavelength_number is None:
         backend.set_wavelengths([wavelength])
@@ -77,4 +98,6 @@ def zernike_standard_coefficients(
         sr=1.0,
     ).run(backend.get_oss())
 
-    return _build_zernike_result(zernike_result.data, maximum_term), zernike_result.data
+    return _build_zernike_result(
+        zernike_result.data, maximum_term, wavelength=wavelength, unit=unit
+    ), zernike_result.data

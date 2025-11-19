@@ -220,12 +220,22 @@ class TestOpticStudioBackend:
 
         assert opticstudio_backend.get_fields() == coordinates
 
-    def test_set_wavelengths(self, opticstudio_backend):
-        opticstudio_backend.set_wavelengths([0.543, 0.650])
+    @pytest.mark.parametrize(
+        "wavelengths,expectation",
+        [
+            ([0.543], does_not_raise()),
+            ([0.543, 0.650], does_not_raise()),
+            ([0.450, 0.543, 0.650], does_not_raise()),
+            ([], pytest.raises(ValueError, match="At least one wavelength must be provided")),
+        ],
+    )
+    def test_set_wavelengths(self, wavelengths, expectation, opticstudio_backend):
+        with expectation:
+            opticstudio_backend.set_wavelengths(wavelengths)
 
-        assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == 2
-        assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength == 0.543
-        assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(2).Wavelength == 0.650
+            assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == len(wavelengths)
+            for i, wavelength in enumerate(wavelengths, start=1):
+                assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(i).Wavelength == wavelength
 
     def test_get_wavelengths(self, opticstudio_backend):
         wavelengths = [0.543, 0.650]

@@ -16,7 +16,7 @@ from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Iterable
+    from collections.abc import Generator, Iterable, Sequence
     from os import PathLike
 
     from visisipy import EyeModel
@@ -391,7 +391,7 @@ class OptilandBackend(BaseBackend):
         return [w.value for w in cls.get_optic().wavelengths.wavelengths]
 
     @classmethod
-    def set_wavelengths(cls, wavelengths: Iterable[float]):
+    def set_wavelengths(cls, wavelengths: Sequence[float]):
         """Set the wavelengths for the optical system.
 
         This method removes any existing wavelengths and adds the new ones provided.
@@ -399,9 +399,12 @@ class OptilandBackend(BaseBackend):
 
         Parameters
         ----------
-        wavelengths : Iterable[float]
-            An iterable of wavelengths to be set for the optical system.
+        wavelengths : Sequence[float]
+            A sequence of wavelengths to be set for the optical system.
         """
+        if len(wavelengths) == 0:
+            raise ValueError("At least one wavelength must be provided.")
+
         # Remove all wavelengths
         cls.get_optic().wavelengths.wavelengths.clear()
 

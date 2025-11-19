@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from contextlib import nullcontext as does_not_raise
+from typing import TYPE_CHECKING
 
 import pytest
 
 import visisipy
 import visisipy.backend
 from visisipy.wavefront import ZernikeCoefficients
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 class MockAnalysis:
@@ -73,7 +77,7 @@ class MockAnalysis:
     ):
         return None, None
 
-    def zernike_standard_coefficients(self, field_coordinate, wavelength, field_type, sampling, maximum_term):
+    def zernike_standard_coefficients(self, field_coordinate, wavelength, field_type, sampling, maximum_term, unit):
         return ZernikeCoefficients({1: 0, 2: 0, 3: 0}), None
 
 
@@ -82,36 +86,36 @@ class MockBackend:
     model = object()
 
 
-def test_cardinal_points_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+def test_cardinal_points_analysis(mocker: MockerFixture):
+    mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
     assert visisipy.analysis.cardinal_points() is None
     assert visisipy.analysis.cardinal_points(return_raw_result=True) == (None, None)
 
 
-def test_fft_psf_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+def test_fft_psf_analysis(mocker: MockerFixture):
+    mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
     assert visisipy.analysis.fft_psf() is None
     assert visisipy.analysis.fft_psf(return_raw_result=True) == (None, None)
 
 
-def test_huygens_psf_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+def test_huygens_psf_analysis(mocker: MockerFixture):
+    mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
     assert visisipy.analysis.huygens_psf() is None
     assert visisipy.analysis.huygens_psf(return_raw_result=True) == (None, None)
 
 
-def test_opd_map_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+def test_opd_map_analysis(mocker: MockerFixture):
+    mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
     assert visisipy.analysis.opd_map() is None
     assert visisipy.analysis.opd_map(return_raw_result=True) == (None, None)
 
 
-def test_raytracing_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+def test_raytracing_analysis(mocker: MockerFixture):
+    mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
     assert visisipy.analysis.raytrace(coordinates=[(0, 0)]) is None
     assert visisipy.analysis.raytrace(coordinates=[(0, 0)], return_raw_result=True) == (
@@ -120,35 +124,53 @@ def test_raytracing_analysis(monkeypatch):
     )
 
 
-def test_refraction_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+def test_refraction_analysis(mocker: MockerFixture):
+    mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
     assert visisipy.analysis.refraction() is None
     assert visisipy.analysis.refraction(return_raw_result=True) == (None, None)
 
 
-def test_rms_hoa_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+def test_rms_hoa_analysis(mocker: MockerFixture):
+    mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
     assert visisipy.analysis.rms_hoa() == 0
     assert visisipy.analysis.rms_hoa(return_raw_result=True) == (0, None)
 
 
-def test_strehl_ratio_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+def test_strehl_ratio_analysis(mocker: MockerFixture):
+    mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
     assert visisipy.analysis.strehl_ratio() is None
     assert visisipy.analysis.strehl_ratio(return_raw_result=True) == (None, None)
 
 
-def test_zernike_standard_coefficients_analysis(monkeypatch):
-    monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+class TestZernikeStandardCoefficientsAnalysis:
+    def test_zernike_standard_coefficients_analysis(self, mocker: MockerFixture):
+        mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
-    assert visisipy.analysis.zernike_standard_coefficients() == ZernikeCoefficients({1: 0, 2: 0, 3: 0})
-    assert visisipy.analysis.zernike_standard_coefficients(return_raw_result=True) == (
-        ZernikeCoefficients({1: 0, 2: 0, 3: 0}),
-        None,
+        assert visisipy.analysis.zernike_standard_coefficients() == ZernikeCoefficients({1: 0, 2: 0, 3: 0})
+        assert visisipy.analysis.zernike_standard_coefficients(return_raw_result=True) == (
+            ZernikeCoefficients({1: 0, 2: 0, 3: 0}),
+            None,
+        )
+
+    @pytest.mark.parametrize(
+        "unit,expectation",
+        [
+            ("microns", does_not_raise()),
+            ("waves", does_not_raise()),
+            (
+                "invalid",
+                pytest.raises(ValueError, match='unit must be either "microns" or "waves"'),
+            ),
+        ],
     )
+    def test_unit_parameter(self, unit, expectation, mocker: MockerFixture):
+        mocker.patch("visisipy.backend._BACKEND", MockBackend)
+
+        with expectation:
+            visisipy.analysis.zernike_standard_coefficients(unit=unit)
 
 
 class TestRMSHOAAnalysis:
@@ -209,8 +231,8 @@ class TestStrehlRatioAnalysis:
             ),
         ],
     )
-    def test_psf_type(self, monkeypatch, psf_type, expectation):
-        monkeypatch.setattr(visisipy.backend, "_BACKEND", MockBackend)
+    def test_psf_type(self, psf_type, expectation, mocker: MockerFixture):
+        mocker.patch("visisipy.backend._BACKEND", MockBackend)
 
         with expectation:
             visisipy.analysis.strehl_ratio(psf_type=psf_type)

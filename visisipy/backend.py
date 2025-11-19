@@ -34,7 +34,7 @@ from types import MethodType
 from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
 from warnings import warn
 
-from visisipy.types import NotRequired, TypedDict, Unpack
+from visisipy.types import NotRequired, TypedDict, Unpack, ZernikeUnit
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -210,6 +210,7 @@ class BaseAnalysisRegistry(ABC):
         field_type: FieldType = "angle",
         sampling: SampleSize | str | int = 64,
         maximum_term: int = 45,
+        unit: ZernikeUnit = "microns",
     ) -> tuple[ZernikeCoefficients, Any]: ...
 
 
