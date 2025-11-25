@@ -20,7 +20,7 @@ from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
 if TYPE_CHECKING:
-    from collections.abc import Generator, Iterable
+    from collections.abc import Generator, Iterable, Sequence
     from os import PathLike
 
     from zospy.api import _ZOSAPI
@@ -468,7 +468,7 @@ class OpticStudioBackend(BaseBackend):
             oss.SystemData.Wavelengths.RemoveWavelength(1)
 
     @classmethod
-    def set_wavelengths(cls, wavelengths: Iterable[float]) -> None:
+    def set_wavelengths(cls, wavelengths: Sequence[float]) -> None:
         """Set the wavelengths for the optical system.
 
         This method removes any existing wavelengths and adds the new ones provided.
@@ -476,9 +476,12 @@ class OpticStudioBackend(BaseBackend):
 
         Parameters
         ----------
-        wavelengths : Iterable[float]
-            An iterable of wavelengths to be set for the optical system.
+        wavelengths : Sequence[float]
+            A sequence of wavelengths to be set for the optical system.
         """
+        if len(wavelengths) == 0:
+            raise ValueError("At least one wavelength must be provided.")
+
         cls._remove_wavelenghts(cls.get_oss())
 
         for w in wavelengths:

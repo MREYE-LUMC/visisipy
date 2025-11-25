@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Literal, overload
 import numpy as np
 
 from visisipy.analysis.base import _AUTOMATIC_BACKEND, analysis
-from visisipy.types import FieldType, SampleSize
+from visisipy.types import FieldType, SampleSize, ZernikeUnit
 from visisipy.wavefront import min_max_noll_index
 
 if TYPE_CHECKING:
@@ -29,6 +29,7 @@ def zernike_standard_coefficients(
     field_type: Literal["angle", "object_height"] = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int = 45,
+    unit: ZernikeUnit = "microns",
     *,
     return_raw_result: Literal[False] = False,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -43,6 +44,7 @@ def zernike_standard_coefficients(
     field_type: Literal["angle", "object_height"] = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int = 45,
+    unit: ZernikeUnit = "microns",
     *,
     return_raw_result: Literal[True] = True,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -57,6 +59,7 @@ def zernike_standard_coefficients(
     field_type: Literal["angle", "object_height"] = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int = 45,
+    unit: ZernikeUnit = "microns",
     *,
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -82,6 +85,8 @@ def zernike_standard_coefficients(
         The sampling for the Zernike calculation. Defaults to 64.
     maximum_term : int, optional
         The maximum term for the Zernike calculation. Defaults to 45.
+    unit : ZernikeUnit, optional
+        The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
     backend : type[BaseBackend]
@@ -92,12 +97,16 @@ def zernike_standard_coefficients(
     ZernikeCoefficients
         Zernike standard coefficients in Noll notation.
     """
+    if unit not in {"microns", "waves"}:
+        raise ValueError('unit must be either "microns" or "waves"')
+
     return backend.analysis.zernike_standard_coefficients(
         field_coordinate=field_coordinate,
         wavelength=wavelength,
         field_type=field_type,
         sampling=SampleSize(sampling),
         maximum_term=maximum_term,
+        unit=unit,
     )
 
 
@@ -111,6 +120,7 @@ def rms_hoa(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int | None = None,
+    unit: ZernikeUnit = "microns",
     *,
     return_raw_result: Literal[False] = False,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -127,6 +137,7 @@ def rms_hoa(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int | None = None,
+    unit: ZernikeUnit = "microns",
     *,
     return_raw_result: Literal[True] = True,
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -143,6 +154,7 @@ def rms_hoa(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int | None = None,
+    unit: ZernikeUnit = "microns",
     *,
     return_raw_result: bool = True,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
@@ -179,6 +191,8 @@ def rms_hoa(
     maximum_term : int | None, optional
         The maximum term for the Zernike calculation. If `None`, the maximum term is set to the largest term of
         `max_order`. Defaults to `None`.
+    unit : ZernikeUnit, optional
+        The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
     backend : type[BaseBackend]
@@ -215,6 +229,7 @@ def rms_hoa(
         field_type=field_type,
         sampling=SampleSize(sampling),
         maximum_term=maximum_term,
+        unit=unit,
     )
 
     rms_aberrations = float(np.sqrt(sum(zernikes[i] ** 2 for i in range(min_index, max_index + 1))))

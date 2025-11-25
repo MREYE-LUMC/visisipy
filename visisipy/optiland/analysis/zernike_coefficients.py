@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from optiland.backend import to_numpy
 from optiland.wavefront import ZernikeOPD
 
-from visisipy.types import SampleSize
+from visisipy.types import SampleSize, ZernikeUnit
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
@@ -17,8 +17,17 @@ if TYPE_CHECKING:
 
 def _build_zernike_coefficients(
     zernike_opd: ZernikeOPD,
+    wavelength: float,
+    unit: ZernikeUnit = "microns",
 ) -> ZernikeCoefficients:
-    return ZernikeCoefficients(dict(enumerate(to_numpy(zernike_opd.coeffs), start=1)))
+    if unit == "waves":
+        coefficients = zernike_opd.coeffs
+    elif unit == "microns":
+        coefficients = [coeff * wavelength for coeff in zernike_opd.coeffs]
+    else:
+        raise ValueError('unit must be either "microns" or "waves"')
+
+    return ZernikeCoefficients(dict(enumerate(to_numpy(coefficients), start=1)))
 
 
 def zernike_standard_coefficients(
@@ -28,6 +37,7 @@ def zernike_standard_coefficients(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
     maximum_term: int = 45,
+    unit: ZernikeUnit = "microns",
 ) -> tuple[ZernikeCoefficients, ZernikeOPD]:
     """Calculate the Zernike standard coefficients at the retina surface.
 
@@ -48,6 +58,8 @@ def zernike_standard_coefficients(
         The sampling for the Zernike calculation. Defaults to 512.
     maximum_term : int, optional
         The maximum term for the Zernike calculation. Defaults to 45.
+    unit : ZernikeUnit, optional
+        The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
 
     Returns
     -------
@@ -68,7 +80,7 @@ def zernike_standard_coefficients(
     normalized_field = backend.get_optic().fields.get_field_coords()[0]
 
     zernike_opd = ZernikeOPD(
-        backend.optic,
+        backend.get_optic(),
         field=normalized_field,
         wavelength=wavelength,
         num_rings=int(sampling),
@@ -76,4 +88,4 @@ def zernike_standard_coefficients(
         zernike_type="noll",
     )
 
-    return _build_zernike_coefficients(zernike_opd), zernike_opd
+    return _build_zernike_coefficients(zernike_opd, wavelength=wavelength, unit=unit), zernike_opd
