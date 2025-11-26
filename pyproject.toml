@@ -17,7 +17,7 @@ dependencies = [
     "matplotlib",
     "numba>=0.60.0",
     "numpy",
-    "optiland>=0.5.7",
+    "optiland>=0.5.8",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.11'",
     "zospy>=2.1.2; sys_platform == 'win32'",
@@ -39,6 +39,8 @@ python = "3.12"
 [tool.hatch.envs.default.scripts]
 # Format docstrings according to numpydoc
 format-docstrings = "{env:HATCH_UV:uv} tool run pydocstringformatter --write {args:scripts tests visisipy}"
+test-torch = "hatch test {args} --no-opticstudio --optiland-backend=torch-cpu"
+test-gpu = "hatch test {args} --no-opticstudio --optiland-backend=torch-gpu"
 
 [tool.hatch.envs.docs]
 installer = "uv"
@@ -126,4 +128,5 @@ dev = [
     "jupyter>=1.1.1",
     "pytest>=8.3.5",
     "pytest-mock>=3.15.1",
+    "torch>=2.7.0",
 ]

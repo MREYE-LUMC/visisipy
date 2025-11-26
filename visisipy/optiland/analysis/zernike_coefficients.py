@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from optiland.backend import to_numpy
 from optiland.wavefront import ZernikeOPD
 
 from visisipy.types import SampleSize, ZernikeUnit
@@ -26,7 +27,7 @@ def _build_zernike_coefficients(
     else:
         raise ValueError('unit must be either "microns" or "waves"')
 
-    return ZernikeCoefficients(dict(enumerate(coefficients, start=1)))
+    return ZernikeCoefficients(dict(enumerate(to_numpy(coefficients), start=1)))
 
 
 def zernike_standard_coefficients(

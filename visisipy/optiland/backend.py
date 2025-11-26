@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from importlib import import_module
 from os import PathLike
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -66,7 +67,7 @@ OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
     "aperture_value": 1,
     "computation_backend": "numpy",
     "torch_device": "cpu",
-    "torch_precision": "float32",
+    "torch_precision": "float64",
     "torch_use_grad_mode": False,
 }
 """Default settings for the Optiland backend."""
@@ -440,6 +441,19 @@ class OptilandBackend(BaseBackend):
             yield i, w.value
 
     @classmethod
+    def _torch_set_default_device(cls, device: TorchDevice) -> None:
+        """Set the default device for the torch backend.
+
+        Parameters
+        ----------
+        device : TorchDevice
+            The device to set as default. Must be one of 'cpu' or 'cuda'.
+        """
+        torch = import_module("torch")
+
+        torch.set_default_device(device)
+
+    @classmethod
     def set_computation_backend(
         cls,
         backend: ComputationBackend,
@@ -476,6 +490,7 @@ class OptilandBackend(BaseBackend):
         if backend == "torch":
             if optiland.backend.get_device() != torch_device:
                 optiland.backend.set_device(torch_device)
+                cls._torch_set_default_device(torch_device)
             if optiland.backend.get_precision() != torch_precision:
                 optiland.backend.set_precision(torch_precision)
             if torch_use_grad_mode and not optiland.backend.grad_mode.requires_grad:

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pandas as pd
+from optiland.backend import to_numpy
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -24,9 +25,9 @@ def _trace_single_ray(
     wavelength: float,
 ) -> pd.DataFrame:
     optic.trace_generic(*field, *pupil, wavelength=wavelength)
-    x = optic.surface_group.x
-    y = optic.surface_group.y
-    z = optic.surface_group.z
+    x = to_numpy(optic.surface_group.x)
+    y = to_numpy(optic.surface_group.y)
+    z = to_numpy(optic.surface_group.z)
     surface_numbers = range(optic.surface_group.num_surfaces)
 
     return pd.DataFrame(

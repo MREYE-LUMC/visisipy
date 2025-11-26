@@ -46,6 +46,8 @@ if TYPE_CHECKING:
 
     from visisipy.analysis.cardinal_points import CardinalPointsResult
     from visisipy.models import BaseEye, EyeModel
+    from visisipy.opticstudio.backend import OpticStudioSettings
+    from visisipy.optiland.backend import OptilandSettings
     from visisipy.refraction import FourierPowerVectorRefraction
     from visisipy.types import ApertureType, FieldCoordinate, FieldType, SampleSize
     from visisipy.wavefront import ZernikeCoefficients
@@ -320,9 +322,23 @@ class BackendType(str, Enum):
     OPTILAND = "optiland"
 
 
+@overload
+def set_backend(
+    backend: Literal[BackendType.OPTICSTUDIO, "opticstudio"],
+    **settings: Unpack[OpticStudioSettings],
+) -> None: ...
+
+
+@overload
+def set_backend(
+    backend: Literal[BackendType.OPTILAND, "optiland"],
+    **settings: Unpack[OptilandSettings],
+) -> None: ...
+
+
 def set_backend(
     backend: BackendType | Literal["opticstudio", "optiland"] = BackendType.OPTICSTUDIO,
-    **settings: Unpack[BackendSettings],
+    **settings: Any,
 ) -> None:
     """Set the backend to use for optical simulations.
 

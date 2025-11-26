@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import pandas as pd
+from optiland.backend import to_numpy
 from optiland.psf import FFTPSF, HuygensPSF
 
 from visisipy.optiland.analysis.helpers import set_field, set_wavelength
@@ -95,12 +96,15 @@ def fft_psf(
         grid_size=int(2 * sampling),
     )
 
-    (psf_extent_x, *_), (psf_extent_y, *_) = psf._get_psf_units(psf.psf)  # noqa: SLF001
+    # psf._get_psf_units returns tuples of single-element or scalar arrays, depending on the computation backend.
+    psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # noqa: SLF001
+    psf_extent_x = cast(float, psf_extent_x)
+    psf_extent_y = cast(float, psf_extent_y)
     index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
     # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
-    df = pd.DataFrame(psf.psf / 100, index=index, columns=columns)
+    df = pd.DataFrame(to_numpy(psf.psf) / 100, index=index, columns=columns)
 
     return df, psf
 
