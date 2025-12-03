@@ -6,6 +6,9 @@ build-backend = "hatchling.build"
 name = "visisipy"
 description = "Accessible vision simulations in Python."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE.txt"]
+keywords = ["simulation", "optics", "ophthalmology", "vision science", "OpticStudio"]
 authors = [
     { name = "Corné Haasjes" },
     { name = "Jan-Willem Beenakker" },
@@ -24,6 +27,21 @@ dependencies = [
 ]
 requires-python = ">=3.10, <3.14"
 dynamic = ["version"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Documentation = "https://visisipy.readthedocs.io"
+Repository = "https://github.com/MREYE-LUMC/visisipy"
+Issues = "https://github.com/MREYE-LUMC/visisipy/issues"
 
 [project.optional-dependencies]
 torch = ["torch"]
