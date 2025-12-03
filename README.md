@@ -1,7 +1,7 @@
 # Visisipy: accessible vision simulations in Python
 
 [![PyPI - Version](https://img.shields.io/pypi/v/visisipy)](https://pypi.org/project/visisipy/)
-[![Conda Version](https://img.shields.io/conda/vn/conda-forge/visisipy) ](https://anaconda.org/conda-forge/visisipy)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/visisipy)](https://anaconda.org/conda-forge/visisipy)
 ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FMREYE-LUMC%2Fvisisipy%2Fmain%2Fpyproject.toml)
 ![GitHub License](https://img.shields.io/github/license/MREYE-LUMC/visisipy)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/MREYE-LUMC/visisipy/ci.yml)
