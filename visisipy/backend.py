@@ -313,10 +313,14 @@ class BaseBackend(ABC, Generic[_Settings]):
 
             return
 
-        if isinstance(name, dict | Sequence):
-            if set(name).issubset(allowed_keys) is False:
+        if isinstance(name, dict) or (isinstance(name, Sequence) and not isinstance(name, str)):
+            if not set(name).issubset(allowed_keys):
                 invalid_keys = [key for key in name if key not in allowed_keys]
-                msg = f"Settings {', '.join(invalid_keys)} are not valid backend settings."
+                msg = (
+                    f"Setting {invalid_keys[0]} is not a valid backend setting."
+                    if len(invalid_keys) == 1
+                    else f"Settings {', '.join(invalid_keys)} are not valid backend settings."
+                )
                 raise KeyError(msg)
 
             return
@@ -348,7 +352,7 @@ class BaseBackend(ABC, Generic[_Settings]):
         cls.validate_settings(name)
 
         if name not in cls.settings:
-            raise KeyError(f"Setting '{name}' does not exist.")
+            raise KeyError(f"Setting '{name}' has not been set.")
 
         return cls.settings[name]
 
