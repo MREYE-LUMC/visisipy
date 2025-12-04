@@ -377,7 +377,7 @@ class TestOpticStudioBackendSettings:
             ),
             (
                 {"name": "invalid_field"},
-                pytest.raises(KeyError, match="Settings name are not valid backend settings"),
+                pytest.raises(KeyError, match="Setting name is not a valid backend setting"),
             ),
             (
                 {"field_type": "invalid_field_type", "a": 123, "b": 456},
