@@ -34,6 +34,8 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Medical Science Apps",
     "Topic :: Scientific/Engineering :: Physics",
     "Typing :: Typed",
 ]
