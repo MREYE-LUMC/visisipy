@@ -175,7 +175,7 @@ class TestGetSetting:
     def test_get_undefined_setting_raises_keyerror(self, monkeypatch):
         monkeypatch.setattr(backend.BaseBackend, "settings", {}, raising=False)
 
-        with pytest.raises(KeyError, match="Setting 'undefined_setting' does not exist"):
+        with pytest.raises(KeyError, match="Setting 'undefined_setting' has not been set"):
             backend.BaseBackend.get_setting("undefined_setting")
 
 
