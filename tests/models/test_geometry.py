@@ -251,6 +251,49 @@ class TestEyeGeometry:
         assert example_geometry.vitreous_thickness == vitreous_thickness
 
 
+class TestNavarroGeometry:
+    def test_create_navarro_geometry(self):
+        geometry = NavarroGeometry()
+
+        assert isinstance(geometry.cornea_front, StandardSurface)
+        assert geometry.cornea_front.radius == 7.72
+        assert geometry.cornea_front.asphericity == -0.26
+        assert geometry.cornea_front.thickness == 0.55
+        assert isinstance(geometry.cornea_back, StandardSurface)
+        assert geometry.cornea_back.radius == 6.50
+        assert geometry.cornea_back.asphericity == 0
+        assert geometry.cornea_back.thickness == 3.05
+        assert isinstance(geometry.pupil, Stop)
+        assert geometry.pupil.semi_diameter == 1.348
+        assert geometry.pupil.thickness == 0
+        assert isinstance(geometry.lens_front, StandardSurface)
+        assert geometry.lens_front.radius == 10.2
+        assert geometry.lens_front.asphericity == -3.1316
+        assert geometry.lens_front.thickness == 4.0
+        assert isinstance(geometry.lens_back, StandardSurface)
+        assert geometry.lens_back.radius == -6.0
+        assert geometry.lens_back.asphericity == -1
+        assert geometry.lens_back.thickness == 16.3203
+        assert isinstance(geometry.retina, StandardSurface)
+        assert geometry.retina.radius == -12.0
+        assert geometry.retina.asphericity == 0
+        assert geometry.retina.thickness == 0
+
+        assert geometry.axial_length == pytest.approx(23.9203)
+
+    def test_create_navarro_geometry_with_custom_surface(self):
+        geometry = NavarroGeometry(
+            lens_back=ZernikeStandardSagSurface(radius=-5.8, asphericity=-0.9, thickness=18.3203)
+        )
+
+        assert isinstance(geometry.lens_back, ZernikeStandardSagSurface)
+        assert geometry.lens_back.radius == -5.8
+        assert geometry.lens_back.asphericity == -0.9
+        assert geometry.lens_back.thickness == 18.3203
+
+        assert geometry.axial_length == pytest.approx(25.9203)
+
+
 @pytest.mark.parametrize("base_geometry", [NavarroGeometry])
 class TestCreateGeometry:
     def test_create_geometry(self, base_geometry, example_geometry_parameters, example_geometry):
@@ -324,17 +367,17 @@ class TestCreateGeometry:
     @pytest.mark.parametrize(
         "parameters_a",
         [
-            {"retina_radius": 12},
+            {"retina_radius": -12},
             {"retina_asphericity": 0},
-            {"retina_radius": 12, "retina_asphericity": 0},
+            {"retina_radius": -12, "retina_asphericity": 0},
         ],
     )
     @pytest.mark.parametrize(
         "parameters_b",
         [
-            {"retina_ellipsoid_z_radius": 12},
+            {"retina_ellipsoid_z_radius": -12},
             {"retina_ellipsoid_y_radius": 12},
-            {"retina_ellipsoid_z_radius": 12, "retina_ellipsoid_y_radius": 12},
+            {"retina_ellipsoid_z_radius": -12, "retina_ellipsoid_y_radius": 12},
         ],
     )
     def test_supplying_retina_parameters_and_ellipsoid_radii_raises_valueerror(
@@ -348,7 +391,7 @@ class TestCreateGeometry:
     @pytest.mark.parametrize(
         "parameters",
         [
-            {"retina_ellipsoid_z_radius": 12},
+            {"retina_ellipsoid_z_radius": -12},
             {"retina_ellipsoid_y_radius": 12},
         ],
     )
@@ -399,9 +442,9 @@ class TestCreateGeometry:
             )
 
     def test_set_retina_ellipsoid_radii(self, base_geometry):
-        geometry = create_geometry(base=base_geometry, retina_ellipsoid_z_radius=12.34, retina_ellipsoid_y_radius=10)
+        geometry = create_geometry(base=base_geometry, retina_ellipsoid_z_radius=-12.34, retina_ellipsoid_y_radius=10)
 
-        assert pytest.approx(geometry.retina.ellipsoid_radii.z) == 12.34
+        assert pytest.approx(geometry.retina.ellipsoid_radii.z) == -12.34
         assert pytest.approx(geometry.retina.ellipsoid_radii.y) == 10
         assert pytest.approx(geometry.retina.ellipsoid_radii.x) == 10
 
