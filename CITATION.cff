@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: visisipy
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Corné
+    family-names: Haasjes
+    orcid: 'https://orcid.org/0000-0003-0187-4116'
+  - given-names: Jan-Willem M.
+    family-names: Beenakker
+    orcid: 'https://orcid.org/0000-0003-0479-5587'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.15423159
+repository-code: 'https://github.com/MREYE-LUMC/visisipy'
+url: 'https://visisipy.readthedocs.io'
+keywords:
+  - simulation
+  - optics
+  - ophthalmology
+  - vision science
+  - OpticStudio
+license: MIT
