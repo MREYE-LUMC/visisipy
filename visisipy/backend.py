@@ -310,10 +310,7 @@ class BaseBackend(ABC, Generic[_Settings]):
             if name not in allowed_keys:
                 msg = f"Setting {name} is not a valid backend setting."
                 raise KeyError(msg)
-
-            return
-
-        if isinstance(name, dict) or (isinstance(name, Sequence) and not isinstance(name, str)):
+        elif isinstance(name, dict | Sequence):
             if not set(name).issubset(allowed_keys):
                 invalid_keys = [key for key in name if key not in allowed_keys]
                 msg = (
@@ -322,10 +319,8 @@ class BaseBackend(ABC, Generic[_Settings]):
                     else f"Settings {', '.join(invalid_keys)} are not valid backend settings."
                 )
                 raise KeyError(msg)
-
-            return
-
-        raise TypeError("name must be a string, dictionary, or a sequence of strings.")
+        else:
+            raise TypeError("name must be a string, dictionary, or a sequence of strings.")
 
     @classmethod
     def get_setting(cls, name: str) -> Any:
