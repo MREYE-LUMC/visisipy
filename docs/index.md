@@ -39,7 +39,7 @@ Modular design with support for [multiple backends][backends], both open-source 
 
 ## Online demo
 
-An simple web interface demonstrating some functionalities of Visisipy is available at [demo.mreye.nl/visisipy][demo].
+A simple web interface demonstrating some functionalities of Visisipy is available at [demo.mreye.nl/visisipy][demo].
 
 [![Visisipy online demo screenshot](_static/images/visisipy-demo.png)][demo]
 
