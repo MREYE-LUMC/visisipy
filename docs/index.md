@@ -37,6 +37,12 @@ Modular design with support for [multiple backends][backends], both open-source 
 :::
 ::::
 
+## Online demo
+
+An simple web interface demonstrating some functionalities of Visisipy is available at [demo.mreye.nl/visisipy][demo].
+
+[![Visisipy online demo screenshot](_static/images/visisipy-demo.png)][demo]
+
 ## User guide
 
 ```{toctree}
@@ -74,5 +80,6 @@ API <api/index>
 [optiland]: https://optiland.readthedocs.io/
 [backends]: user_guide/backend.ipynb
 [refraction]: user_guide/analyses.ipynb#refraction
+[demo]: https://demo.mreye.nl/visisipy
 
 [^navarro]: Escudero-Sanz, I., & Navarro, R. (1999). Off-axis aberrations of a wide-angle schematic eye model. JOSA A, 16(8), 1881–1891. https://doi.org/10.1364/JOSAA.16.001881
