@@ -3,8 +3,9 @@ from __future__ import annotations
 import pytest
 
 import visisipy
+from visisipy.models.geometry import StandardSurface
 from visisipy.models.materials import GullstrandLeGrandAccommodatedMaterials, GullstrandLeGrandUnaccommodatedMaterials
-from visisipy.models.zoo.gullstrand import Accommodation, GullstrandLeGrandGeometry
+from visisipy.models.zoo.gullstrand import Accommodation, GullstrandLeGrandGeometry, surfaces_by_accommodation
 
 
 def make_gullstrand_model(accommodation: Accommodation) -> visisipy.EyeModel:
@@ -92,6 +93,18 @@ class TestGullstrandLeGrandGeometry:
 
         assert front_nodal_point == pytest.approx(expected_front_nodal_point)
         assert back_nodal_point == pytest.approx(expected_back_nodal_point)
+
+    def test_custom_surface_does_not_overwrite_default_values(self):
+        geometry = GullstrandLeGrandGeometry(
+            accommodation="unaccommodated",
+            lens_back=StandardSurface(radius=-6.5, asphericity=0, thickness=17),
+        )
+
+        assert geometry.lens_back.radius == -6.5
+        assert geometry.lens_back.asphericity == 0
+        assert geometry.lens_back.thickness == 17
+
+        assert geometry.lens_back != surfaces_by_accommodation["unaccommodated"]["lens_back"]
 
     def test_invalid_accommodation_raises_valueerror(self):
         with pytest.raises(ValueError, match="accommodation must be 'accommodated' or 'unaccommodated'"):

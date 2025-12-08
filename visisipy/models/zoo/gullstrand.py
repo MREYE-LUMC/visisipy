@@ -62,7 +62,7 @@ class GullstrandLeGrandGeometry(
             msg = f"accommodation must be 'accommodated' or 'unaccommodated', got {accommodation}"
             raise ValueError(msg)
 
-        gullstrand_surfaces = surfaces_by_accommodation[accommodation]
+        gullstrand_surfaces = surfaces_by_accommodation[accommodation].copy()
         gullstrand_surfaces.update(**surfaces)
 
         super().__init__(**gullstrand_surfaces)
