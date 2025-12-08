@@ -1,4 +1,8 @@
-"""Escudero-Sanz and Navarro wide-angle schematic eye."""
+"""Escudero-Sanz and Navarro wide-angle schematic eye.
+
+This module does not provide an eye model class, because the default eye model in visisipy
+is already based on the Navarro geometry and materials.
+"""
 
 from __future__ import annotations
 

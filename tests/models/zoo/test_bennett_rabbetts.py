@@ -105,3 +105,7 @@ class TestBennettRabbettsGeometry:
         assert geometry.lens_back.thickness == 17
 
         assert geometry.lens_back != surfaces_by_accommodation[0]["lens_back"]
+
+    def test_invalid_accommodation_raises_valueerror(self):
+        with pytest.raises(ValueError, match=r"Accommodation value 3\.0 not available\. Available values are:"):
+            BennettRabbettsGeometry(3.0)

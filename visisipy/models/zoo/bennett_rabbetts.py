@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from visisipy.models.base import EyeModel
 from visisipy.models.geometry import EyeGeometry, EyeModelSurfaces, NoSurface, StandardSurface, Stop
+from visisipy.models.materials import BennettRabbettsMaterials
 
 if TYPE_CHECKING:
     from visisipy.types import Unpack
 
-__all__ = ("BennettRabbettsGeometry",)
+__all__ = ("BennettRabbettsEyeModel", "BennettRabbettsGeometry")
 
 
 PUPIL_SEMI_DIAMETER_MM = 1.5
@@ -96,6 +98,11 @@ class BennettRabbettsGeometry(
         ----------
         accommodation : float
             Accommodation in diopters. Available values are 0, 2.5, 5, 7.5, and 10 D.
+
+        Raises
+        ------
+        ValueError
+            If `accommodation` is not one of the available values.
         """
         if accommodation not in surfaces_by_accommodation:
             msg = f"Accommodation value {accommodation} not available. Available values are: {list(surfaces_by_accommodation.keys())}."
@@ -104,3 +111,26 @@ class BennettRabbettsGeometry(
         bennett_surfaces.update(surfaces)
 
         super().__init__(**bennett_surfaces)
+
+
+class BennettRabbettsEyeModel(EyeModel):
+    """Eye model using the Bennett-Rabbetts schematic eye geometry and materials.
+
+    See Also
+    --------
+    BennettRabbettsGeometry : Geometric parameters of the Bennett-Rabbetts schematic eye.
+    BennettRabbettsMaterials : Material parameters of the Bennett-Rabbetts schematic eye.
+    """
+
+    def __init__(self, accommodation: float = 0.0) -> None:
+        """Create a Bennett-Rabbetts eye model.
+
+        Parameters
+        ----------
+        accommodation : float
+            Accommodation in diopters. Available values are 0, 2.5, 5, 7.5, and 10 D.
+        """
+        geometry = BennettRabbettsGeometry(accommodation)
+        materials = BennettRabbettsMaterials()
+
+        super().__init__(geometry=geometry, materials=materials)

@@ -7,13 +7,28 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 import visisipy.backend as _backend
-from visisipy.models.materials import EyeMaterials, NavarroMaterials
-from visisipy.models.zoo.navarro import NavarroGeometry
 
 if TYPE_CHECKING:
     from os import PathLike
 
     from visisipy.models.geometry import EyeGeometry
+    from visisipy.models.materials import EyeMaterials
+
+
+def _get_default_geometry() -> EyeGeometry:
+    """Get the default eye geometry."""
+    # Import here to avoid circular imports
+    from visisipy.models.zoo.navarro import NavarroGeometry  # noqa: PLC0415
+
+    return NavarroGeometry()
+
+
+def _get_default_materials() -> EyeMaterials:
+    """Get the default eye materials."""
+    # Import here to avoid circular imports
+    from visisipy.models.materials import NavarroMaterials  # noqa: PLC0415
+
+    return NavarroMaterials()
 
 
 @dataclass
@@ -45,8 +60,8 @@ class EyeModel:
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    geometry: EyeGeometry = field(default_factory=NavarroGeometry)
-    materials: EyeMaterials = field(default_factory=NavarroMaterials)
+    geometry: EyeGeometry = field(default_factory=_get_default_geometry)
+    materials: EyeMaterials = field(default_factory=_get_default_materials)
     _built: BaseEye | None = field(default=None, init=False, repr=False)
 
     def build(
