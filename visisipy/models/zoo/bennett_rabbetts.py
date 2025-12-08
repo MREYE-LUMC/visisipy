@@ -15,7 +15,7 @@ __all__ = ("BennettRabbettsGeometry",)
 PUPIL_SEMI_DIAMETER_MM = 1.5
 
 
-class BennetRabbettsSurfaces(EyeModelSurfaces, total=False):
+class BennettRabbettsSurfaces(EyeModelSurfaces, total=False):
     """Surfaces of the Bennett-Rabbetts schematic eye.
 
     This schematic eye does not have an anterior corneal surface.
@@ -24,8 +24,8 @@ class BennetRabbettsSurfaces(EyeModelSurfaces, total=False):
     cornea_front: NoSurface
 
 
-surfaces_by_accommodation: dict[float, BennetRabbettsSurfaces] = {
-    0: BennetRabbettsSurfaces(
+surfaces_by_accommodation: dict[float, BennettRabbettsSurfaces] = {
+    0: BennettRabbettsSurfaces(
         cornea_front=NoSurface(),
         cornea_back=StandardSurface(radius=7.80, asphericity=0, thickness=3.60),
         pupil=Stop(semi_diameter=PUPIL_SEMI_DIAMETER_MM),
@@ -33,7 +33,7 @@ surfaces_by_accommodation: dict[float, BennetRabbettsSurfaces] = {
         lens_back=StandardSurface(radius=-6.47515, asphericity=0, thickness=16.79),
         retina=StandardSurface(radius=-12.0, asphericity=0),
     ),
-    2.5: BennetRabbettsSurfaces(
+    2.5: BennettRabbettsSurfaces(
         cornea_front=NoSurface(),
         cornea_back=StandardSurface(radius=7.80, asphericity=0, thickness=3.475),
         pupil=Stop(semi_diameter=PUPIL_SEMI_DIAMETER_MM),
@@ -41,7 +41,7 @@ surfaces_by_accommodation: dict[float, BennetRabbettsSurfaces] = {
         lens_back=StandardSurface(radius=-5.909, asphericity=0, thickness=16.79),
         retina=StandardSurface(radius=-12.0, asphericity=0),
     ),
-    5: BennetRabbettsSurfaces(
+    5: BennettRabbettsSurfaces(
         cornea_front=NoSurface(),
         cornea_back=StandardSurface(radius=7.80, asphericity=0, thickness=3.37),
         pupil=Stop(semi_diameter=PUPIL_SEMI_DIAMETER_MM),
@@ -49,7 +49,7 @@ surfaces_by_accommodation: dict[float, BennetRabbettsSurfaces] = {
         lens_back=StandardSurface(radius=-5.504, asphericity=0, thickness=16.79),
         retina=StandardSurface(radius=-12.0, asphericity=0),
     ),
-    7.5: BennetRabbettsSurfaces(
+    7.5: BennettRabbettsSurfaces(
         cornea_front=NoSurface(),
         cornea_back=StandardSurface(radius=7.80, asphericity=0, thickness=3.28),
         pupil=Stop(semi_diameter=PUPIL_SEMI_DIAMETER_MM),
@@ -57,7 +57,7 @@ surfaces_by_accommodation: dict[float, BennetRabbettsSurfaces] = {
         lens_back=StandardSurface(radius=-5.063, asphericity=0, thickness=16.79),
         retina=StandardSurface(radius=-12.0, asphericity=0),
     ),
-    10.0: BennetRabbettsSurfaces(
+    10.0: BennettRabbettsSurfaces(
         cornea_front=NoSurface(),
         cornea_back=StandardSurface(radius=7.80, asphericity=0, thickness=3.21),
         pupil=Stop(semi_diameter=PUPIL_SEMI_DIAMETER_MM),
@@ -81,7 +81,7 @@ class BennettRabbettsGeometry(
     The Bennett-Rabbetts eye is a three-surface schematic eye with a single cornea
     surface. In visisipy, this means that only the posterior corneal surface is modelled,
     and the corneal thickness will be equal to zero.
-    The Bennet-Rabbetts geometry does not specify the retinal curvature, so the value
+    The Bennett-Rabbetts geometry does not specify the retinal curvature, so the value
     from the Navarro model is used by default.
 
     References
@@ -89,20 +89,18 @@ class BennettRabbettsGeometry(
     .. [1] Bennett, A. G., & Rabbetts, R. B. (1990). Clinical visual optics (2nd ed.). Butterworth-Heinemann.
     """
 
-    def __init__(self, accomodation: float = 0.0, **surfaces: Unpack[BennetRabbettsSurfaces]) -> None:
+    def __init__(self, accommodation: float = 0.0, **surfaces: Unpack[BennettRabbettsSurfaces]) -> None:
         """Create a Bennett-Rabbetts schematic eye geometry.
 
         Parameters
         ----------
-        accomodation : float
-            Accomodation in diopters. Available values are 0, 2.5, 5, 7.5, and 10 D.
+        accommodation : float
+            Accommodation in diopters. Available values are 0, 2.5, 5, 7.5, and 10 D.
         """
-        if accomodation not in surfaces_by_accommodation:
-            raise ValueError(
-                f"Accomodation value {accomodation} not available. "
-                f"Available values are: {list(surfaces_by_accommodation.keys())}"
-            )
-        bennett_surfaces = surfaces_by_accommodation[accomodation]
+        if accommodation not in surfaces_by_accommodation:
+            msg = f"Accommodation value {accommodation} not available. Available values are: {list(surfaces_by_accommodation.keys())}."
+            raise ValueError(msg)
+        bennett_surfaces = surfaces_by_accommodation[accommodation].copy()
         bennett_surfaces.update(surfaces)
 
         super().__init__(**bennett_surfaces)

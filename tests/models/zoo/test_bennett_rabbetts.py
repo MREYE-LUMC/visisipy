@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 import visisipy
+from visisipy.models.geometry import StandardSurface
 from visisipy.models.materials import BennettRabbettsMaterials
 from visisipy.models.zoo.bennett_rabbetts import BennettRabbettsGeometry, surfaces_by_accommodation
 
@@ -92,3 +93,15 @@ class TestBennettRabbettsGeometry:
 
         assert front_nodal_point == expected_front_nodal_point
         assert back_nodal_point == expected_back_nodal_point
+
+    def test_custom_surface_does_not_overwrite_default_values(self):
+        geometry = BennettRabbettsGeometry(
+            0,
+            lens_back=StandardSurface(radius=-6.5, asphericity=0, thickness=17),
+        )
+
+        assert geometry.lens_back.radius == -6.5
+        assert geometry.lens_back.asphericity == 0
+        assert geometry.lens_back.thickness == 17
+
+        assert geometry.lens_back != surfaces_by_accommodation[0]["lens_back"]
