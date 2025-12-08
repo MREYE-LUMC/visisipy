@@ -20,6 +20,7 @@ class BennetRabbettsSurfaces(EyeModelSurfaces, total=False):
 
     This schematic eye does not have an anterior corneal surface.
     """
+
     cornea_front: NoSurface
 
 

@@ -78,9 +78,7 @@ class TestBennettRabbettsGeometry:
             (10.0, 6.60, 6.95),
         ],
     )
-    def test_nodal_points(
-        self, accommodation, expected_front_nodal_point, expected_back_nodal_point, optiland_backend
-    ):
+    def test_nodal_points(self, accommodation, expected_front_nodal_point, expected_back_nodal_point, optiland_backend):
         model = visisipy.EyeModel(
             geometry=BennettRabbettsGeometry(accommodation),
             materials=BennettRabbettsMaterials(),

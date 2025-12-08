@@ -1,4 +1,5 @@
 """Predefined schematic eyes."""
+
 from __future__ import annotations
 
 from visisipy.models.zoo.bennett_rabbetts import BennettRabbettsGeometry

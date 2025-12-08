@@ -357,6 +357,7 @@ _Retina = TypeVar("_Retina", bound=StandardSurface)
 
 class EyeModelSurfaces(TypedDict, total=False):
     """Surfaces of an eye model."""
+
     cornea_front: StandardSurface
     cornea_back: StandardSurface
     pupil: Stop

@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
     from visisipy.models.geometry import EyeGeometry
 
+
 @dataclass
 class EyeModel:
     """Optical model of the eye.
