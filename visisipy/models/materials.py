@@ -9,7 +9,10 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 __all__ = (
+    "BennettRabbettsMaterials",
     "EyeMaterials",
+    "GullstrandLeGrandAccommodatedMaterials",
+    "GullstrandLeGrandUnaccommodatedMaterials",
     "MaterialModel",
     "NavarroMaterials",
     "NavarroMaterials458",
@@ -373,5 +376,60 @@ class BennettRabbettsMaterials(EyeMaterials):
     vitreous: MaterialModel = field(
         default_factory=_material_model_factory(
             refractive_index=1.336,
+        )
+    )
+
+
+@dataclass
+class GullstrandLeGrandUnaccommodatedMaterials(EyeMaterials):
+    """Material parameters of an unaccommodated eye, according to the Gullstrand-LeGrand model [1]_.
+
+    See Also
+    --------
+    GullstrandLeGrandAccommodatedMaterials : Material parameters of the corresponding accommodated eye.
+
+    References
+    ----------
+    .. [1] Le Grand, Y., El Hage, S.G. (1980). Physiological Optics. Springer.
+    """
+
+    cornea: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.3771,
+        )
+    )
+    aqueous: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.3374,
+        )
+    )
+    lens: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.42,
+        )
+    )
+    vitreous: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.336,
+        )
+    )
+
+
+@dataclass
+class GullstrandLeGrandAccommodatedMaterials(GullstrandLeGrandUnaccommodatedMaterials):
+    """Material parameters of an accommodated eye, according to the Gullstrand-LeGrand model [1]_.
+
+    See Also
+    --------
+    GullstrandLeGrandUnaccommodatedMaterials : Material parameters of the corresponding unaccommodated eye.
+
+    References
+    ----------
+    .. [1] Le Grand, Y., El Hage, S.G. (1980). Physiological Optics. Springer.
+    """
+
+    lens: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.427,
         )
     )
