@@ -36,8 +36,8 @@ class MaterialModel:
     """
 
     refractive_index: float
-    abbe_number: float
-    partial_dispersion: float
+    abbe_number: float = 0.0
+    partial_dispersion: float = 0.0
 
 
 @dataclass
@@ -62,7 +62,9 @@ class EyeMaterials:
     vitreous: MaterialModel | str
 
 
-def _material_model_factory(refractive_index, abbe_number, partial_dispersion) -> Callable[[], MaterialModel]:
+def _material_model_factory(
+    refractive_index: float, abbe_number: float = 0.0, partial_dispersion: float = 0.0
+) -> Callable[[], MaterialModel]:
     def factory() -> MaterialModel:
         return MaterialModel(refractive_index, abbe_number, partial_dispersion)
 
@@ -328,5 +330,48 @@ class NavarroMaterials633(EyeMaterials):
             refractive_index=1.3347,
             abbe_number=0,
             partial_dispersion=0,
+        )
+    )
+
+
+@dataclass
+class BennettRabbettsMaterials(EyeMaterials):
+    """Material parameters of an eye, according to the Bennett-Rabbetts model [1]_.
+
+    Attributes
+    ----------
+    cornea : MaterialModel
+        Refractive model of the cornea.
+    aqueous : MaterialModel
+        Refractive model of the aqueous humour.
+    lens : MaterialModel
+        Refractive model of the crystalline lens.
+    vitreous : MaterialModel
+        Refractive model of the vitreous humour.
+
+    References
+    ----------
+    .. [1] Bennett, A. G., & Rabbetts, R. B. (1990). Clinical visual optics (2nd ed.). Butterworth-Heinemann.
+    """
+
+    # The Bennett-Rabbetts model uses a single-surface cornea and therefore does not specify the corneal refractive index.
+    cornea: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.0,
+        )
+    )
+    aqueous: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.336,
+        )
+    )
+    lens: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.422,
+        )
+    )
+    vitreous: MaterialModel = field(
+        default_factory=_material_model_factory(
+            refractive_index=1.336,
         )
     )
