@@ -350,6 +350,15 @@ class NoSurface(Surface):
     thickness: int = field(default=0, init=False)
 
 
+class EyeModelSurfaces(TypedDict, total=False):
+    cornea_front: StandardSurface
+    cornea_back: StandardSurface
+    pupil: Stop
+    lens_front: StandardSurface
+    lens_back: StandardSurface
+    retina: StandardSurface
+
+
 class EyeGeometry:
     """Geometric parameters of an eye.
 
@@ -561,23 +570,23 @@ class NavarroGeometry(EyeGeometry):
     ...     retina=StandardSurface(radius=-12.5, asphericity=0.5)
     ... )
 
-    Create a default Navarro gometry and change only the lens back radius:
+    Create a default Navarro geometry and change only the lens back radius:
 
     >>> geometry = NavarroGeometry()
     >>> geometry.lens_back.radius = -5.8
     """
 
-    def __init__(self, **kwargs):
-        surfaces = {
-            "cornea_front": StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
-            "cornea_back": StandardSurface(radius=6.50, asphericity=0, thickness=3.05),
-            "pupil": Stop(semi_diameter=1.348),
-            "lens_front": StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
-            "lens_back": StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
-            "retina": StandardSurface(radius=-12.0, asphericity=0),
-        }
-        surfaces.update(**kwargs)
-        super().__init__(**surfaces)
+    def __init__(self, **surfaces: Unpack[EyeModelSurfaces]):
+        navarro_surfaces = EyeModelSurfaces(
+            cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
+            cornea_back=StandardSurface(radius=6.50, asphericity=0, thickness=3.05),
+            pupil=Stop(semi_diameter=1.348),
+            lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
+            lens_back=StandardSurface(radius=-6.0, asphericity=-1, thickness=16.3203),
+            retina=StandardSurface(radius=-12.0, asphericity=0),
+        )
+        navarro_surfaces.update(**surfaces)
+        super().__init__(**navarro_surfaces)
 
 
 def _update_attribute_if_specified(obj: Surface, attribute: str, value: Any):
