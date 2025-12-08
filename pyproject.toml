@@ -69,8 +69,8 @@ dependencies = [
     "myst-nb",
     "myst-parser",
     "pydata-sphinx-theme",
-    "sphinx",
-    "sphinx-autoapi",
+    "sphinx>=9.0.4",
+    "sphinx-autoapi>=3.6.0",
     "sphinx-autobuild",
     "sphinx-design",
 ]
