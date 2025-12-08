@@ -69,9 +69,16 @@ class GullstrandLeGrandGeometry(
 
 
 class GullstrandLeGrandEyeModel(EyeModel):
-    """Gullstrand-LeGrand schematic eye model."""
+    """Gullstrand-LeGrand schematic eye model.
 
-    def __init__(self, accommodation: Accommodation) -> None:
+    See Also
+    --------
+    GullstrandLeGrandGeometry : Geometric parameters of the Gullstrand-LeGrand schematic eye.
+    GullstrandLeGrandAccommodatedMaterials : Materials for the accommodated Gullstrand-LeGrand eye.
+    GullstrandLeGrandUnaccommodatedMaterials : Materials for the unaccommodated Gullstrand-LeGrand eye.
+    """
+
+    def __init__(self, accommodation: Accommodation = "unaccommodated") -> None:
         """Create a Gullstrand-LeGrand schematic eye model.
 
         Parameters
