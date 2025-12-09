@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 
 import visisipy
+from visisipy.models.catalog.gullstrand import Accommodation, GullstrandLeGrandGeometry, surfaces_by_accommodation
 from visisipy.models.geometry import StandardSurface
 from visisipy.models.materials import GullstrandLeGrandAccommodatedMaterials, GullstrandLeGrandUnaccommodatedMaterials
-from visisipy.models.zoo.gullstrand import Accommodation, GullstrandLeGrandGeometry, surfaces_by_accommodation
 
 
 def make_gullstrand_model(accommodation: Accommodation) -> visisipy.EyeModel:

@@ -3,9 +3,9 @@ from __future__ import annotations
 import pytest
 
 import visisipy
+from visisipy.models.catalog.bennett_rabbetts import BennettRabbettsGeometry, surfaces_by_accommodation
 from visisipy.models.geometry import StandardSurface
 from visisipy.models.materials import BennettRabbettsMaterials
-from visisipy.models.zoo.bennett_rabbetts import BennettRabbettsGeometry, surfaces_by_accommodation
 
 
 class TestBennettRabbettsGeometry:

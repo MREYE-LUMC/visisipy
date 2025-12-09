@@ -7,6 +7,13 @@ from __future__ import annotations
 
 from visisipy.models import materials
 from visisipy.models.base import BaseEye, BaseSurface, EyeModel
+from visisipy.models.catalog import (
+    BennettRabbettsEyeModel,
+    BennettRabbettsGeometry,
+    GullstrandLeGrandEyeModel,
+    GullstrandLeGrandGeometry,
+    NavarroGeometry,
+)
 from visisipy.models.factory import create_geometry
 from visisipy.models.geometry import EyeGeometry
 from visisipy.models.materials import (
@@ -16,13 +23,6 @@ from visisipy.models.materials import (
     NavarroMaterials543,
     NavarroMaterials589,
     NavarroMaterials633,
-)
-from visisipy.models.zoo import (
-    BennettRabbettsEyeModel,
-    BennettRabbettsGeometry,
-    GullstrandLeGrandEyeModel,
-    GullstrandLeGrandGeometry,
-    NavarroGeometry,
 )
 
 __all__ = (

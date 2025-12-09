@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any, Literal, TypeVar
 from warnings import warn
 
+from visisipy.models.catalog.navarro import NavarroGeometry
 from visisipy.models.geometry import EyeGeometry, Surface
-from visisipy.models.zoo.navarro import NavarroGeometry
 from visisipy.types import TypedDict, Unpack
 
 __all__ = ("create_geometry",)

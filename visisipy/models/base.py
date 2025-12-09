@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 def _get_default_geometry() -> EyeGeometry:
     """Get the default eye geometry."""
     # Import here to avoid circular imports
-    from visisipy.models.zoo.navarro import NavarroGeometry  # noqa: PLC0415
+    from visisipy.models.catalog.navarro import NavarroGeometry  # noqa: PLC0415
 
     return NavarroGeometry()
 

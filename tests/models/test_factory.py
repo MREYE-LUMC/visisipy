@@ -5,9 +5,9 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
+from visisipy.models.catalog.navarro import NavarroGeometry
 from visisipy.models.factory import _check_sign, create_geometry
 from visisipy.models.geometry import StandardSurface, Stop
-from visisipy.models.zoo.navarro import NavarroGeometry
 
 
 @pytest.mark.parametrize("base_geometry", [NavarroGeometry])

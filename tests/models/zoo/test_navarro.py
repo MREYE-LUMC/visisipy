@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from visisipy.models.catalog.navarro import NavarroGeometry
 from visisipy.models.geometry import StandardSurface, Stop, ZernikeStandardSagSurface
-from visisipy.models.zoo.navarro import NavarroGeometry
 
 
 class TestNavarroGeometry:

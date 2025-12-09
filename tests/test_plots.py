@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
+from visisipy.models.catalog.navarro import NavarroGeometry
 from visisipy.models.geometry import EyeGeometry, StandardSurface, Stop
-from visisipy.models.zoo.navarro import NavarroGeometry
 from visisipy.plots import _plot_ellipse, _plot_hyperbola, _plot_parabola, plot_eye
 
 mpl.use("Agg")  # use non-interactive backend for testing
