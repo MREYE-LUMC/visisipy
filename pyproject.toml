@@ -66,13 +66,13 @@ test-gpu = "hatch test {args} --no-opticstudio --optiland-backend=torch-gpu"
 installer = "uv"
 python = "3.13"
 dependencies = [
-    "myst-nb",
-    "myst-parser",
-    "pydata-sphinx-theme",
-    "sphinx>=9.0.4",
+    "myst-nb>=1.3.0",
+    "myst-parser>=4",
+    "pydata-sphinx-theme>=0.16.0",
+    "sphinx>=8,<9",
     "sphinx-autoapi>=3.6.0",
-    "sphinx-autobuild",
-    "sphinx-design",
+    "sphinx-autobuild>=2025.8.25",
+    "sphinx-design>=0.6.1",
 ]
 
 [tool.hatch.envs.docs.scripts]
