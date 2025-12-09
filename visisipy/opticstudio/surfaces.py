@@ -9,8 +9,8 @@ from warnings import warn
 
 import zospy as zp
 
-from visisipy.models import BaseSurface
-from visisipy.models import NoSurface as OpticStudioNoSurface
+from visisipy.models.base import BaseSurface
+from visisipy.models.base import NoSurface as OpticStudioNoSurface
 from visisipy.models.geometry import (
     BiconicSurface,
     NoSurface,

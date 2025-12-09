@@ -12,7 +12,7 @@ from warnings import warn
 from optiland.materials import AbbeMaterial, IdealMaterial, Material
 
 from visisipy.models import BaseSurface
-from visisipy.models import NoSurface as OptilandNoSurface
+from visisipy.models.base import NoSurface as OptilandNoSurface
 from visisipy.models.geometry import (
     BiconicSurface,
     NoSurface,
