@@ -57,6 +57,24 @@ class TestGullstrandLeGrandGeometry:
         assert back_focal_length == pytest.approx(expected_back_focal_length)
 
     @pytest.mark.parametrize(
+        "accommodation,expected_front_focal_point,expected_back_focal_point",
+        [
+            ("unaccommodated", -15.09, 24.20),
+            ("accommodated", -12.96, 21.93),
+        ],
+    )
+    def test_focal_points(self, accommodation, expected_front_focal_point, expected_back_focal_point, optiland_backend):
+        model = make_gullstrand_model(accommodation)
+        optiland_backend.build_model(model)
+
+        cardinal_points = visisipy.analysis.cardinal_points(model, backend=optiland_backend)
+        front_focal_point = round(cardinal_points.focal_points.object, 2)
+        back_focal_point = round(model.geometry.axial_length + cardinal_points.focal_points.image, 2)
+
+        assert front_focal_point == pytest.approx(expected_front_focal_point)
+        assert back_focal_point == pytest.approx(expected_back_focal_point)
+
+    @pytest.mark.parametrize(
         "accommodation,expected_front_principal_point,expected_back_principal_point",
         [
             ("unaccommodated", 1.59, 1.91),

@@ -43,6 +43,31 @@ class TestBennettRabbettsGeometry:
         assert back_focal_length == expected_back_focal_length
 
     @pytest.mark.parametrize(
+        "accommodation,expected_front_focal_point,expected_back_focal_point",
+        [
+            (0.0, -15.16, 24.09),
+            (2.5, -14.29, 23.21),
+            (5.0, -13.53, 22.41),
+            (7.5, -12.82, 21.68),
+            (10.0, -12.19, 21.01),
+        ],
+    )
+    def test_focal_points(self, accommodation, expected_front_focal_point, expected_back_focal_point, optiland_backend):
+        model = visisipy.EyeModel(
+            geometry=BennettRabbettsGeometry(accommodation),
+            materials=BennettRabbettsMaterials(),
+        )
+        optiland_backend.build_model(model)
+
+        cardinal_points = visisipy.analysis.cardinal_points(model, backend=optiland_backend)
+
+        front_focal_point = round(cardinal_points.focal_points.object, 2)
+        back_focal_point = round(model.geometry.axial_length + cardinal_points.focal_points.image, 2)
+
+        assert front_focal_point == expected_front_focal_point
+        assert back_focal_point == expected_back_focal_point
+
+    @pytest.mark.parametrize(
         "accommodation,expected_front_principal_point,expected_back_principal_point",
         [
             (0.0, 1.51, 1.82),
