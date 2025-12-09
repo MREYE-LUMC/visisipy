@@ -119,7 +119,8 @@ class BennettRabbettsEyeModel(EyeModel):
     See Also
     --------
     BennettRabbettsGeometry : Geometric parameters of the Bennett-Rabbetts schematic eye.
-    BennettRabbettsMaterials : Material parameters of the Bennett-Rabbetts schematic eye.
+    visisipy.models.materials.BennettRabbettsMaterials :
+        Material parameters of the Bennett-Rabbetts schematic eye.
     """
 
     def __init__(self, accommodation: float = 0.0) -> None:

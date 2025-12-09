@@ -76,8 +76,10 @@ class GullstrandLeGrandEyeModel(EyeModel):
     See Also
     --------
     GullstrandLeGrandGeometry : Geometric parameters of the Gullstrand-LeGrand schematic eye.
-    GullstrandLeGrandAccommodatedMaterials : Materials for the accommodated Gullstrand-LeGrand eye.
-    GullstrandLeGrandUnaccommodatedMaterials : Materials for the unaccommodated Gullstrand-LeGrand eye.
+    visisipy.models.materials.GullstrandLeGrandAccommodatedMaterials :
+        Materials for the accommodated Gullstrand-LeGrand eye.
+    visisipy.models.materials.GullstrandLeGrandUnaccommodatedMaterials :
+        Materials for the unaccommodated Gullstrand-LeGrand eye.
     """
 
     def __init__(self, accommodation: Accommodation = "unaccommodated") -> None:
