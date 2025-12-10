@@ -25,7 +25,7 @@ Visisipy (VISion Simulations In PYthon) is a Python library for optical simulati
 - **Commands**:
   - Format code: `uvx hatch fmt`
   - Check formatting: `uvx hatch fmt --check`
-  - Format docstrings: `uvx format-docstrings`
+  - Format docstrings: `uvx hatch run format-docstrings`
 
 ### Import Conventions
 - **REQUIRED**: All files MUST include `from __future__ import annotations` as the first import
@@ -57,10 +57,10 @@ Visisipy (VISion Simulations In PYthon) is a Python library for optical simulati
 uvx hatch test --no-opticstudio
 
 # Run tests with torch-cpu backend
-uvx hatch test-torch
+uvx hatch run test-torch
 
 # Run tests with torch-gpu backend
-hatch run test-gpu
+uvx hatch run test-gpu
 
 # Run specific test file
 uvx hatch test tests/test_specific.py --no-opticstudio
@@ -124,9 +124,8 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 ## Coding Conventions
 
 ### Error Handling
-- Allowed to use string literals and f-strings in exceptions (`EM101`, `EM102` ignored), but do not use string literals and f-strings in exceptions when writing new code
+- Allowed to use string literals and f-strings in exceptions in existing code (`EM101`, `EM102` ignored), but do not use string literals and f-strings in exceptions when writing new code
 - Use specific exception types
-- Prefer `TRY003` exceptions (long messages allowed)
 
 ### Assertions
 - Do NOT use assertions in production code (except in `scripts/`)
