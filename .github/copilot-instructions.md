@@ -118,7 +118,7 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 ### Dependencies
 - Core scientific stack: numpy, scipy, matplotlib, numba
 - Optics: optiland (required), zospy (Windows only)
-- Type hints: typing-extensions>=4.12.2 (required for Python versions before 3.11)
+- Type hints: typing-extensions>=4.12.2 (automatically installed for Python <3.11)
 
 ## Coding Conventions
 
