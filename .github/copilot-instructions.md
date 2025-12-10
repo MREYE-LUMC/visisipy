@@ -25,7 +25,7 @@ Visisipy (VISion Simulations In PYthon) is a Python library for optical simulati
 - **Commands**:
   - Format code: `uvx hatch fmt`
   - Check formatting: `uvx hatch fmt --check`
-  - Format docstrings: `uvx pydocstringformatter --write scripts tests visisipy`
+  - Format docstrings: `uvx format-docstrings`
 
 ### Import Conventions
 - **REQUIRED**: All files MUST include `from __future__ import annotations` as the first import
@@ -53,11 +53,11 @@ Visisipy (VISion Simulations In PYthon) is a Python library for optical simulati
 
 ### Running Tests
 ```bash
-# Run tests with numpy backend (default)
-uvx hatch test ./tests --no-opticstudio
+# Run tests with numpy backend and no OpticStudio (default)
+uvx hatch test --no-opticstudio
 
 # Run tests with torch-cpu backend
-uvx hatch test ./tests --no-opticstudio --optiland-backend=torch-cpu
+uvx hatch test-torch
 
 # Run tests with torch-gpu backend
 hatch run test-gpu
@@ -85,7 +85,8 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 ### Optiland Backend
 - **Platform**: Cross-platform
 - **Dependency**: `optiland>=0.5.8`
-- **Backends**: numpy (default), torch-cpu, torch-gpu
+- **Computation backends**: numpy (default), torch
+  - When using the torch backend, it can be configured to use the CPU or GPU
 - More permissive for private attribute access (see `SLF001` rule exceptions)
 
 ## Project Structure
@@ -97,8 +98,8 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 - `optiland/`: Optiland backend implementation
 - `backend.py`: Backend management and abstraction
 - `plots.py`: Visualization functions
-- `refraction.py`: Refraction calculations
-- `wavefront.py`: Wavefront analysis
+- `refraction.py`: Refraction utilities
+- `wavefront.py`: Wavefront utilities
 - `types.py`: Type definitions
 
 ### Documentation
@@ -106,7 +107,7 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 - **Location**: `docs/`
 - **Config**: `.readthedocs.yml`
 - **Build**: `hatch run docs:build`
-- **Preview**: `hatch run docs:preview`
+- **Preview**: `hatch run docs:preview` (this will watch the documentation and rebuild on changes)
 
 ## Build System
 
@@ -123,7 +124,7 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 ## Coding Conventions
 
 ### Error Handling
-- Allowed to use string literals and f-strings in exceptions (`EM101`, `EM102` ignored)
+- Allowed to use string literals and f-strings in exceptions (`EM101`, `EM102` ignored), but do not use string literals and f-strings in exceptions when writing new code
 - Use specific exception types
 - Prefer `TRY003` exceptions (long messages allowed)
 
@@ -141,7 +142,7 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 - Constants: UPPER_CASE
 - Variables/functions: snake_case
 - Classes: PascalCase
-- Type variables: PascalCase with `T` prefix if generic
+- Type variables: PascalCase
 
 ## Special Notes
 
@@ -154,8 +155,7 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 - DOI available via Zenodo
 
 ### Contributing
-- See `CONTRIBUTING.md` and full guidelines at `visisipy.readthedocs.io/contributing`
-- Contact: visisipy@mreye.nl
+- See `CONTRIBUTING.md` and full guidelines in `docs/contributing.md`
 
 ## Common Commands
 
@@ -170,10 +170,10 @@ uvx hatch fmt
 uvx hatch fmt --check
 
 # Format docstrings
-uvx pydocstringformatter --write scripts tests visisipy
+uvx hatch run format-docstrings
 
 # Run tests
-uvx hatch test ./tests --no-opticstudio
+uvx hatch test --no-opticstudio
 
 # Build documentation
 hatch run docs:build
@@ -182,5 +182,5 @@ hatch run docs:build
 hatch run docs:preview
 
 # Build package
-uvx --from build pyproject-build --installer uv
+uv build
 ```
