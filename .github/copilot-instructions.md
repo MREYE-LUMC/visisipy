@@ -8,7 +8,7 @@ Visisipy (VISion Simulations In PYthon) is a Python library for optical simulati
 
 ### Python Version
 - Minimum: Python 3.10
-- Maximum: Python 3.13 (exclusive)
+- Maximum: Python 3.13 (inclusive, <3.14)
 - Default development version: Python 3.12
 
 ### Package Manager
@@ -118,7 +118,7 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 ### Dependencies
 - Core scientific stack: numpy, scipy, matplotlib, numba
 - Optics: optiland (required), zospy (Windows only)
-- Type hints: typing-extensions (Python <3.11)
+- Type hints: typing-extensions>=4.12.2 (required for Python versions before 3.11)
 
 ## Coding Conventions
 
