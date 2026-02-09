@@ -515,7 +515,7 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
     def cornea_thickness(self) -> float:
         """Central thickness of the cornea, in mm.
 
-        The corneal thickness is defined as the distance between the front and back of the cornea.
+        The corneal thickness is defined as the distance between the anterior and posterior cornea surfaces.
         """
         return self.cornea_front.thickness
 
@@ -523,7 +523,7 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
     def anterior_chamber_depth(self) -> float:
         """Depth of the anterior chamber, in mm.
 
-        The anterior chamber depth is defined as the distance between the back of the cornea and the front of the lens.
+        The anterior chamber depth is defined as the distance between the posterior cornea surface and the anterior lens surface.
         """
         return self.cornea_back.thickness + self.pupil.thickness
 
@@ -531,7 +531,7 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
     def aqueous_depth(self) -> float:
         """Depth of the aqueous humor, in mm.
 
-        The aqueous depth is defined as the distance between the back of the cornea and the front of the lens.
+        The aqueous depth is defined as the distance between the posterior cornea surface and the anterior lens surface.
 
         See Also
         --------
@@ -541,14 +541,14 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
 
     @property
     def pupil_lens_distance(self) -> float:
-        """Distance between the pupil and the front of the lens, in mm."""
+        """Distance between the pupil and the anterior lens surface, in mm."""
         return self.pupil.thickness
 
     @property
     def lens_thickness(self) -> float:
         """Thickness of the crystalline lens, in mm.
 
-        The lens thickness is defined as the distance between the front and back of the lens.
+        The lens thickness is defined as the distance between the anterior and posterior lens surfaces.
         """
         return self.lens_front.thickness
 
@@ -556,7 +556,7 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
     def vitreous_thickness(self) -> float:
         """Thickness of the vitreous body, in mm.
 
-        The vitreous thickness is defined as the distance between the back of the lens and the retina.
+        The vitreous thickness is defined as the distance between the posterior lens surface and the retina.
         """
         return self.lens_back.thickness
 

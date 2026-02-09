@@ -115,12 +115,11 @@ def create_geometry(
     """Create a geometry instance from clinically used parameters.
 
     All parameters are optional, and if not provided, the default values will be used.
-    Sizes are specified in mm. If `estimate_cornea_back` is True, the back cornea radius will be estimated from the
-    front cornea radius as `cornea_back_radius = 0.81 * cornea_front_radius`.
-    The anterior chamber depth is defined as the distance from the back of the cornea to the front of the lens, and the
-    pupil-lens distance is defined as the distance from the pupil to the front of the lens. If both the anterior
-    chamber depth and pupil-lens distance are provided, the cornea back to pupil distance will be calculated as
-    `cornea_back_to_pupil = anterior_chamber_depth - pupil_lens_distance`.
+    Sizes are specified in mm. If `estimate_cornea_back` is True, the posterior cornea radius will be estimated from the
+    anterior cornea radius as `cornea_back_radius = 0.81 * cornea_front_radius`.
+    The anterior chamber depth is defined as the distance from the posterior cornea surface to the anterior lens surface, and the
+    pupil-lens distance is defined as the distance from the pupil to the anterior lens surface. The cornea back to pupil
+    distance is calculated as `cornea_back_to_pupil = anterior_chamber_depth - pupil_lens_distance`.
     The retina can be specified either by its radius and asphericity or by its y and z ellipsoid radii. If both
     methods are specified, a ValueError will be raised.
 
@@ -129,9 +128,9 @@ def create_geometry(
     base : type[GeometryType]
         The base geometry class to use. Must be a subclass of EyeGeometry.
     axial_length : float, optional
-        Axial length of the eye, measured from cornea front to retina.
+        Axial length of the eye, measured from anterior cornea surface to the retina along the optical axis.
     cornea_thickness : float, optional
-        Central thickness of the cornea.
+        Central thickness of the cornea, measured from the anterior to the posterior cornea surface.
     cornea_front_radius : float, optional
         Radius of curvature of the anterior cornea surface.
     cornea_front_asphericity : float, optional
@@ -141,13 +140,13 @@ def create_geometry(
     cornea_back_asphericity : float, optional
         Asphericity of the posterior cornea surface.
     anterior_chamber_depth : float, optional
-        Depth of the anterior chamber, measured from the back of the cornea to the front of the lens.
+        Depth of the anterior chamber, measured from the posterior cornea surface to the anterior lens surface.
     pupil_radius : float, optional
         Radius of the pupil.
     pupil_lens_distance : float, optional
         Distance between the pupil and the lens.
     lens_thickness : float, optional
-        Thickness of the crystalline lens, measured from the front to the back of the lens.
+        Thickness of the crystalline lens, measured from the anterior to the posterior lens surface.
     lens_front_radius : float, optional
         Radius of curvature of the anterior lens surface.
     lens_front_asphericity : float, optional
