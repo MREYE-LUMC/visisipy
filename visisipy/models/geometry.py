@@ -513,27 +513,51 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
 
     @property
     def cornea_thickness(self) -> float:
-        """Thickness of the cornea, in mm."""
+        """Central thickness of the cornea, in mm.
+
+        The corneal thickness is defined as the distance between the front and back of the cornea.
+        """
         return self.cornea_front.thickness
 
     @property
     def anterior_chamber_depth(self) -> float:
-        """Depth of the anterior chamber, in mm."""
-        return self.cornea_back.thickness
+        """Depth of the anterior chamber, in mm.
+
+        The anterior chamber depth is defined as the distance between the back of the cornea and the front of the lens.
+        """
+        return self.cornea_back.thickness + self.pupil.thickness
+
+    @property
+    def aqueous_depth(self) -> float:
+        """Depth of the aqueous humor, in mm.
+
+        The aqueous depth is defined as the distance between the back of the cornea and the front of the lens.
+
+        See Also
+        --------
+        anterior_chamber_depth : Equivalent to the anterior chamber depth.
+        """
+        return self.anterior_chamber_depth
 
     @property
     def pupil_lens_distance(self) -> float:
-        """Distance between the pupil and the lens, in mm."""
+        """Distance between the pupil and the front of the lens, in mm."""
         return self.pupil.thickness
 
     @property
     def lens_thickness(self) -> float:
-        """Thickness of the crystalline lens, in mm."""
+        """Thickness of the crystalline lens, in mm.
+
+        The lens thickness is defined as the distance between the front and back of the lens.
+        """
         return self.lens_front.thickness
 
     @property
     def vitreous_thickness(self) -> float:
-        """Thickness of the vitreous body, in mm."""
+        """Thickness of the vitreous body, in mm.
+
+        The vitreous thickness is defined as the distance between the back of the lens and the retina.
+        """
         return self.lens_back.thickness
 
     def reverse(self):

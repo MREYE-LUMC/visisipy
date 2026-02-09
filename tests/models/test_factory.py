@@ -10,12 +10,25 @@ from visisipy.models.factory import _check_sign, create_geometry
 from visisipy.models.geometry import StandardSurface, Stop
 
 
+class SentinelFloat(float):
+    """Custom float class to mark floats as set by a unit test."""
+
+    def __add__(self, value: float) -> SentinelFloat:
+        return SentinelFloat(super().__add__(value))
+
+    def __radd__(self, value: float) -> SentinelFloat:
+        return SentinelFloat(super().__radd__(value))
+
+    def __sub__(self, value: float) -> SentinelFloat:
+        return SentinelFloat(super().__sub__(value))
+
+    def __rsub__(self, value: float) -> SentinelFloat:
+        return SentinelFloat(super().__rsub__(value))
+
+
 @pytest.mark.parametrize("base_geometry", [NavarroGeometry])
 class TestCreateGeometry:
     def test_create_geometry(self, base_geometry, example_geometry_parameters, example_geometry):
-        class SentinelFloat(float):
-            """Custom float class to mark floats as set by a unit test."""
-
         geometry = create_geometry(
             base=base_geometry,
             **{k: SentinelFloat(v) for k, v in example_geometry_parameters.items()},
@@ -79,6 +92,20 @@ class TestCreateGeometry:
                 estimate_cornea_back=True,
                 **example_geometry_parameters,
             )
+
+    def test_anterior_chamber_depth(self, base_geometry):
+        anterior_chamber_depth = 5
+        pupil_lens_distance = 2
+
+        geometry = create_geometry(
+            base=base_geometry,
+            anterior_chamber_depth=anterior_chamber_depth,
+            pupil_lens_distance=pupil_lens_distance,
+        )
+
+        assert geometry.cornea_back.thickness == anterior_chamber_depth - pupil_lens_distance
+        assert geometry.anterior_chamber_depth == anterior_chamber_depth
+        assert geometry.pupil_lens_distance == pupil_lens_distance
 
     @pytest.mark.parametrize(
         "parameters_a",

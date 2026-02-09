@@ -15,7 +15,7 @@ def example_geometry_parameters() -> GeometryParameters:
     return {
         "axial_length": 20,
         "cornea_thickness": 0.5,
-        "anterior_chamber_depth": 3,
+        "anterior_chamber_depth": 3.4,
         "lens_thickness": 4,
         "cornea_front_radius": 7,
         "cornea_front_asphericity": 0,
@@ -43,7 +43,8 @@ def example_geometry(example_geometry_parameters):
         cornea_back=StandardSurface(
             radius=example_geometry_parameters["cornea_back_radius"],
             asphericity=example_geometry_parameters["cornea_back_asphericity"],
-            thickness=example_geometry_parameters["anterior_chamber_depth"],
+            thickness=example_geometry_parameters["anterior_chamber_depth"]
+            - example_geometry_parameters["pupil_lens_distance"],
         ),
         pupil=Stop(
             semi_diameter=example_geometry_parameters["pupil_radius"],
@@ -61,7 +62,6 @@ def example_geometry(example_geometry_parameters):
                 example_geometry_parameters["axial_length"]
                 - example_geometry_parameters["cornea_thickness"]
                 - example_geometry_parameters["anterior_chamber_depth"]
-                - example_geometry_parameters["pupil_lens_distance"]
                 - example_geometry_parameters["lens_thickness"],
                 7,
             ),
