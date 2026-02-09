@@ -107,6 +107,17 @@ class TestCreateGeometry:
         assert geometry.anterior_chamber_depth == anterior_chamber_depth
         assert geometry.pupil_lens_distance == pupil_lens_distance
 
+    def test_pupil_lens_distance_larger_than_anterior_chamber_depth_raises_valueerror(self, base_geometry):
+        with pytest.raises(
+            ValueError,
+            match="The pupil-lens distance cannot be greater than the anterior chamber depth.",
+        ):
+            create_geometry(
+                base=base_geometry,
+                anterior_chamber_depth=3,
+                pupil_lens_distance=4,
+            )
+
     @pytest.mark.parametrize(
         "parameters_a",
         [
@@ -173,7 +184,7 @@ class TestCreateGeometry:
     def test_invalid_vitreous_thickness_raises_valueerror(self, base_geometry, geometry_parameters):
         with pytest.raises(
             ValueError,
-            match="The sum of the cornea thickness, anterior chamber depth, pupil-lens distance and lens thickness is "
+            match="The sum of the cornea thickness, anterior chamber depth, and lens thickness is "
             "greater than or equal to the axial length.",
         ):
             create_geometry(

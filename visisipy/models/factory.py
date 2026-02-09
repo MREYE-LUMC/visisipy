@@ -177,10 +177,11 @@ def create_geometry(
     ------
     ValueError
         If the base geometry is not a class or if it is not a subclass of EyeGeometry.
-        If the retina radius/asphericity and y/z ellipsoid radii are both specified.
-        If only one of the retina ellipsoid radii is specified.
+        If the pupil-lens distance is greater than the anterior chamber depth.
         If the sum of the cornea thickness, anterior chamber depth and lens thickness is greater than or equal to the
         axial length.
+        If the retina radius/asphericity and y/z ellipsoid radii are both specified.
+        If only one of the retina ellipsoid radii is specified.
     """
     if not isinstance(base, type):
         raise TypeError("The base geometry must be a class. Did you put parentheses after the class name?")
@@ -215,6 +216,15 @@ def create_geometry(
 
     geometry = base()
 
+    anterior_chamber_depth = parameters.get("anterior_chamber_depth", geometry.anterior_chamber_depth)
+    pupil_lens_distance = parameters.get("pupil_lens_distance", geometry.pupil_lens_distance)
+
+    if pupil_lens_distance > anterior_chamber_depth:
+        raise ValueError(
+            "The pupil-lens distance cannot be greater than the anterior chamber depth."
+            f"Got {pupil_lens_distance=} and {anterior_chamber_depth=}."
+        )
+
     _update_attribute_if_specified(geometry.cornea_front, "thickness", parameters.get("cornea_thickness"))
     _update_attribute_if_specified(geometry.cornea_front, "radius", parameters.get("cornea_front_radius"))
     _update_attribute_if_specified(geometry.cornea_front, "asphericity", parameters.get("cornea_front_asphericity"))
@@ -222,9 +232,7 @@ def create_geometry(
     if estimate_cornea_back:
         parameters["cornea_back_radius"] = 0.81 * geometry.cornea_front.radius
 
-    cornea_back_to_pupil = parameters.get("anterior_chamber_depth", geometry.anterior_chamber_depth) - parameters.get(
-        "pupil_lens_distance", geometry.pupil_lens_distance
-    )
+    cornea_back_to_pupil = anterior_chamber_depth - pupil_lens_distance
     _update_attribute_if_specified(geometry.cornea_back, "thickness", cornea_back_to_pupil)
     _update_attribute_if_specified(geometry.cornea_back, "radius", parameters.get("cornea_back_radius"))
     _update_attribute_if_specified(geometry.cornea_back, "asphericity", parameters.get("cornea_back_asphericity"))
@@ -240,7 +248,7 @@ def create_geometry(
 
     if vitreous_thickness <= 0:
         raise ValueError(
-            "The sum of the cornea thickness, anterior chamber depth, pupil-lens distance and lens thickness is "
+            "The sum of the cornea thickness, anterior chamber depth, and lens thickness is "
             "greater than or equal to the axial length."
         )
 
