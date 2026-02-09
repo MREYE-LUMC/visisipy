@@ -5,7 +5,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from visisipy.models.catalog.navarro import NavarroGeometry
+from visisipy.models.catalog import GullstrandLeGrandGeometry, NavarroGeometry
 from visisipy.models.factory import _check_sign, create_geometry
 from visisipy.models.geometry import StandardSurface, Stop
 
@@ -26,7 +26,7 @@ class SentinelFloat(float):
         return SentinelFloat(super().__rsub__(value))
 
 
-@pytest.mark.parametrize("base_geometry", [NavarroGeometry])
+@pytest.mark.parametrize("base_geometry", [NavarroGeometry, GullstrandLeGrandGeometry])
 class TestCreateGeometry:
     def test_create_geometry(self, base_geometry, example_geometry_parameters, example_geometry):
         geometry = create_geometry(
