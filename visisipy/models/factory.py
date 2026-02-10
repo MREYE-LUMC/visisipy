@@ -24,19 +24,17 @@ def _calculate_vitreous_thickness(geometry: EyeGeometry, parameters: GeometryPar
     _axial_length = parameters["axial_length"] if "axial_length" in parameters else geometry.axial_length
     _cornea_thickness = parameters.get("cornea_thickness", geometry.cornea_thickness)
     _anterior_chamber_depth = parameters.get("anterior_chamber_depth", geometry.anterior_chamber_depth)
-    _pupil_lens_distance = parameters.get("pupil_lens_distance", geometry.pupil_lens_distance)
     _lens_thickness = parameters.get("lens_thickness", geometry.lens_thickness)
 
     if None in {
         _axial_length,
         _cornea_thickness,
         _anterior_chamber_depth,
-        _pupil_lens_distance,
         _lens_thickness,
     }:
         raise ValueError("Cannot calculate vitreous thickness from the supplied parameters.")
 
-    return _axial_length - (_cornea_thickness + _anterior_chamber_depth + _pupil_lens_distance + _lens_thickness)
+    return _axial_length - (_cornea_thickness + _anterior_chamber_depth + _lens_thickness)
 
 
 def _check_sign(value: float | None, name: str, sign: Literal["+", "-"]) -> None:
@@ -79,7 +77,14 @@ GeometryType = TypeVar("GeometryType", bound=EyeGeometry)
 
 
 class GeometryParameters(TypedDict, total=False):
-    """Parameters for the geometry of the eye."""
+    """Parameters for the geometry of the eye.
+
+    See the `create_geometry` function for a description of each parameter.
+
+    See Also
+    --------
+    create_geometry : Factory function to create an eye geometry from clinically used parameters.
+    """
 
     axial_length: float
     cornea_thickness: float
@@ -91,10 +96,10 @@ class GeometryParameters(TypedDict, total=False):
     pupil_radius: float
     pupil_lens_distance: float
     lens_thickness: float
-    lens_back_radius: float
-    lens_back_asphericity: float
     lens_front_radius: float
     lens_front_asphericity: float
+    lens_back_radius: float
+    lens_back_asphericity: float
     retina_radius: float
     retina_asphericity: float
     retina_ellipsoid_z_radius: float
@@ -110,8 +115,11 @@ def create_geometry(
     """Create a geometry instance from clinically used parameters.
 
     All parameters are optional, and if not provided, the default values will be used.
-    Sizes are specified in mm. If `estimate_cornea_back` is True, the back cornea radius will be estimated from the
-    front cornea radius as `cornea_back_radius = 0.81 * cornea_front_radius`.
+    Sizes are specified in mm. If `estimate_cornea_back` is True, the posterior cornea radius will be estimated from the
+    anterior cornea radius as `cornea_back_radius = 0.81 * cornea_front_radius`.
+    The anterior chamber depth is defined as the distance from the posterior cornea surface to the anterior lens surface, and the
+    pupil-lens distance is defined as the distance from the pupil to the anterior lens surface. The cornea back to pupil
+    distance is calculated as `cornea_back_to_pupil = anterior_chamber_depth - pupil_lens_distance`.
     The retina can be specified either by its radius and asphericity or by its y and z ellipsoid radii. If both
     methods are specified, a ValueError will be raised.
 
@@ -120,33 +128,33 @@ def create_geometry(
     base : type[GeometryType]
         The base geometry class to use. Must be a subclass of EyeGeometry.
     axial_length : float, optional
-        Axial length of the eye, measured from cornea front to retina.
+        Axial length of the eye, measured from anterior cornea surface to the retina along the optical axis.
     cornea_thickness : float, optional
-        Thickness of the cornea.
+        Central thickness of the cornea, measured from the anterior to the posterior cornea surface.
     cornea_front_radius : float, optional
-        Radius of curvature of the frontal cornea surface.
+        Radius of curvature of the anterior cornea surface.
     cornea_front_asphericity : float, optional
-        Asphericity of the frontal cornea surface.
+        Asphericity of the anterior cornea surface.
     cornea_back_radius : float, optional
-        Radius of curvature of the back cornea surface.
+        Radius of curvature of the posterior cornea surface.
     cornea_back_asphericity : float, optional
-        Asphericity of the back cornea surface.
+        Asphericity of the posterior cornea surface.
     anterior_chamber_depth : float, optional
-        Depth of the anterior chamber.
+        Depth of the anterior chamber, measured from the posterior cornea surface to the anterior lens surface.
     pupil_radius : float, optional
         Radius of the pupil.
     pupil_lens_distance : float, optional
         Distance between the pupil and the lens.
     lens_thickness : float, optional
-        Thickness of the crystalline lens.
-    lens_back_radius : float, optional
-        Radius of curvature of the back lens surface.
-    lens_back_asphericity : float, optional
-        Asphericity of the back lens surface.
+        Thickness of the crystalline lens, measured from the anterior to the posterior lens surface.
     lens_front_radius : float, optional
-        Radius of curvature of the frontal lens surface.
+        Radius of curvature of the anterior lens surface.
     lens_front_asphericity : float, optional
-        Asphericity of the frontal lens surface.
+        Asphericity of the anterior lens surface.
+    lens_back_radius : float, optional
+        Radius of curvature of the posterior lens surface.
+    lens_back_asphericity : float, optional
+        Asphericity of the posterior lens surface.
     retina_radius : float, optional
         Radius of curvature of the retina.
     retina_asphericity : float, optional
@@ -168,10 +176,11 @@ def create_geometry(
     ------
     ValueError
         If the base geometry is not a class or if it is not a subclass of EyeGeometry.
-        If the retina radius/asphericity and y/z ellipsoid radii are both specified.
-        If only one of the retina ellipsoid radii is specified.
+        If the pupil-lens distance is greater than the anterior chamber depth.
         If the sum of the cornea thickness, anterior chamber depth and lens thickness is greater than or equal to the
         axial length.
+        If the retina radius/asphericity and y/z ellipsoid radii are both specified.
+        If only one of the retina ellipsoid radii is specified.
     """
     if not isinstance(base, type):
         raise TypeError("The base geometry must be a class. Did you put parentheses after the class name?")
@@ -206,6 +215,15 @@ def create_geometry(
 
     geometry = base()
 
+    anterior_chamber_depth = parameters.get("anterior_chamber_depth", geometry.anterior_chamber_depth)
+    pupil_lens_distance = parameters.get("pupil_lens_distance", geometry.pupil_lens_distance)
+
+    if pupil_lens_distance > anterior_chamber_depth:
+        raise ValueError(
+            "The pupil-lens distance cannot be greater than the anterior chamber depth."
+            f"Got {pupil_lens_distance=} and {anterior_chamber_depth=}."
+        )
+
     _update_attribute_if_specified(geometry.cornea_front, "thickness", parameters.get("cornea_thickness"))
     _update_attribute_if_specified(geometry.cornea_front, "radius", parameters.get("cornea_front_radius"))
     _update_attribute_if_specified(geometry.cornea_front, "asphericity", parameters.get("cornea_front_asphericity"))
@@ -213,7 +231,8 @@ def create_geometry(
     if estimate_cornea_back:
         parameters["cornea_back_radius"] = 0.81 * geometry.cornea_front.radius
 
-    _update_attribute_if_specified(geometry.cornea_back, "thickness", parameters.get("anterior_chamber_depth"))
+    cornea_back_to_pupil = anterior_chamber_depth - pupil_lens_distance
+    _update_attribute_if_specified(geometry.cornea_back, "thickness", cornea_back_to_pupil)
     _update_attribute_if_specified(geometry.cornea_back, "radius", parameters.get("cornea_back_radius"))
     _update_attribute_if_specified(geometry.cornea_back, "asphericity", parameters.get("cornea_back_asphericity"))
 
@@ -228,7 +247,7 @@ def create_geometry(
 
     if vitreous_thickness <= 0:
         raise ValueError(
-            "The sum of the cornea thickness, anterior chamber depth, pupil-lens distance and lens thickness is "
+            "The sum of the cornea thickness, anterior chamber depth, and lens thickness is "
             "greater than or equal to the axial length."
         )
 

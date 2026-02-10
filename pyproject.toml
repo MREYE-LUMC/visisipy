@@ -74,6 +74,7 @@ dependencies = [
     "sphinx-autoapi>=3.6.0",
     "sphinx-autobuild>=2025.8.25",
     "sphinx-design>=0.6.1",
+    "sphinxcontrib-images>=1.0.1",
 ]
 
 [tool.hatch.envs.docs.scripts]

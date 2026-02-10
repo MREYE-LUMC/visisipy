@@ -180,7 +180,6 @@ class TestEyeGeometry:
         vitreous_thickness = example_geometry_parameters["axial_length"] - (
             example_geometry_parameters["cornea_thickness"]
             + example_geometry_parameters["anterior_chamber_depth"]
-            + example_geometry_parameters["pupil_lens_distance"]
             + example_geometry_parameters["lens_thickness"]
         )
         assert example_geometry.vitreous_thickness == vitreous_thickness
