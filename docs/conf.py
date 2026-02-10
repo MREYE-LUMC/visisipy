@@ -23,8 +23,8 @@ author = "Corné Haasjes, Luc van Vught, Jan-Willem Beenakker"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["autoapi.extension", "myst_nb", "numpydoc", "sphinx_design"]
-myst_enable_extensions = ["colon_fence", "dollarmath"]
+extensions = ["autoapi.extension", "myst_nb", "numpydoc", "sphinx_design", "sphinxcontrib.images"]
+myst_enable_extensions = ["attrs_inline", "colon_fence", "dollarmath"]
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
