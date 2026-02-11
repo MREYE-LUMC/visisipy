@@ -55,12 +55,14 @@ default-version = "0.0.0+unknown"
 [tool.hatch.envs.default]
 installer = "uv"
 python = "3.12"
+path = ".venv"
 
 [tool.hatch.envs.default.scripts]
 # Format docstrings according to numpydoc
 format-docstrings = "{env:HATCH_UV:uv} tool run pydocstringformatter --write {args:scripts tests visisipy}"
 test-torch = "hatch test {args} --no-opticstudio --optiland-backend=torch-cpu"
 test-gpu = "hatch test {args} --no-opticstudio --optiland-backend=torch-gpu"
+generate-test-data = "{env:HATCH_UV:uv} run scripts/test_data/generate_test_data.py {args}"
 
 [tool.hatch.envs.docs]
 installer = "uv"
@@ -94,6 +96,7 @@ python = ["3.10", "3.11", "3.12", "3.13"]
 [tool.pytest.ini_options]
 markers = [
     "needs_opticstudio: test needs OpticStudio and will be skipped if it is not available",
+    "test_data: test uses test data specified with this marker",
     "windows_only: test can only be run on Windows",
 ]
 filterwarnings = [
@@ -148,6 +151,7 @@ linewrap-full-docstring = true
 [dependency-groups]
 dev = [
     "jupyter>=1.1.1",
+    "loguru>=0.7.3",
     "pytest>=8.3.5",
     "pytest-mock>=3.15.1",
     "torch>=2.7.0",
