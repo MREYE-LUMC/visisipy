@@ -12,7 +12,7 @@ import optiland.backend
 from optiland.fileio import load_optiland_file, save_optiland_file
 from optiland.optic import Optic
 
-from visisipy.backend import BackendSettings, BackendType, BaseBackend, Unpack, _classproperty
+from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BackendType, BaseBackend, Unpack, _classproperty
 from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
 
@@ -60,11 +60,7 @@ class OptilandSettings(BackendSettings, total=False):
 
 
 OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
-    "field_type": "angle",
-    "fields": [(0, 0)],
-    "wavelengths": [0.543],
-    "aperture_type": "float_by_stop_size",
-    "aperture_value": 1,
+    **DEFAULT_BACKEND_SETTINGS,
     "computation_backend": "numpy",
     "torch_device": "cpu",
     "torch_precision": "float64",
