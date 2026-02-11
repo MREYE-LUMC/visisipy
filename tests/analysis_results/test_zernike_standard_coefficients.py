@@ -19,6 +19,7 @@ if TYPE_CHECKING:
         pytest.param((0, 0), marks=pytest.mark.test_data("zernike_coefficients_0_0")),
         pytest.param((0, 10), marks=pytest.mark.test_data("zernike_coefficients_0_10")),
         pytest.param((10, 0), marks=pytest.mark.test_data("zernike_coefficients_10_0")),
+        pytest.param((10, 5), marks=pytest.mark.test_data("zernike_coefficients_10_5")),
     ],
 )
 def test_zernike_standard_coefficients(

@@ -110,6 +110,9 @@ class RefractionTest(BaseAnalysisTest):
         result: list[tuple[float, float, float, float, float]] = []
 
         for coord in self.coordinates:
+            # Force building a new model for each coordinate to ensure that the backend is properly cleared and reset between runs.
+            backend.clear_model()
+
             refraction = visisipy.analysis.refraction(
                 model=model,
                 field_coordinate=coord,

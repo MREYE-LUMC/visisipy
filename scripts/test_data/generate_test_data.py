@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -89,6 +90,9 @@ TESTS: dict[str, BaseAnalysisTest] = {
     "opd_map_10_0": OPDMapTest(
         coordinate=(10, 0), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, remove_tilt=False
     ),
+    "opd_map_10_5": OPDMapTest(
+        coordinate=(10, 5), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, remove_tilt=False
+    ),
     "zernike_coefficients_0_0": ZernikeStandardCoefficientsTest(
         coordinate=(0, 0), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, maximum_term=45
     ),
@@ -98,7 +102,12 @@ TESTS: dict[str, BaseAnalysisTest] = {
     "zernike_coefficients_10_0": ZernikeStandardCoefficientsTest(
         coordinate=(10, 0), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, maximum_term=45
     ),
+    "zernike_coefficients_10_5": ZernikeStandardCoefficientsTest(
+        coordinate=(10, 5), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, maximum_term=45
+    ),
 }
+
+TESTS = {"refraction": TESTS["refraction"]}
 
 
 def model() -> EyeModel:
@@ -146,9 +155,44 @@ def get_file_name(test_name: str, backend_name: str, **extra_settings: str) -> P
     return TEST_DATA_DIR / f"{file_name}.csv"
 
 
-def main():
+def build_and_save_model(model: EyeModel, path: Path, backends) -> None:
+    for backend in backends:
+        suffix: str
+
+        if backend is OpticStudioBackend:
+            suffix = ".zmx"
+        elif backend is OptilandBackend:
+            suffix = ".json"
+
+        reset_backend_settings(backend)
+
+        model_path = path.with_suffix(suffix)
+
+        logger.info("Saving model for backend {} to {}...", backend.type, model_path)
+        backend.build_model(model)
+        backend.save_model(model_path)
+
+
+def main(args: argparse.Namespace) -> None:
+    if args.os_extension:
+        logger.info("Connecting to OpticStudio in extension mode")
+        OPTICSTUDIO_BACKEND_SETTINGS["mode"] = "extension"
+
+    if args.test:
+        if args.test not in TESTS:
+            logger.error("Test {} not found. Available tests: {}", args.test, list(TESTS.keys()))
+            sys.exit(1)
+        else:
+            logger.info("Only running test {}...", args.test)
+            selected_test = TESTS[args.test]
+            TESTS.clear()
+            TESTS[args.test] = selected_test
+
     backends = initialize_backends()
     eye_model = model()
+
+    if args.save_model:
+        build_and_save_model(eye_model, TEST_DATA_DIR / "eye_model", backends)
 
     for name, test in TESTS.items():
         for backend in backends:
@@ -156,7 +200,7 @@ def main():
 
             result_path = get_file_name(test_name=name, backend_name=str(backend.type))
 
-            if result_path.exists():
+            if result_path.exists() and not args.force:
                 logger.info(
                     "Not generating test data for {} with backend {} already exists at {}.",
                     name,
@@ -181,4 +225,20 @@ if __name__ == "__main__":
 
     logger.remove()  # Remove default logger to avoid duplicate logs
     logger.add(sys.stdout, format="<level>{level} | {message}</level>", colorize=True)
-    main()
+
+    parser = argparse.ArgumentParser(description="Generate test data for analysis results tests.")
+    parser.add_argument(
+        "--save-model", action="store_true", help="Save the eye model used for generating the test data."
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Force regeneration of all test data, even if it already exists."
+    )
+    parser.add_argument("--test", type=str, help="Only run a specific test, identified by its name.")
+    parser.add_argument(
+        "--os-extension",
+        action="store_true",
+        help="Connect to OpticStudio in extension mode to generate the test data.",
+    )
+
+    args = parser.parse_args()
+    main(args)
