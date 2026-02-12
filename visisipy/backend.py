@@ -54,6 +54,7 @@ if TYPE_CHECKING:
     from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
+    "DEFAULT_BACKEND_SETTINGS",
     "BackendSettings",
     "BackendType",
     "BaseBackend",

@@ -14,13 +14,13 @@ if TYPE_CHECKING:
 
 class BaseAnalysisTest(ABC):
     @abstractmethod
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame: ...
+    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+        """Run the analysis to generate test data.
 
-    """Run the analysis to generate test data.
-
-    This method must return a dataframe with the results of the analysis.
-    Series are intentionally not supported, to make loading the results easier and more consistent across tests.
-    """
+        This method must return a dataframe with the results of the analysis.
+        Series are intentionally not supported, to make loading the results easier and more consistent across tests.
+        """
+        ...
 
 
 class FFTPSFTest(BaseAnalysisTest):

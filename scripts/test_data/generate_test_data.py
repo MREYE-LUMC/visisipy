@@ -1,5 +1,4 @@
-"""
-Generate test data for analysis results tests.
+"""Generate test data for analysis results tests.
 
 This script runs the analyses defined in `config.py` and saves the results to CSV files in
 the `tests/_data/analysis_results` directory. The test data is used to verify if the analysis
@@ -36,9 +35,10 @@ from visisipy.opticstudio.backend import OpticStudioBackend
 from visisipy.optiland.backend import OptilandBackend
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from pathlib import Path
 
-    from visisipy.backend import BaseBackend
+    from visisipy.backend import BackendSettings, BaseBackend
 
 
 def model() -> EyeModel:
@@ -65,14 +65,19 @@ def initialize_backends() -> list[type[BaseBackend]]:
     return [OpticStudioBackend, OptilandBackend]
 
 
+_BACKEND_SETTINGS: dict[type[BaseBackend], BackendSettings] = {
+    OpticStudioBackend: OPTICSTUDIO_BACKEND_SETTINGS,
+    OptilandBackend: OPTILAND_BACKEND_SETTINGS,
+}
+
+
 def reset_backend_settings(backend: type[BaseBackend]) -> None:
     """Reset the backend settings to the default values for generating the test data."""
-    if backend is OpticStudioBackend:
-        OpticStudioBackend.update_settings(**OPTICSTUDIO_BACKEND_SETTINGS)
-    elif backend is OptilandBackend:
-        OptilandBackend.update_settings(**OPTILAND_BACKEND_SETTINGS)
-    else:
+    if backend not in _BACKEND_SETTINGS:
         raise ValueError(f"Unknown backend type: {backend}")
+
+    settings = _BACKEND_SETTINGS[backend]
+    backend.update_settings(**settings)
 
 
 def get_file_name(test_name: str, backend_name: str, **extra_settings: str) -> Path:
@@ -86,14 +91,20 @@ def get_file_name(test_name: str, backend_name: str, **extra_settings: str) -> P
     return TEST_DATA_DIR / f"{file_name}.csv"
 
 
-def build_and_save_model(model: EyeModel, path: Path, backends) -> None:
+_MODEL_SUFFIXES: dict[type[BaseBackend], str] = {
+    OpticStudioBackend: ".zmx",
+    OptilandBackend: ".json",
+}
+
+
+def build_and_save_model(model: EyeModel, path: Path, backends: Iterable[type[BaseBackend]]) -> None:
     for backend in backends:
         suffix: str
 
-        if backend is OpticStudioBackend:
-            suffix = ".zmx"
-        elif backend is OptilandBackend:
-            suffix = ".json"
+        if backend not in _MODEL_SUFFIXES:
+            raise ValueError(f"Unknown backend type: {backend}")
+
+        suffix = _MODEL_SUFFIXES[backend]
 
         reset_backend_settings(backend)
 
