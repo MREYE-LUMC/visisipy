@@ -1,113 +1,44 @@
+"""
+Generate test data for analysis results tests.
+
+This script runs the analyses defined in `config.py` and saves the results to CSV files in
+the `tests/_data/analysis_results` directory. The test data is used to verify if the analysis
+results are consistent across different versions of visisipy and the backends. The result tests
+are explicitly not intended to serve as a comparison between the different backends.
+
+The script can be run with the following command:
+
+.. code-block:: bash
+    hatch run generate-test-data
+
+The tests to be generated are defined in the `TESTS` dictionary in `config.py`.
+"""
+
 from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 from typing import TYPE_CHECKING
 from warnings import filterwarnings
 
-import numpy as np
-from analysis_tests import (
-    BaseAnalysisTest,
-    FFTPSFTest,
-    HuygensPSFTest,
-    OPDMapTest,
-    RayTraceTest,
-    RefractionTest,
-    ZernikeStandardCoefficientsTest,
+from config import (
+    OPTICSTUDIO_BACKEND_SETTINGS,
+    OPTILAND_BACKEND_SETTINGS,
+    TEST_DATA_DIR,
+    TESTS,
 )
 from loguru import logger
 
-from visisipy.backend import DEFAULT_BACKEND_SETTINGS
 from visisipy.models.base import EyeModel
 from visisipy.models.geometry import BiconicSurface, EyeGeometry, StandardSurface, Stop
 from visisipy.models.materials import NavarroMaterials543
-from visisipy.opticstudio.backend import OpticStudioBackend, OpticStudioSettings
-from visisipy.optiland.backend import OptilandBackend, OptilandSettings
+from visisipy.opticstudio.backend import OpticStudioBackend
+from visisipy.optiland.backend import OptilandBackend
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from visisipy.backend import BaseBackend
-
-TEST_DATA_DIR = Path(__file__).parent.parent.parent / "tests" / "_data" / "analysis_results"
-
-DEFAULT_WAVELENGTH = 0.543
-DEFAULT_SAMPLING = 128
-
-OPTICSTUDIO_BACKEND_SETTINGS = OpticStudioSettings(
-    mode="standalone",
-    ray_aiming="off",
-    **DEFAULT_BACKEND_SETTINGS,
-)
-OPTILAND_BACKEND_SETTINGS = OptilandSettings(
-    computation_backend="numpy",
-    **DEFAULT_BACKEND_SETTINGS,
-)
-
-RAY_TRACE_COORDINATES = [(x, y) for x in np.linspace(-60, 60, 5) for y in np.linspace(-60, 60, 5)]
-
-TESTS: dict[str, BaseAnalysisTest] = {
-    "fft_psf_0_0": FFTPSFTest(coordinate=(0, 0), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),
-    "fft_psf_0_10": FFTPSFTest(coordinate=(0, 10), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),
-    "fft_psf_10_0": FFTPSFTest(coordinate=(10, 0), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),
-    "huygens_psf_0_0": HuygensPSFTest(
-        coordinate=(0, 0),
-        pupil_sampling=DEFAULT_SAMPLING,
-        image_sampling=DEFAULT_SAMPLING,
-        wavelength=DEFAULT_WAVELENGTH,
-    ),
-    "huygens_psf_0_10": HuygensPSFTest(
-        coordinate=(0, 10),
-        pupil_sampling=DEFAULT_SAMPLING,
-        image_sampling=DEFAULT_SAMPLING,
-        wavelength=DEFAULT_WAVELENGTH,
-    ),
-    "huygens_psf_10_0": HuygensPSFTest(
-        coordinate=(10, 0),
-        pupil_sampling=DEFAULT_SAMPLING,
-        image_sampling=DEFAULT_SAMPLING,
-        wavelength=DEFAULT_WAVELENGTH,
-    ),
-    "ray_trace_pupil_0_0": RayTraceTest(
-        coordinates=RAY_TRACE_COORDINATES, pupil=(0, 0), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING
-    ),
-    "ray_trace_pupil_0_1": RayTraceTest(
-        coordinates=RAY_TRACE_COORDINATES, pupil=(0, 1), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING
-    ),
-    "ray_trace_pupil_1_-1": RayTraceTest(
-        coordinates=RAY_TRACE_COORDINATES, pupil=(1, -1), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING
-    ),
-    "refraction": RefractionTest(
-        coordinates=[(x, y) for x in range(-10, 11, 5) for y in range(-10, 11, 5)],
-        wavelength=DEFAULT_WAVELENGTH,
-        sampling=DEFAULT_SAMPLING,
-    ),
-    "opd_map_0_0": OPDMapTest(
-        coordinate=(0, 0), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, remove_tilt=False
-    ),
-    "opd_map_0_10": OPDMapTest(
-        coordinate=(0, 10), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, remove_tilt=False
-    ),
-    "opd_map_10_0": OPDMapTest(
-        coordinate=(10, 0), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, remove_tilt=False
-    ),
-    "opd_map_10_5": OPDMapTest(
-        coordinate=(10, 5), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, remove_tilt=False
-    ),
-    "zernike_coefficients_0_0": ZernikeStandardCoefficientsTest(
-        coordinate=(0, 0), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, maximum_term=45
-    ),
-    "zernike_coefficients_0_10": ZernikeStandardCoefficientsTest(
-        coordinate=(0, 10), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, maximum_term=45
-    ),
-    "zernike_coefficients_10_0": ZernikeStandardCoefficientsTest(
-        coordinate=(10, 0), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, maximum_term=45
-    ),
-    "zernike_coefficients_10_5": ZernikeStandardCoefficientsTest(
-        coordinate=(10, 5), wavelength=DEFAULT_WAVELENGTH, sampling=DEFAULT_SAMPLING, maximum_term=45
-    ),
-}
-
-TESTS = {"refraction": TESTS["refraction"]}
 
 
 def model() -> EyeModel:
