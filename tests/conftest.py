@@ -189,6 +189,7 @@ def optiland_backend(optiland_backend_settings) -> Generator[type[OptilandBacken
     ]
 )
 def configure_backend(request) -> BaseBackend:
+    """Iterate over available backends for testing."""
     if request.param == BackendType.OPTICSTUDIO:
         return request.getfixturevalue("opticstudio_backend")
 

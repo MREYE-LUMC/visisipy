@@ -54,6 +54,7 @@ if TYPE_CHECKING:
     from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
+    "DEFAULT_BACKEND_SETTINGS",
     "BackendSettings",
     "BackendType",
     "BaseBackend",
@@ -238,6 +239,15 @@ class BackendSettings(TypedDict, total=False):
     """The aperture value to use in the optical system. Not required for 'float_by_stop_size'."""
 
 
+DEFAULT_BACKEND_SETTINGS = BackendSettings(
+    field_type="angle",
+    fields=[(0, 0)],
+    wavelengths=[0.543],
+    aperture_type="float_by_stop_size",
+    aperture_value=2,
+)
+
+
 _Settings = TypeVar("_Settings", bound=BackendSettings)
 
 
@@ -364,6 +374,9 @@ class BackendType(str, Enum):
 
     OPTICSTUDIO = "opticstudio"
     OPTILAND = "optiland"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 @overload

@@ -10,12 +10,7 @@ from warnings import warn
 import zospy as zp
 from zospy.zpcore import OpticStudioSystem
 
-from visisipy.backend import (
-    BackendSettings,
-    BackendType,
-    BaseBackend,
-    _classproperty,
-)
+from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BackendType, BaseBackend, _classproperty
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
@@ -53,10 +48,7 @@ class OpticStudioSettings(BackendSettings, total=False):
 
 
 OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
-    "field_type": "angle",
-    "fields": [(0, 0)],
-    "wavelengths": [0.543],
-    "aperture_type": "float_by_stop_size",
+    **DEFAULT_BACKEND_SETTINGS,
     "mode": "standalone",
     "ray_aiming": "off",
 }
