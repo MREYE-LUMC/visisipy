@@ -26,7 +26,7 @@ def build_model(wavelength: float, n: float, abbe: float) -> Optic:
     system.add_wavelength(wavelength)
 
     air = IdealMaterial(n=1)
-    test_material = AbbeMaterial(n=n, abbe=abbe)
+    test_material = AbbeMaterial(n=n, abbe=abbe, model="polynomial")
 
     system.add_surface(index=0, comment="object", thickness=float("inf"), material=air)
     system.add_surface(index=1, comment="stop", is_stop=True, thickness=5.0, material=test_material)

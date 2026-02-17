@@ -213,7 +213,7 @@ class BaseOptilandSurface(BaseSurface, ABC):
             if material.abbe_number == 0:
                 return IdealMaterial(n=material.refractive_index, k=0.0)
 
-            return AbbeMaterial(n=material.refractive_index, abbe=material.abbe_number)
+            return AbbeMaterial(n=material.refractive_index, abbe=material.abbe_number, model="polynomial")
 
         raise TypeError("'material' must be MaterialModel or str.")
 
