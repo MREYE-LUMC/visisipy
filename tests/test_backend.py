@@ -180,7 +180,7 @@ class TestGetSetting:
 
 
 class TestSaveModel:
-    def test_save_model(self, configure_backend: backend.BaseBackend, tmp_path: Path, monkeypatch):
+    def test_save_model(self, configure_backend: type[backend.BaseBackend], tmp_path: Path, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", configure_backend)
 
         suffix = ".zmx" if configure_backend.type == "opticstudio" else ".json"
@@ -195,7 +195,7 @@ class TestSaveModel:
 
         assert file.exists()
 
-    def test_save_no_model_raises_runtimeerror(self, configure_backend: backend.BaseBackend, monkeypatch):
+    def test_save_no_model_raises_runtimeerror(self, configure_backend: type[backend.BaseBackend], monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", configure_backend)
 
         with pytest.raises(RuntimeError, match="No model is currently loaded in the backend"):
@@ -203,7 +203,7 @@ class TestSaveModel:
 
 
 class TestLoadModel:
-    def test_load_optiland_model(self, optiland_backend: OptilandBackend, datadir: Path):
+    def test_load_optiland_model(self, optiland_backend: type[OptilandBackend], datadir: Path):
         file = datadir / "test_load_models" / "navarro_eye.json"
 
         visisipy.load_model(file, apply_settings=False)
@@ -213,7 +213,7 @@ class TestLoadModel:
 
     @pytest.mark.windows_only
     @pytest.mark.needs_opticstudio
-    def test_load_opticstudio_model(self, opticstudio_backend: OpticStudioBackend, datadir: Path):
+    def test_load_opticstudio_model(self, opticstudio_backend: type[OpticStudioBackend], datadir: Path):
         file = datadir / "test_load_models" / "navarro_eye.zmx"
 
         opticstudio_backend.load_model(file, apply_settings=False)

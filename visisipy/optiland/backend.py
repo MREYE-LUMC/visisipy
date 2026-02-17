@@ -359,7 +359,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
         Returns
         -------
-        str
+        FieldType
             The current field type, either "angle" or "object_height".
         """
         optiland_field_type = cls.get_optic().field_definition

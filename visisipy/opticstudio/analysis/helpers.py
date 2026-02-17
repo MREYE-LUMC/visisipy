@@ -30,7 +30,7 @@ def set_wavelength(
     wavelength = cast("float", wavelength)
 
     if wavelength_number is None:
-        warn(f"Wavelength {wavelength} not found. Adding it to the system.")
+        warn(f"Wavelength {wavelength} not found. Adding it to the system.", stacklevel=2)
         wavelength_number = backend.add_wavelength(wavelength)
 
     return wavelength_number
@@ -49,7 +49,7 @@ def set_field(
         Reference to the OpticStudio backend.
     field_coordinate : tuple[float, float] | None, optional
         The field coordinate to set. If `None`, the first field in the system will be used. Defaults to `None`.
-    field_type : str, optional
+    field_type : FieldType, optional
         The type of field to be used when setting the field coordinate. Defaults to "angle".
 
     Returns
@@ -61,11 +61,11 @@ def set_field(
     field_coordinate = cast("tuple[float, float]", field_coordinate)
 
     if field_type != (current_field_type := backend.get_field_type()):
-        warn(f"Changing field type from {current_field_type} to {field_type}.")
+        warn(f"Changing field type from {current_field_type} to {field_type}.", stacklevel=2)
         backend.set_field_type(field_type)
 
     if field_number is None:
-        warn(f"Field coordinate {field_coordinate} not found. Adding it to the system.")
+        warn(f"Field coordinate {field_coordinate} not found. Adding it to the system.", stacklevel=2)
         field_number = backend.add_field(field_coordinate)
 
     return field_number

@@ -31,7 +31,7 @@ def set_wavelength(
     if wavelength is None:
         wavelength = backend.get_wavelengths()[0]
     elif wavelength not in backend.get_wavelengths():
-        warn(f"Wavelength {wavelength} not found. Adding it to the system.")
+        warn(f"Wavelength {wavelength} not found. Adding it to the system.", stacklevel=2)
         backend.add_wavelength(wavelength)
 
     return wavelength
@@ -50,7 +50,7 @@ def set_field(
         Reference to the Optiland backend.
     field_coordinate : tuple[float, float] | None, optional
         The field coordinate to set. If `None`, the first field in the system will be used. Defaults to `None`.
-    field_type : str, optional
+    field_type : FieldType, optional
         The type of field to be used when setting the field coordinate. Defaults to "angle".
 
     Returns
@@ -59,14 +59,14 @@ def set_field(
         The normalized field coordinate of the field that was set.
     """
     if field_type != (current_field_type := backend.get_field_type()):
-        warn(f"Changing field type from {current_field_type} to {field_type}.")
+        warn(f"Changing field type from {current_field_type} to {field_type}.", stacklevel=2)
         backend.set_field_type(field_type)
 
     if field_coordinate is not None:
         try:
             field_index = backend.get_fields().index(field_coordinate)
         except ValueError:
-            warn(f"Field coordinate {field_coordinate} not found. Adding it to the system.")
+            warn(f"Field coordinate {field_coordinate} not found. Adding it to the system.", stacklevel=2)
             field_index = backend.add_field(field_coordinate)
     else:
         field_index = 0
