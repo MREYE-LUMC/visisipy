@@ -35,6 +35,8 @@ class FFTPSFTest(BaseAnalysisTest):
         self.wavelength = wavelength
 
     def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+        backend.update_settings(fields=[self.coordinate])
+
         return visisipy.analysis.fft_psf(
             model=model,
             field_coordinate=self.coordinate,
@@ -59,6 +61,8 @@ class HuygensPSFTest(BaseAnalysisTest):
         self.wavelength = wavelength
 
     def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+        backend.update_settings(fields=[self.coordinate])
+
         return visisipy.analysis.huygens_psf(
             model=model,
             field_coordinate=self.coordinate,
@@ -141,6 +145,8 @@ class OPDMapTest(BaseAnalysisTest):
         self.remove_tilt = remove_tilt
 
     def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+        backend.update_settings(fields=[self.coordinate])
+
         return visisipy.analysis.opd_map(
             model=model,
             field_coordinate=self.coordinate,
@@ -168,6 +174,8 @@ class ZernikeStandardCoefficientsTest(BaseAnalysisTest):
         self.maximum_term = maximum_term
 
     def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+        backend.update_settings(fields=[self.coordinate])
+
         result = visisipy.analysis.zernike_standard_coefficients(
             model=model,
             field_coordinate=self.coordinate,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from warnings import warn
 
 if TYPE_CHECKING:
     from visisipy.optiland.backend import OptilandBackend
@@ -29,8 +30,9 @@ def set_wavelength(
     """
     if wavelength is None:
         wavelength = backend.get_wavelengths()[0]
-    else:
-        backend.set_wavelengths([wavelength])
+    elif wavelength not in backend.get_wavelengths():
+        warn(f"Wavelength {wavelength} not found. Adding it to the system.")
+        backend.add_wavelength(wavelength)
 
     return wavelength
 
@@ -56,7 +58,17 @@ def set_field(
     tuple[float, float]
         The normalized field coordinate of the field that was set.
     """
-    if field_coordinate is not None:
-        backend.set_fields([field_coordinate], field_type=field_type)
+    if field_type != (current_field_type := backend.get_field_type()):
+        warn(f"Changing field type from {current_field_type} to {field_type}.")
+        backend.set_field_type(field_type)
 
-    return backend.get_optic().fields.get_field_coords()[0]
+    if field_coordinate is not None:
+        try:
+            field_index = backend.get_fields().index(field_coordinate)
+        except ValueError:
+            warn(f"Field coordinate {field_coordinate} not found. Adding it to the system.")
+            field_index = backend.add_field(field_coordinate)
+    else:
+        field_index = 0
+
+    return backend.get_optic().fields.get_field_coords()[field_index]

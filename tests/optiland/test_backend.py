@@ -174,6 +174,39 @@ class TestOptilandBackend:
 
         assert optiland_backend.get_fields() == coordinates
 
+    def test_add_field(self, optiland_backend: OptilandBackend):
+        new_field = (10, 10)
+        existing_fields = optiland_backend.get_fields()
+
+        assert optiland_backend.add_field(new_field) == len(existing_fields)
+        assert optiland_backend.get_fields() == [*existing_fields, new_field]
+
+    @pytest.mark.parametrize("field_type", ["angle", "object_height"])
+    def test_get_field_type(self, field_type, optiland_backend: OptilandBackend):
+        optiland_backend.get_optic().set_field_type(field_type)
+
+        assert optiland_backend.get_field_type() == field_type
+
+    @pytest.mark.parametrize(
+        "old_type,new_type,expectation",
+        [
+            ("angle", "object_height", does_not_raise()),
+            ("object_height", "angle", does_not_raise()),
+            (
+                "angle",
+                "invalid",
+                pytest.raises(ValueError, match="field_type must be either 'angle' or 'object_height'"),
+            ),
+        ],
+    )
+    def test_set_field_type(self, old_type, new_type, expectation, optiland_backend: OptilandBackend):
+        optiland_backend.get_optic().set_field_type(old_type)
+
+        with expectation:
+            optiland_backend.set_field_type(new_type)
+
+            assert isinstance(optiland_backend.get_optic().field_definition, OPTILAND_FIELD_TYPES[new_type])
+
     @pytest.mark.parametrize(
         "wavelengths,expectation",
         [
@@ -202,6 +235,13 @@ class TestOptilandBackend:
             optiland_backend.get_optic().add_wavelength(wavelength)
 
         assert optiland_backend.get_wavelengths() == wavelengths
+
+    def test_add_wavelength(self, optiland_backend: OptilandBackend):
+        new_wavelength = 0.430
+        existing_wavelengths = optiland_backend.get_wavelengths()
+
+        assert optiland_backend.add_wavelength(new_wavelength) == len(existing_wavelengths)
+        assert optiland_backend.get_wavelengths() == [*existing_wavelengths, new_wavelength]
 
 
 class TestOptilandBackendSettings:

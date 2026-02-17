@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 from warnings import warn
 
 import optiland.backend
+from optiland.fields.field_types.angle import AngleField
+from optiland.fields.field_types.object_height import ObjectHeightField
 from optiland.fileio import load_optiland_file, save_optiland_file
 from optiland.optic import Optic
 
@@ -21,7 +23,7 @@ if TYPE_CHECKING:
     from os import PathLike
 
     from visisipy import EyeModel
-    from visisipy.types import ApertureType
+    from visisipy.types import ApertureType, FieldType
 
 
 __all__ = (
@@ -352,10 +354,47 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         return [(f.x, f.y) for f in cls.get_optic().fields.fields]
 
     @classmethod
+    def get_field_type(cls) -> FieldType:
+        """Get the current field type.
+
+        Returns
+        -------
+        str
+            The current field type, either "angle" or "object_height".
+        """
+        optiland_field_type = cls.get_optic().field_definition
+
+        if isinstance(optiland_field_type, AngleField):
+            return "angle"
+        if isinstance(optiland_field_type, ObjectHeightField):
+            return "object_height"
+
+        raise ValueError("Unsupported field type in the optical system.")
+
+    @classmethod
+    def set_field_type(cls, field_type: FieldType):
+        """Set the field type for the optical system.
+
+        Parameters
+        ----------
+        field_type : FieldType
+            The type of field to be used in the optical system. Can be either "angle" or "object_height".
+
+        Raises
+        ------
+        ValueError
+            If an invalid field type is provided.
+        """
+        if field_type not in {"angle", "object_height"}:
+            raise ValueError("field_type must be either 'angle' or 'object_height'.")
+
+        cls.get_optic().set_field_type(field_type)
+
+    @classmethod
     def set_fields(
         cls,
         coordinates: Iterable[tuple[float, float]],
-        field_type: Literal["angle", "object_height"] = "angle",
+        field_type: FieldType = "angle",
     ):
         """Set the fields for the optical system.
 
@@ -365,20 +404,34 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         ----------
         coordinates : Iterable[tuple[float, float]]
             An iterable of tuples representing the coordinates for the fields.
-        field_type : Literal["angle", "object_height"], optional
+        field_type : FieldType, optional
             The type of field to be used in the optical system. Can be either "angle" or "object_height".
             Defaults to "angle".
         """
-        if field_type not in {"angle", "object_height"}:
-            raise ValueError("field_type must be either 'angle' or 'object_height'.")
-
         # Remove all fields
         cls.get_optic().fields.fields.clear()
 
-        cls.get_optic().set_field_type(field_type)
+        cls.set_field_type(field_type)
 
         for field in coordinates:
             cls.get_optic().add_field(y=field[1], x=field[0])
+
+    @classmethod
+    def add_field(cls, coordinate: tuple[float, float]) -> int:
+        """Add a single field to the optical system.
+
+        Parameters
+        ----------
+        coordinate : tuple[float, float]
+            A tuple representing the coordinates for the field.
+
+        Returns
+        -------
+        int
+            The index of the newly added field.
+        """
+        cls.get_optic().add_field(y=coordinate[1], x=coordinate[0])
+        return len(cls.get_optic().fields.fields) - 1
 
     @classmethod
     def get_wavelengths(cls) -> list[float]:
@@ -411,6 +464,23 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
         for wavelength in wavelengths:
             cls.get_optic().add_wavelength(wavelength)
+
+    @classmethod
+    def add_wavelength(cls, wavelength: float) -> int:
+        """Add a single wavelength to the optical system.
+
+        Parameters
+        ----------
+        wavelength : float
+            The wavelength to be added.
+
+        Returns
+        -------
+        int
+            The index of the newly added wavelength.
+        """
+        cls.get_optic().add_wavelength(wavelength)
+        return len(cls.get_optic().wavelengths.wavelengths) - 1
 
     @classmethod
     def iter_fields(cls) -> Generator[tuple[int, tuple[float, float]], Any, None]:
