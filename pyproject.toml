@@ -102,6 +102,7 @@ markers = [
 filterwarnings = [
     "ignore:Header and row length mismatch",
     "ignore:Only a single instance of ZOS can exist at any time",
+    "error:The default model for AbbeMaterial will change:FutureWarning"
 ]
 
 [tool.coverage.report]
