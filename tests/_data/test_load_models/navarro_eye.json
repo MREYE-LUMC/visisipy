@@ -1,7 +1,7 @@
 {
     "version": 1.0,
     "aperture": {
-        "type": "float_by_stop_size",
+        "type": "EPD",
         "value": 2.696,
         "object_space_telecentric": false
     },
