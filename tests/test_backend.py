@@ -153,7 +153,10 @@ class TestUpdateSettings:
         assert backend._BACKEND.settings["fields"] == [(0, 0), (1, 1)]
         assert backend._BACKEND.settings["wavelengths"] == [550]
 
-    @pytest.mark.filterwarnings("ignore:The OpticStudio backend settings")
+    @pytest.mark.filterwarnings(
+        "ignore:The OpticStudio backend settings",
+        "ignore:Only a single instance of ZOS can exist at any time:UserWarning",
+    )
     def test_update_settings_by_backend(self, configure_backend):
         field_type = "object_height"
         fields = [(0, 0), (1, 1)]
@@ -179,7 +182,9 @@ class TestGetSetting:
             backend.BaseBackend.get_setting("undefined_setting")
 
 
+@pytest.mark.filterwarnings("ignore:Only a single instance of ZOS can exist at any time:UserWarning")
 class TestSaveModel:
+    @pytest.mark.filterwarnings("ignore:The OpticStudio backend has already been initialized:UserWarning")
     def test_save_model(self, configure_backend: type[backend.BaseBackend], tmp_path: Path, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", configure_backend)
 
@@ -202,6 +207,7 @@ class TestSaveModel:
             visisipy.save_model()
 
 
+@pytest.mark.filterwarnings("ignore:The backend is already set to (OpticStudio|Optiland|Mock)Backend:UserWarning")
 class TestLoadModel:
     def test_load_optiland_model(self, optiland_backend: type[OptilandBackend], datadir: Path):
         file = datadir / "test_load_models" / "navarro_eye.json"
@@ -211,6 +217,7 @@ class TestLoadModel:
         assert optiland_backend.model is None
         assert optiland_backend.get_optic().object_surface.comment == "Test load file"
 
+    @pytest.mark.filterwarnings("ignore:Only a single instance of ZOS can exist at any time:UserWarning")
     @pytest.mark.windows_only
     @pytest.mark.needs_opticstudio
     def test_load_opticstudio_model(self, opticstudio_backend: type[OpticStudioBackend], datadir: Path):
@@ -221,6 +228,10 @@ class TestLoadModel:
         assert opticstudio_backend.model is None
         assert opticstudio_backend.get_oss().LDE.GetSurfaceAt(0).Comment == "Test load file"
 
+    @pytest.mark.filterwarnings(
+        "ignore:The OpticStudio backend has already been initialized:UserWarning",
+        "ignore:Only a single instance of ZOS can exist at any time:UserWarning",
+    )
     @pytest.mark.parametrize(
         "initial_backend",
         [

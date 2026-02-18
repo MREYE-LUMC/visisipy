@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 RAY_TRACE_COORDINATES = [(x, y) for x in np.linspace(-60, 60, 5) for y in np.linspace(-60, 60, 5)]
 
 
+@pytest.mark.filterwarnings("ignore:Header and row length mismatch:UserWarning")
 @pytest.mark.parametrize(
     "pupil",
     [
