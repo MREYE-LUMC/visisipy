@@ -7,7 +7,10 @@ import pytest
 from tests.helpers import build_args
 from visisipy.models import EyeModel
 
-pytestmark = [pytest.mark.needs_opticstudio]
+pytestmark = [
+    pytest.mark.needs_opticstudio,
+    pytest.mark.filterwarnings("ignore:Header and row length mismatch:UserWarning"),
+]
 
 
 class TestRayTraceAnalysis:

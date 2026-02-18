@@ -71,6 +71,7 @@ def _set_material_model(material_cell, material_model):
     )
 
 
+@pytest.mark.filterwarnings("ignore:Header and row length mismatch:UserWarning")
 @pytest.mark.parametrize(
     "material_model,wavelength,expected_index",
     [
