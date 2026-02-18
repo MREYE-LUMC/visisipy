@@ -209,7 +209,7 @@ class TestSaveModel:
 
 @pytest.mark.filterwarnings("ignore:The backend is already set to (OpticStudio|Optiland|Mock)Backend:UserWarning")
 class TestLoadModel:
-    def test_load_optiland_model(self, optiland_backend: OptilandBackend, datadir: Path):
+    def test_load_optiland_model(self, optiland_backend: type[OptilandBackend], datadir: Path):
         file = datadir / "test_load_models" / "navarro_eye.json"
 
         visisipy.load_model(file, apply_settings=False)
@@ -220,7 +220,7 @@ class TestLoadModel:
     @pytest.mark.filterwarnings("ignore:Only a single instance of ZOS can exist at any time:UserWarning")
     @pytest.mark.windows_only
     @pytest.mark.needs_opticstudio
-    def test_load_opticstudio_model(self, opticstudio_backend: OpticStudioBackend, datadir: Path):
+    def test_load_opticstudio_model(self, opticstudio_backend: type[OpticStudioBackend], datadir: Path):
         file = datadir / "test_load_models" / "navarro_eye.zmx"
 
         opticstudio_backend.load_model(file, apply_settings=False)

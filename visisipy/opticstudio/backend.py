@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from zospy.zpcore import ZOS
 
     from visisipy import EyeModel
-    from visisipy.types import ApertureType, FieldCoordinate, NotRequired, Unpack
+    from visisipy.types import ApertureType, FieldCoordinate, FieldType, NotRequired, Unpack
 
 
 __all__ = ("OpticStudioBackend", "OpticStudioSettings")
@@ -398,12 +398,41 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         return fields
 
-    @staticmethod
-    def _set_field_type(oss: OpticStudioSystem, field_type: Literal["angle", "object_height"]) -> None:
+    @classmethod
+    def get_field_type(cls) -> FieldType:
+        """Get the field type of the optical system.
+
+        Returns
+        -------
+        FieldType
+            The field type of the optical system, either "angle" or "object_height".
+        """
+        field_type = cls.get_oss().SystemData.Fields.GetFieldType()
+        if field_type == zp.constants.SystemData.FieldType.Angle:
+            return "angle"
+        if field_type == zp.constants.SystemData.FieldType.ObjectHeight:
+            return "object_height"
+
+        raise ValueError("Unsupported field type in the optical system.")
+
+    @classmethod
+    def set_field_type(cls, field_type: FieldType) -> None:
+        """Set the field type of the optical system.
+
+        Parameters
+        ----------
+        field_type : FieldType
+            The field type to set for the optical system, either "angle" or "object_height".
+
+        Raises
+        ------
+        ValueError
+            If `field_type` is not "angle" or "object_height".
+        """
         if field_type == "angle":
-            oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
+            cls.get_oss().SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)
         elif field_type == "object_height":
-            oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.ObjectHeight)
+            cls.get_oss().SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.ObjectHeight)
         else:
             raise ValueError("field_type must be either 'angle' or 'object_height'.")
 
@@ -425,7 +454,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
     def set_fields(
         cls,
         coordinates: Iterable[tuple[float, float]],
-        field_type: Literal["angle", "object_height"] = "angle",
+        field_type: FieldType = "angle",
     ) -> None:
         """Set the fields for the optical system.
 
@@ -435,12 +464,57 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         ----------
         coordinates : Iterable[tuple[float, float]]
             An iterable of tuples representing the coordinates for the fields.
-        field_type : Literal["angle", "object_height"], optional
+        field_type : FieldType, optional
             The type of field to be used in the optical system. Can be either "angle" or "object_height".
             Defaults to "angle".
         """
-        cls._set_field_type(cls.get_oss(), field_type)
+        cls.set_field_type(field_type)
         cls._set_fields(cls.get_oss(), coordinates)
+
+    @classmethod
+    def add_field(
+        cls,
+        coordinate: tuple[float, float],
+    ) -> int:
+        """Add a field to the optical system.
+
+        Parameters
+        ----------
+        coordinate : tuple[float, float]
+            The field coordinate to add.
+
+        Returns
+        -------
+        int
+            The field number of the added field.
+        """
+        new_field = cls.get_oss().SystemData.Fields.AddField(float(coordinate[0]), float(coordinate[1]), 1)
+
+        return new_field.FieldNumber
+
+    @classmethod
+    def get_field_number(cls, coordinate: tuple[float, float]) -> int | None:
+        """Returns the field number for the given field coordinate.
+
+        If the field coordinate is not found, `None` is returned.
+
+        Parameters
+        ----------
+        coordinate : tuple[float, float]
+            The field coordinate to find.
+
+        Returns
+        -------
+        int | None
+            The field number, or `None` if the field coordinate is not present.
+        """
+        for i in range(cls.get_oss().SystemData.Fields.NumberOfFields):
+            field = cls.get_oss().SystemData.Fields.GetField(i + 1)
+
+            if coordinate == (field.X, field.Y):
+                return i + 1
+
+        return None
 
     @classmethod
     def get_wavelengths(cls) -> list[float]:
@@ -481,6 +555,24 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         for w in wavelengths:
             cls.get_oss().SystemData.Wavelengths.AddWavelength(Wavelength=w, Weight=1.0)
+
+    @classmethod
+    def add_wavelength(cls, wavelength: float) -> int:
+        """Add a wavelength to the optical system.
+
+        Parameters
+        ----------
+        wavelength : float
+            The wavelength to add.
+
+        Returns
+        -------
+        int
+            The wavelength number of the added wavelength.
+        """
+        new_wavelength = cls.get_oss().SystemData.Wavelengths.AddWavelength(Wavelength=wavelength, Weight=1.0)
+
+        return new_wavelength.WavelengthNumber
 
     @classmethod
     def get_wavelength_number(cls, wavelength: float) -> int | None:
