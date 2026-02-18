@@ -98,10 +98,12 @@ markers = [
     "needs_opticstudio: test needs OpticStudio and will be skipped if it is not available",
     "test_data: test uses test data specified with this marker",
     "windows_only: test can only be run on Windows",
+    "xfail_if_torch_backend: test is expected to fail if Optiland's computation backend is set to 'torch'",
 ]
 filterwarnings = [
-    "ignore:Header and row length mismatch",
-    "ignore:Only a single instance of ZOS can exist at any time",
+    "ignore:invalid value encountered in \\w+:RuntimeWarning",
+    "ignore:Conversion of an array with ndim > 0 to a scalar is deprecated:DeprecationWarning",
+    "error:The default model for AbbeMaterial will change:FutureWarning"
 ]
 
 [tool.coverage.report]

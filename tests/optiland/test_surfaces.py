@@ -510,6 +510,7 @@ class TestMakeSurface:
             zernike_coefficients=coefficients,
             maximum_term=maximum_term,
             norm_radius=norm_radius,
+            extrapolate=False,
         )
 
         optiland_surface = make_surface(surface, material="BK7")
@@ -532,6 +533,13 @@ class TestMakeSurface:
         ],
     )
     def test_make_zernike_standard_sag_surface_unsupported_parameters(self, parameters: dict[str, Any], warning: str):
+        default_parameters = {
+            "zernike_coefficients": ZernikeCoefficients({1: 0.1, 2: 0.2, 3: 0.3}),
+            "maximum_term": 5,
+            "norm_radius": 1.0,
+            "extrapolate": False,
+        }
+        parameters = {**default_parameters, **parameters}
         surface = ZernikeStandardSagSurface(**parameters)
 
         with pytest.warns(UserWarning, match=warning):

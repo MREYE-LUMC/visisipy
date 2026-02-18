@@ -400,9 +400,12 @@ class TestOpticStudioBackendSettings:
     @pytest.mark.parametrize(
         "method,kwargs",
         [
-            (
+            pytest.param(
                 "initialize",
                 {"name": "invalid_field"},
+                marks=pytest.mark.filterwarnings(
+                    "ignore:The OpticStudio backend has already been initialized:UserWarning",
+                ),
             ),
             (
                 "update_settings",

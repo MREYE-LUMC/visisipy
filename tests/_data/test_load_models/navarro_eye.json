@@ -2,34 +2,30 @@
     "version": 1.0,
     "aperture": {
         "type": "EPD",
-        "value": 4.321,
+        "value": 2.696,
         "object_space_telecentric": false
     },
     "fields": {
         "fields": [
             {
-                "field_type": "angle",
                 "x": 0,
                 "y": 0,
                 "vx": 0.0,
                 "vy": 0.0
             },
             {
-                "field_type": "angle",
                 "x": 0,
                 "y": 10,
                 "vx": 0.0,
                 "vy": 0.0
             },
             {
-                "field_type": "angle",
                 "x": 20,
                 "y": 0,
                 "vx": 0.0,
                 "vy": 0.0
             },
             {
-                "field_type": "angle",
                 "x": 30,
                 "y": 40,
                 "vx": 0.0,
@@ -37,7 +33,9 @@
             }
         ],
         "telecentric": false,
-        "field_type": "angle",
+        "field_definition": {
+            "field_type": "AngleField"
+        },
         "object_space_telecentric": false
     },
     "wavelengths": {
@@ -45,22 +43,26 @@
             {
                 "value": 0.4,
                 "is_primary": true,
-                "unit": "um"
+                "unit": "um",
+                "weight": 1.0
             },
             {
                 "value": 0.543,
                 "is_primary": false,
-                "unit": "um"
+                "unit": "um",
+                "weight": 1.0
             },
             {
                 "value": 0.55,
                 "is_primary": false,
-                "unit": "um"
+                "unit": "um",
+                "weight": 1.0
             },
             {
                 "value": 0.65,
                 "is_primary": false,
-                "unit": "um"
+                "unit": "um",
+                "weight": 1.0
             }
         ],
         "polarization": "ignore"
@@ -89,6 +91,9 @@
                 },
                 "material_post": {
                     "type": "IdealMaterial",
+                    "propagation_model": {
+                        "class": "HomogeneousPropagation"
+                    },
                     "index": 1.0,
                     "absorp": 0.0
                 },
@@ -96,6 +101,7 @@
             },
             {
                 "type": "Surface",
+                "thickness": 0.55,
                 "geometry": {
                     "type": "StandardGeometry",
                     "cs": {
@@ -110,25 +116,27 @@
                     "radius": 7.72,
                     "conic": -0.26
                 },
-                "material_pre": {
-                    "type": "IdealMaterial",
-                    "index": 1.0,
-                    "absorp": 0.0
-                },
                 "material_post": {
                     "type": "AbbeMaterial",
+                    "propagation_model": {
+                        "class": "HomogeneousPropagation"
+                    },
                     "index": 1.3760893927086157,
-                    "abbe": 53.049630674367904
+                    "abbe": 53.049630674367904,
+                    "model": "polynomial"
                 },
                 "is_stop": false,
                 "aperture": null,
-                "coating": null,
-                "bsdf": null,
-                "is_reflective": false,
-                "comment": "cornea front"
+                "interaction_model": {
+                    "type": "RefractiveReflectiveModel",
+                    "is_reflective": false,
+                    "coating": null,
+                    "bsdf": null
+                }
             },
             {
                 "type": "Surface",
+                "thickness": 3.05,
                 "geometry": {
                     "type": "StandardGeometry",
                     "cs": {
@@ -143,25 +151,27 @@
                     "radius": 6.5,
                     "conic": 0.0
                 },
-                "material_pre": {
-                    "type": "AbbeMaterial",
-                    "index": 1.3760893927086157,
-                    "abbe": 53.049630674367904
-                },
                 "material_post": {
                     "type": "AbbeMaterial",
+                    "propagation_model": {
+                        "class": "HomogeneousPropagation"
+                    },
                     "index": 1.337454140357322,
-                    "abbe": 48.49905307541748
+                    "abbe": 48.49905307541748,
+                    "model": "polynomial"
                 },
                 "is_stop": false,
                 "aperture": null,
-                "coating": null,
-                "bsdf": null,
-                "is_reflective": false,
-                "comment": "cornea back / aqueous"
+                "interaction_model": {
+                    "type": "RefractiveReflectiveModel",
+                    "is_reflective": false,
+                    "coating": null,
+                    "bsdf": null
+                }
             },
             {
                 "type": "Surface",
+                "thickness": 0,
                 "geometry": {
                     "type": "Plane",
                     "cs": {
@@ -175,25 +185,27 @@
                     },
                     "radius": Infinity
                 },
-                "material_pre": {
-                    "type": "AbbeMaterial",
-                    "index": 1.337454140357322,
-                    "abbe": 48.49905307541748
-                },
                 "material_post": {
                     "type": "AbbeMaterial",
+                    "propagation_model": {
+                        "class": "HomogeneousPropagation"
+                    },
                     "index": 1.337454140357322,
-                    "abbe": 48.49905307541748
+                    "abbe": 48.49905307541748,
+                    "model": "polynomial"
                 },
                 "is_stop": true,
                 "aperture": null,
-                "coating": null,
-                "bsdf": null,
-                "is_reflective": false,
-                "comment": "pupil"
+                "interaction_model": {
+                    "type": "RefractiveReflectiveModel",
+                    "is_reflective": false,
+                    "coating": null,
+                    "bsdf": null
+                }
             },
             {
                 "type": "Surface",
+                "thickness": 4.0,
                 "geometry": {
                     "type": "StandardGeometry",
                     "cs": {
@@ -208,25 +220,27 @@
                     "radius": 10.2,
                     "conic": -3.1316
                 },
-                "material_pre": {
-                    "type": "AbbeMaterial",
-                    "index": 1.337454140357322,
-                    "abbe": 48.49905307541748
-                },
                 "material_post": {
                     "type": "AbbeMaterial",
+                    "propagation_model": {
+                        "class": "HomogeneousPropagation"
+                    },
                     "index": 1.4201120875715691,
-                    "abbe": 46.3823857404518
+                    "abbe": 46.3823857404518,
+                    "model": "polynomial"
                 },
                 "is_stop": false,
                 "aperture": null,
-                "coating": null,
-                "bsdf": null,
-                "is_reflective": false,
-                "comment": "lens front"
+                "interaction_model": {
+                    "type": "RefractiveReflectiveModel",
+                    "is_reflective": false,
+                    "coating": null,
+                    "bsdf": null
+                }
             },
             {
                 "type": "Surface",
+                "thickness": 16.3203,
                 "geometry": {
                     "type": "StandardGeometry",
                     "cs": {
@@ -241,25 +255,27 @@
                     "radius": -6.0,
                     "conic": -1.0
                 },
-                "material_pre": {
-                    "type": "AbbeMaterial",
-                    "index": 1.4201120875715691,
-                    "abbe": 46.3823857404518
-                },
                 "material_post": {
                     "type": "AbbeMaterial",
+                    "propagation_model": {
+                        "class": "HomogeneousPropagation"
+                    },
                     "index": 1.3360870349145728,
-                    "abbe": 49.685360416317124
+                    "abbe": 49.685360416317124,
+                    "model": "polynomial"
                 },
                 "is_stop": false,
                 "aperture": null,
-                "coating": null,
-                "bsdf": null,
-                "is_reflective": false,
-                "comment": "lens back / vitreous"
+                "interaction_model": {
+                    "type": "RefractiveReflectiveModel",
+                    "is_reflective": false,
+                    "coating": null,
+                    "bsdf": null
+                }
             },
             {
                 "type": "Surface",
+                "thickness": 0,
                 "geometry": {
                     "type": "StandardGeometry",
                     "cs": {
@@ -274,22 +290,23 @@
                     "radius": -12.0,
                     "conic": 0.0
                 },
-                "material_pre": {
-                    "type": "AbbeMaterial",
-                    "index": 1.3360870349145728,
-                    "abbe": 49.685360416317124
-                },
                 "material_post": {
                     "type": "AbbeMaterial",
+                    "propagation_model": {
+                        "class": "HomogeneousPropagation"
+                    },
                     "index": 1.3360870349145728,
-                    "abbe": 49.685360416317124
+                    "abbe": 49.685360416317124,
+                    "model": "polynomial"
                 },
                 "is_stop": false,
                 "aperture": null,
-                "coating": null,
-                "bsdf": null,
-                "is_reflective": false,
-                "comment": "retina"
+                "interaction_model": {
+                    "type": "RefractiveReflectiveModel",
+                    "is_reflective": false,
+                    "coating": null,
+                    "bsdf": null
+                }
             }
         ]
     }
