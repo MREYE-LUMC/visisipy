@@ -3,5 +3,6 @@
   "extends": [
     "config:recommended"
   ],
-  "labels": ["dependencies"]
+  "labels": ["dependencies"],
+  "ignorePaths": ["pyproject.toml"]
 }
