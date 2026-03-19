@@ -356,7 +356,7 @@ class NoSurface(Surface):
 
 _CorneaFront = TypeVar("_CorneaFront", bound=Surface, default=StandardSurface)
 _CorneaBack = TypeVar("_CorneaBack", bound=Surface, default=StandardSurface)
-_Pupil = TypeVar("_Pupil", bound=Stop, default=Stop)
+_Pupil = TypeVar("_Pupil", bound=Surface, default=Stop)
 _LensFront = TypeVar("_LensFront", bound=Surface, default=StandardSurface)
 _LensBack = TypeVar("_LensBack", bound=Surface, default=StandardSurface)
 _Retina = TypeVar("_Retina", bound=StandardSurface, default=StandardSurface)
