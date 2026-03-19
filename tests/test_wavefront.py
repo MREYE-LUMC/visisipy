@@ -14,6 +14,7 @@ class TestZernikeCoefficients:
             (None, {}, does_not_raise()),
             ({}, {}, does_not_raise()),
             ({1: 0.5, 2: 0.9}, {1: 0.5, 2: 0.9}, does_not_raise()),
+            ({(0, 0): 0.5, (1, 1): 0.9}, {1: 0.5, 2: 0.9}, does_not_raise()),
             (
                 {1: 0.5, "x": 0.9},
                 {},
@@ -34,6 +35,7 @@ class TestZernikeCoefficients:
             ({(-1, 0): 0.5}, {}, pytest.raises(ValueError, match="n must be greater than or equal to 0")),
             ({(0, 1): 0.5}, {}, pytest.raises(ValueError, match="m must be less than or equal to n")),
             ({(5, -4): 0.5}, {}, pytest.raises(ValueError, match="n and m must have the same parity")),
+            ({1: 0.5, (0, 0): 0.6}, {}, pytest.raises(ValueError, match="Duplicate coefficient for Noll index 1")),
         ],
     )
     def test_init(self, terms, result, expectation):
