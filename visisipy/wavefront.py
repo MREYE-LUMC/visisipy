@@ -22,7 +22,8 @@ def _validate_coefficient(key: int | tuple[int, int]) -> int:
         _validate_nm(*key)
         return ZernikeCoefficients.to_noll(*key)
 
-    raise TypeError("The coefficient must be an integer or a tuple of two integers.")
+    msg = f"The coefficient must be an integer or a tuple of two integers, got {key} of type {type(key).__name__}."
+    raise TypeError(msg)
 
 
 def _validate_nm(n: int, m: int) -> None:
@@ -39,23 +40,41 @@ class ZernikeCoefficients(defaultdict[int, float]):
 
     Convenience class for handling Zernike coefficients as a dictionary. If a term is not present, 0 is returned.
     Upon initialization and setting items, the keys are validated to be non-negative integers.
-
-    Raises
-    ------
-    TypeError
-        If the key is not an integer.
-    ValueError
-        If the key is smaller than 1.
     """
 
-    def __init__(self, terms: dict[int, float] | None = None):
-        if terms is not None:
-            if not all(isinstance(key, int) for key in terms):
-                raise TypeError("All keys must be integers.")
-            if any(key < 1 for key in terms):
-                raise ValueError("The Zernike coefficients must be larger than 0.")
+    def __init__(self, terms: dict[int, float] | dict[tuple[int, int], float] | None = None):
+        """Initialize the Zernike coefficients.
 
-        super().__init__(lambda: 0, terms or {})
+        Zernike coefficients can be initialized with either Noll indices (integers) or Zernike indices (tuples of two integers).
+
+        Parameters
+        ----------
+        terms : dict[int, float] | dict[tuple[int, int], float] | None, optional
+            A dictionary of Zernike coefficients, where the keys are either Noll indices (integers)
+            or Zernike indices (tuples of two integers), and the values are the corresponding coefficients.
+            If None, an empty dictionary is used.
+
+        Raises
+        ------
+        TypeError
+            If any key in the terms dictionary is not an integer or a tuple of two integers.
+        ValueError
+            If any key in the terms dictionary is not a valid Zernike index.
+
+        Examples
+        --------
+        >>> ZernikeCoefficients({(0, 0): 1.0, (1, 1): 0.5, (1, -1): 0.5})
+        ZernikeCoefficients({1: 1.0, 2: 0.5, 3: 0.5})
+        >>> ZernikeCoefficients({1: 1.0, 2: 0.5, 3: 0.5})
+        ZernikeCoefficients({1: 1.0, 2: 0.5, 3: 0.5})
+        """
+        terms = {_validate_coefficient(key): value for key, value in terms.items()} if terms is not None else {}
+
+        super().__init__(self._default_factory, terms)
+
+    @staticmethod
+    def _default_factory() -> float:
+        return 0.0
 
     @staticmethod
     def to_noll(n: int, m: int):
