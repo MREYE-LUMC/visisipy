@@ -14,7 +14,7 @@ from optiland.fields.field_types.object_height import ObjectHeightField
 from optiland.fileio import load_optiland_file, save_optiland_file
 from optiland.optic import Optic
 
-from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BackendType, BaseBackend, Unpack, _classproperty
+from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BaseBackend, Unpack, _classproperty
 from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
 
@@ -81,7 +81,7 @@ OPTILAND_APERTURES: dict[ApertureType, str] = {
 class OptilandBackend(BaseBackend[OptilandSettings]):
     """Optiland backend."""
 
-    type = BackendType.OPTILAND
+    type = "optiland"
 
     optic: Optic | None = None
     model: OptilandEye | None = None
