@@ -4,12 +4,19 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass, field
-from typing import Generic, NamedTuple, TypeVar
+from sys import version_info
+from typing import Generic, NamedTuple
 
 import numpy as np
 
 from visisipy.types import TypedDict
 from visisipy.wavefront import ZernikeCoefficients
+
+# Use typing_extensions.TypeVar for Python <3.13 to support default values for type variables
+if version_info < (3, 13):
+    from typing_extensions import TypeVar
+else:
+    from typing import TypeVar
 
 __all__ = (
     "BiconicSurface",
@@ -347,12 +354,12 @@ class NoSurface(Surface):
     thickness: int = field(default=0, init=False)
 
 
-_CorneaFront = TypeVar("_CorneaFront", bound=Surface)
-_CorneaBack = TypeVar("_CorneaBack", bound=Surface)
-_Pupil = TypeVar("_Pupil", bound=Stop)
-_LensFront = TypeVar("_LensFront", bound=Surface)
-_LensBack = TypeVar("_LensBack", bound=Surface)
-_Retina = TypeVar("_Retina", bound=StandardSurface)
+_CorneaFront = TypeVar("_CorneaFront", bound=Surface, default=StandardSurface)
+_CorneaBack = TypeVar("_CorneaBack", bound=Surface, default=StandardSurface)
+_Pupil = TypeVar("_Pupil", bound=Stop, default=Stop)
+_LensFront = TypeVar("_LensFront", bound=Surface, default=StandardSurface)
+_LensBack = TypeVar("_LensBack", bound=Surface, default=StandardSurface)
+_Retina = TypeVar("_Retina", bound=StandardSurface, default=StandardSurface)
 
 
 class EyeModelSurfaces(TypedDict, total=False):
