@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 __all__ = ("ZernikeCoefficients",)
 
@@ -22,7 +26,8 @@ def _validate_coefficient(key: int | tuple[int, int]) -> int:
         _validate_nm(*key)
         return ZernikeCoefficients.to_noll(*key)
 
-    raise TypeError("The coefficient must be an integer or a tuple of two integers.")
+    msg = f"The coefficient must be an integer or a tuple of two integers, got {key} of type {type(key).__name__}."
+    raise TypeError(msg)
 
 
 def _validate_nm(n: int, m: int) -> None:
@@ -38,24 +43,52 @@ class ZernikeCoefficients(defaultdict[int, float]):
     """Zernike coefficients.
 
     Convenience class for handling Zernike coefficients as a dictionary. If a term is not present, 0 is returned.
-    Upon initialization and setting items, the keys are validated to be non-negative integers.
-
-    Raises
-    ------
-    TypeError
-        If the key is not an integer.
-    ValueError
-        If the key is smaller than 1.
+    Upon initialization and setting items, the keys are validated to be either positive integers or tuples of two integers.
     """
 
-    def __init__(self, terms: dict[int, float] | None = None):
-        if terms is not None:
-            if not all(isinstance(key, int) for key in terms):
-                raise TypeError("All keys must be integers.")
-            if any(key < 1 for key in terms):
-                raise ValueError("The Zernike coefficients must be larger than 0.")
+    def __init__(self, terms: Mapping[int, float] | Mapping[tuple[int, int], float] | None = None):
+        """Initialize the Zernike coefficients.
 
-        super().__init__(lambda: 0, terms or {})
+        Zernike coefficients can be initialized with either Noll indices (integers) or Zernike indices (tuples of two integers).
+
+        Parameters
+        ----------
+        terms : Mapping[int, float] | Mapping[tuple[int, int], float] | None, optional
+            A mapping of Zernike coefficients, where the keys are either Noll indices (integers)
+            or Zernike indices (tuples of two integers), and the values are the corresponding coefficients.
+            If None, an empty dictionary is used.
+
+        Raises
+        ------
+        TypeError
+            If any key in the terms mapping is not an integer or a tuple of two integers.
+        ValueError
+            If any key in the terms mapping is not a valid Zernike index.
+
+        Examples
+        --------
+        >>> ZernikeCoefficients({(0, 0): 1.0, (1, 1): 0.5, (1, -1): 0.5})
+        ZernikeCoefficients({1: 1.0, 2: 0.5, 3: 0.5})
+        >>> ZernikeCoefficients({1: 1.0, 2: 0.5, 3: 0.5})
+        ZernikeCoefficients({1: 1.0, 2: 0.5, 3: 0.5})
+        """
+        normalized_terms = {}
+
+        if terms is not None:
+            for key, value in terms.items():
+                noll_index = _validate_coefficient(key)
+
+                if noll_index in normalized_terms:
+                    msg = f"Duplicate coefficient for Noll index {noll_index}."
+                    raise ValueError(msg)
+
+                normalized_terms[noll_index] = value
+
+        super().__init__(self._default_factory, normalized_terms)
+
+    @staticmethod
+    def _default_factory() -> float:
+        return 0.0
 
     @staticmethod
     def to_noll(n: int, m: int):
