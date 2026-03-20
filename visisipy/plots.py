@@ -702,7 +702,8 @@ def _backend_translation(geometry: EyeGeometry, backend_type: BackendType | None
         case "optiland":
             return geometry.cornea_front.thickness + geometry.cornea_back.thickness
         case _:
-            raise ValueError(f"Unsupported backend type: {backend_type}")
+            warnings.warn(f"Unknown backend {backend_type}. No translation applied.", stacklevel=2)
+            return 0.0
 
 
 def _set_axis_limits(
@@ -758,8 +759,14 @@ def plot_eye(
     """Plot an eye.
 
     Plot an eye with geometric parameters specified by an `EyeGeometry` object.
-    The eye is oriented along the horizontal axis, with the pupil center located at `(0, 0)`.
+    The eye is oriented along the horizontal axis. The location of the origin depends on the reference surface of the backend:
+
+    - For OpticStudio, the origin is at the pupil, so the eye is plotted with the pupil at x=0.
+    - For Optiland, the origin is at the anterior cornea, so the cornea apex is plotted at x=0.
+
     Additional translations and rotations can be applied using matplotlib patch transforms.
+    The axis limits are automatically adjusted to fit the eye geometry with some padding,
+    and the aspect ratio is set to equal.
 
     Parameters
     ----------

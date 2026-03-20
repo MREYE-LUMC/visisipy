@@ -230,3 +230,12 @@ class TestBackendTranslation:
         translation = _backend_translation(geometry, "optiland")
 
         assert translation == geometry.cornea_front.thickness + geometry.cornea_back.thickness
+
+    def test_unknown_backend_translation(self):
+        geometry = NavarroGeometry()
+        fig, ax = plt.subplots()
+
+        with pytest.warns(UserWarning, match="Unknown backend unknown_backend. No translation applied."):
+            plot_eye(ax, geometry, backend="unknown_backend")
+
+        plt.close(fig)

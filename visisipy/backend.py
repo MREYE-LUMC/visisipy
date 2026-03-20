@@ -382,7 +382,7 @@ def set_backend(
 
 
 def set_backend(
-    backend: BackendType = "opticstudio",
+    backend: BackendType = _DEFAULT_BACKEND,
     **settings: Any,
 ) -> None:
     """Set the backend to use for optical simulations.
@@ -390,7 +390,7 @@ def set_backend(
     Parameters
     ----------
     backend : BackendType
-        The backend to use. Must be one of the values in the `Backend` enum. Defaults to `Backend.OPTICSTUDIO`.
+        The backend to use. Must be one of {'opticstudio', 'optiland'}. Defaults to 'opticstudio' on Windows and 'optiland' elsewhere.
     settings : BackendSettings, optional
         Dictionary with settings for the backend. Defaults to `None`.
 
