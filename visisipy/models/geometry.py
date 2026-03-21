@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass, field
-from typing import Generic, NamedTuple, TypeVar
+from dataclasses import dataclass, field, fields
+from typing import Any, Generic, NamedTuple, TypeVar
 
 import numpy as np
 
@@ -34,6 +34,49 @@ class Surface(ABC):  # noqa: B024
     """
 
     thickness: float = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the surface to a dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary representation of the surface, including a ``"type"`` key with the class name.
+        """
+        result: dict[str, Any] = {"type": type(self).__name__}
+        for f in fields(self):
+            value = getattr(self, f.name)
+            result[f.name] = dict(value) if isinstance(value, ZernikeCoefficients) else value
+        return result
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Surface:
+        """Create a surface from a dictionary.
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            A dictionary with the surface parameters. Must contain a ``"type"`` key with the class name.
+
+        Returns
+        -------
+        Surface
+            A surface instance of the class specified by ``data["type"]``.
+
+        Raises
+        ------
+        ValueError
+            If the ``"type"`` value in ``data`` does not correspond to a known surface class.
+        """
+        data = dict(data)
+        type_name = data.pop("type", cls.__name__)
+        target_cls = _SURFACE_REGISTRY.get(type_name)
+        if target_cls is None:
+            msg = f"Unknown surface type: {type_name!r}"
+            raise ValueError(msg)
+        init_field_names = {f.name for f in fields(target_cls) if f.init}
+        kwargs = {k: v for k, v in data.items() if k in init_field_names}
+        return target_cls(**kwargs)
 
 
 class _EllipsoidRadii(NamedTuple):
@@ -562,3 +605,58 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
 
     def reverse(self):
         raise NotImplementedError
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the eye geometry to a dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary representation of the eye geometry, including a ``"type"`` key with the class name
+            and the serialized surfaces.
+        """
+        return {
+            "type": type(self).__name__,
+            "cornea_front": self.cornea_front.to_dict(),
+            "cornea_back": self.cornea_back.to_dict(),
+            "pupil": self.pupil.to_dict(),
+            "lens_front": self.lens_front.to_dict(),
+            "lens_back": self.lens_back.to_dict(),
+            "retina": self.retina.to_dict(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> EyeGeometry:
+        """Create an eye geometry from a dictionary.
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            A dictionary with the eye geometry parameters, as produced by :meth:`to_dict`.
+
+        Returns
+        -------
+        EyeGeometry
+            An :class:`EyeGeometry` instance with surfaces reconstructed from ``data``.
+        """
+        data = dict(data)
+        data.pop("type", None)
+        return EyeGeometry(
+            cornea_front=Surface.from_dict(data["cornea_front"]),
+            cornea_back=Surface.from_dict(data["cornea_back"]),
+            pupil=Surface.from_dict(data["pupil"]),
+            lens_front=Surface.from_dict(data["lens_front"]),
+            lens_back=Surface.from_dict(data["lens_back"]),
+            retina=Surface.from_dict(data["retina"]),
+        )
+
+
+_SURFACE_REGISTRY: dict[str, type[Surface]] = {
+    "Surface": Surface,
+    "StandardSurface": StandardSurface,
+    "Stop": Stop,
+    "BiconicSurface": BiconicSurface,
+    "ZernikeStandardSagSurface": ZernikeStandardSagSurface,
+    "ZernikeStandardPhaseSurface": ZernikeStandardPhaseSurface,
+    "NoSurface": NoSurface,
+}

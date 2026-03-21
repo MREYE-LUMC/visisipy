@@ -121,6 +121,41 @@ class EyeModel:
         backend = _backend.get_backend()
         backend.save_model(filename)
 
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the eye model to a dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary representation of the eye model with serialized ``geometry`` and ``materials``.
+        """
+        return {
+            "geometry": self.geometry.to_dict(),
+            "materials": self.materials.to_dict(),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> EyeModel:
+        """Create an eye model from a dictionary.
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            A dictionary with the eye model parameters, as produced by :meth:`to_dict`.
+
+        Returns
+        -------
+        EyeModel
+            An eye model instance with geometry and materials reconstructed from ``data``.
+        """
+        from visisipy.models.geometry import EyeGeometry  # noqa: PLC0415
+        from visisipy.models.materials import EyeMaterials  # noqa: PLC0415
+
+        return cls(
+            geometry=EyeGeometry.from_dict(data["geometry"]),
+            materials=EyeMaterials.from_dict(data["materials"]),
+        )
+
 
 class BaseSurface(ABC):
     """Abstract class that must be implemented by backend-specific surface classes."""

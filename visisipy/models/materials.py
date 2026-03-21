@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -42,6 +42,36 @@ class MaterialModel:
     abbe_number: float = 0.0
     partial_dispersion: float = 0.0
 
+    def to_dict(self) -> dict[str, float]:
+        """Convert the material model to a dictionary.
+
+        Returns
+        -------
+        dict[str, float]
+            A dictionary representation of the material model.
+        """
+        return {
+            "refractive_index": self.refractive_index,
+            "abbe_number": self.abbe_number,
+            "partial_dispersion": self.partial_dispersion,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, float]) -> MaterialModel:
+        """Create a material model from a dictionary.
+
+        Parameters
+        ----------
+        data : dict[str, float]
+            A dictionary with the material model parameters.
+
+        Returns
+        -------
+        MaterialModel
+            A material model instance.
+        """
+        return cls(**data)
+
 
 @dataclass
 class EyeMaterials:
@@ -63,6 +93,52 @@ class EyeMaterials:
     aqueous: MaterialModel | str
     lens: MaterialModel | str
     vitreous: MaterialModel | str
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the eye materials to a dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary representation of the eye materials, including a ``"type"`` key with the class name.
+        """
+        result: dict[str, Any] = {"type": type(self).__name__}
+        for field_name in ("cornea", "aqueous", "lens", "vitreous"):
+            value = getattr(self, field_name)
+            result[field_name] = value.to_dict() if isinstance(value, MaterialModel) else value
+        return result
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> EyeMaterials:
+        """Create eye materials from a dictionary.
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            A dictionary with the eye materials parameters. Must contain a ``"type"`` key with the class name.
+
+        Returns
+        -------
+        EyeMaterials
+            An eye materials instance of the class specified by ``data["type"]``.
+
+        Raises
+        ------
+        ValueError
+            If the ``"type"`` value in ``data`` does not correspond to a known materials class.
+        """
+        data = dict(data)
+        type_name = data.pop("type", cls.__name__)
+        target_cls = _MATERIALS_REGISTRY.get(type_name)
+        if target_cls is None:
+            msg = f"Unknown materials type: {type_name!r}"
+            raise ValueError(msg)
+        kwargs: dict[str, Any] = {}
+        for field_name in ("cornea", "aqueous", "lens", "vitreous"):
+            if field_name in data:
+                value = data[field_name]
+                kwargs[field_name] = MaterialModel.from_dict(value) if isinstance(value, dict) else value
+        return target_cls(**kwargs)
 
 
 def _material_model_factory(
@@ -433,3 +509,16 @@ class GullstrandLeGrandAccommodatedMaterials(GullstrandLeGrandUnaccommodatedMate
             refractive_index=1.427,
         )
     )
+
+
+_MATERIALS_REGISTRY: dict[str, type[EyeMaterials]] = {
+    "EyeMaterials": EyeMaterials,
+    "NavarroMaterials": NavarroMaterials,
+    "NavarroMaterials458": NavarroMaterials458,
+    "NavarroMaterials543": NavarroMaterials543,
+    "NavarroMaterials589": NavarroMaterials589,
+    "NavarroMaterials633": NavarroMaterials633,
+    "BennettRabbettsMaterials": BennettRabbettsMaterials,
+    "GullstrandLeGrandUnaccommodatedMaterials": GullstrandLeGrandUnaccommodatedMaterials,
+    "GullstrandLeGrandAccommodatedMaterials": GullstrandLeGrandAccommodatedMaterials,
+}
