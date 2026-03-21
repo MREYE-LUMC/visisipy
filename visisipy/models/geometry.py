@@ -45,8 +45,7 @@ class Surface(ABC):  # noqa: B024
         """
         result: dict[str, Any] = {"type": type(self).__name__}
         for f in fields(self):
-            value = getattr(self, f.name)
-            result[f.name] = dict(value) if isinstance(value, ZernikeCoefficients) else value
+            result[f.name] = getattr(self, f.name)
         return result
 
     @classmethod
@@ -70,7 +69,8 @@ class Surface(ABC):  # noqa: B024
         """
         data = dict(data)
         type_name = data.pop("type", cls.__name__)
-        target_cls = _SURFACE_REGISTRY.get(type_name)
+        registry = _get_surface_registry()
+        target_cls = registry.get(type_name)
         if target_cls is None:
             msg = f"Unknown surface type: {type_name!r}"
             raise ValueError(msg)
@@ -300,6 +300,21 @@ class BaseZernikeStandardSurface(StandardSurface, ABC):
             raise ValueError("The Zernike coefficients contain terms that are greater than the maximum term.")
 
         self.zernike_coefficients = ZernikeCoefficients(self.zernike_coefficients)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the surface to a dictionary.
+
+        Overrides :meth:`Surface.to_dict` to serialize :class:`~visisipy.wavefront.ZernikeCoefficients`
+        as a plain dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary representation of the surface, including a ``"type"`` key with the class name.
+        """
+        result = super().to_dict()
+        result["zernike_coefficients"] = dict(self.zernike_coefficients)
+        return result
 
 
 @dataclass
@@ -651,12 +666,20 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         )
 
 
-_SURFACE_REGISTRY: dict[str, type[Surface]] = {
-    "Surface": Surface,
-    "StandardSurface": StandardSurface,
-    "Stop": Stop,
-    "BiconicSurface": BiconicSurface,
-    "ZernikeStandardSagSurface": ZernikeStandardSagSurface,
-    "ZernikeStandardPhaseSurface": ZernikeStandardPhaseSurface,
-    "NoSurface": NoSurface,
-}
+def _get_surface_registry() -> dict[str, type[Surface]]:
+    """Build a registry of all :class:`Surface` subclasses by recursively collecting ``__subclasses__``.
+
+    Returns
+    -------
+    dict[str, type[Surface]]
+        Mapping from class name to class for :class:`Surface` and all its subclasses.
+    """
+    registry: dict[str, type[Surface]] = {}
+    _collect_subclasses(Surface, registry)
+    return registry
+
+
+def _collect_subclasses(cls: type, registry: dict) -> None:
+    registry[cls.__name__] = cls
+    for subclass in cls.__subclasses__():
+        _collect_subclasses(subclass, registry)

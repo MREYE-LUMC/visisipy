@@ -129,7 +129,8 @@ class EyeMaterials:
         """
         data = dict(data)
         type_name = data.pop("type", cls.__name__)
-        target_cls = _MATERIALS_REGISTRY.get(type_name)
+        registry = _get_materials_registry()
+        target_cls = registry.get(type_name)
         if target_cls is None:
             msg = f"Unknown materials type: {type_name!r}"
             raise ValueError(msg)
@@ -511,14 +512,20 @@ class GullstrandLeGrandAccommodatedMaterials(GullstrandLeGrandUnaccommodatedMate
     )
 
 
-_MATERIALS_REGISTRY: dict[str, type[EyeMaterials]] = {
-    "EyeMaterials": EyeMaterials,
-    "NavarroMaterials": NavarroMaterials,
-    "NavarroMaterials458": NavarroMaterials458,
-    "NavarroMaterials543": NavarroMaterials543,
-    "NavarroMaterials589": NavarroMaterials589,
-    "NavarroMaterials633": NavarroMaterials633,
-    "BennettRabbettsMaterials": BennettRabbettsMaterials,
-    "GullstrandLeGrandUnaccommodatedMaterials": GullstrandLeGrandUnaccommodatedMaterials,
-    "GullstrandLeGrandAccommodatedMaterials": GullstrandLeGrandAccommodatedMaterials,
-}
+def _get_materials_registry() -> dict[str, type[EyeMaterials]]:
+    """Build a registry of all :class:`EyeMaterials` subclasses by recursively collecting ``__subclasses__``.
+
+    Returns
+    -------
+    dict[str, type[EyeMaterials]]
+        Mapping from class name to class for :class:`EyeMaterials` and all its subclasses.
+    """
+    registry: dict[str, type[EyeMaterials]] = {}
+    _collect_subclasses(EyeMaterials, registry)
+    return registry
+
+
+def _collect_subclasses(cls: type, registry: dict) -> None:
+    registry[cls.__name__] = cls
+    for subclass in cls.__subclasses__():
+        _collect_subclasses(subclass, registry)
