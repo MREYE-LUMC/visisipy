@@ -34,7 +34,13 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def simple_system(optic: Optic) -> Optic:
-    """Simple system with an object and image surface."""
+    """Simple system with an object and image surface.
+
+    Returns
+    -------
+    Optic
+        An Optic with an object and image surface.
+    """
     optic.add_surface(
         index=0,
         thickness=float("inf"),
@@ -54,7 +60,13 @@ def simple_system(optic: Optic) -> Optic:
 
 @pytest.fixture
 def surface(simple_system: Optic) -> optiland.surfaces.Surface:
-    """Fixture to create a surface for testing."""
+    """Fixture to create a surface for testing.
+
+    Returns
+    -------
+    optiland.surfaces.Surface
+        A surface built in the simple system.
+    """
     simple_system.add_surface(
         index=1,
         radius=1.0,
@@ -122,7 +134,20 @@ class TestBuiltOnlyProperty:
 
 
 def build_surface(optic: Optic, surface: BaseOptilandSurface) -> int:
-    """Build a surface with `surface_settings` to the optic system, between an object and image surface."""
+    """Build a surface with `surface_settings` to the optic system, between an object and image surface.
+
+    Parameters
+    ----------
+    optic : Optic
+        The optic system to which the surface is added.
+    surface : BaseOptilandSurface
+        The surface to be built.
+
+    Returns
+    -------
+    int
+        The index of the built surface.
+    """
     optic.add_surface(
         index=0,
         thickness=float("inf"),

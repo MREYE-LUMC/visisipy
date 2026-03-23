@@ -60,8 +60,6 @@ class ZernikeCoefficients(defaultdict[int, float]):
 
         Raises
         ------
-        TypeError
-            If any key in the terms mapping is not an integer or a tuple of two integers.
         ValueError
             If any key in the terms mapping is not a valid Zernike index.
 

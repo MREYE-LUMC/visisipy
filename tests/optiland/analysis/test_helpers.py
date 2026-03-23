@@ -43,7 +43,8 @@ class TestSetWavelength:
 
         with pytest.warns(UserWarning, match=f"Wavelength {new_wavelength} not found. Adding it to the system."):
             assert set_wavelength(optiland_backend, wavelength=new_wavelength) == new_wavelength
-            assert get_optic_wavelengths(optic) == [0.543, new_wavelength]
+
+        assert get_optic_wavelengths(optic) == [0.543, new_wavelength]
 
 
 def get_optic_fields(optic: Optic) -> list[tuple[float, float]]:
@@ -79,7 +80,8 @@ class TestSetField:
             UserWarning, match=re.escape(f"Field coordinate {new_field} not found. Adding it to the system.")
         ):
             assert set_field(optiland_backend, field_coordinate=new_field) == new_field_normalized
-            assert get_optic_fields(optic) == [(0.0, 0.0), new_field]
+
+        assert get_optic_fields(optic) == [(0.0, 0.0), new_field]
 
     @pytest.mark.parametrize(
         "old_type,new_type,field,normalized_field",
@@ -103,4 +105,5 @@ class TestSetField:
 
         with pytest.warns(UserWarning, match=re.escape(f"Changing field type from {old_type} to {new_type}.")):
             assert set_field(optiland_backend, field_coordinate=field, field_type=new_type) == normalized_field
-            assert optiland_backend.get_field_type() == new_type
+
+        assert optiland_backend.get_field_type() == new_type

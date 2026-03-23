@@ -238,6 +238,13 @@ def strehl_ratio(
     -------
     float
         The Strehl ratio of the optical system at the specified field coordinate and wavelength.
+    Any
+        The raw analysis result from the backend.
+
+    Raises
+    ------
+    ValueError
+        If `psf_type` is not "fft" or "huygens".
     """
     if psf_type not in {"fft", "huygens"}:
         raise ValueError(f"Invalid psf_type: {psf_type}. Must be 'fft' or 'huygens'.")

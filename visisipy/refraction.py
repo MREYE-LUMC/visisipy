@@ -67,13 +67,18 @@ class FourierPowerVectorRefraction:
 
         Parameters
         ----------
-        cylinder_form : str, optional
+        cylinder_form : {"positive", "negative"}, optional
             Indicates if the cylinder should be positive or negative. Defaults to "negative".
 
         Returns
         -------
         SpheroCylindricalRefraction
             The refraction in sphero-cylindrical form.
+
+        Raises
+        ------
+        ValueError
+            If `cylinder_form` is not set to "positive" or "negative".
         """
         if cylinder_form not in {"positive", "negative"}:
             raise ValueError("cylinder_form must be either 'positive' or 'negative'.")

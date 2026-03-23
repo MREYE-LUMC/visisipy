@@ -161,13 +161,7 @@ def optiland_backend_settings(optiland_computation_backend) -> OptilandSettings:
 
 @pytest.fixture
 def optiland_backend(optiland_backend_settings) -> Generator[type[OptilandBackend], Any, None]:
-    """Fixture to initialize the Optiland backend for testing.
-
-    Returns
-    -------
-    OptilandBackend
-        The initialized Optiland backend.
-    """
+    """Fixture to initialize the Optiland backend for testing."""
     from visisipy.optiland.backend import OptilandBackend  # noqa: PLC0415
 
     OptilandBackend.model = None

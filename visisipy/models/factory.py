@@ -18,23 +18,43 @@ def _update_attribute_if_specified(obj: Surface, attribute: str, value: Any):
 
 
 def _calculate_vitreous_thickness(geometry: EyeGeometry, parameters: GeometryParameters) -> float:
-    """Calculate the thickness of the vitreous body for a partially initialized eye geometry."""
+    """Calculate the thickness of the vitreous body for a partially initialized eye geometry.
+
+    Parameters
+    ----------
+    geometry : EyeGeometry
+        An eye geometry instance with the cornea and pupil geometry specified.
+    parameters : GeometryParameters
+        The geometry parameters specified by the user. The axial length, cornea thickness, anterior chamber
+        depth, and lens thickness parameters are used to calculate the vitreous thickness.
+
+    Returns
+    -------
+    float
+        The calculated vitreous thickness.
+
+    Raises
+    ------
+    ValueError
+        If the axial length, cornea thickness, anterior chamber depth, or lens thickness parameters are
+        not specified in the parameters or the geometry.
+    """
 
     # Axial length may be undefined, so parameters.get will not work here.
-    _axial_length = parameters["axial_length"] if "axial_length" in parameters else geometry.axial_length
-    _cornea_thickness = parameters.get("cornea_thickness", geometry.cornea_thickness)
-    _anterior_chamber_depth = parameters.get("anterior_chamber_depth", geometry.anterior_chamber_depth)
-    _lens_thickness = parameters.get("lens_thickness", geometry.lens_thickness)
+    axial_length = parameters["axial_length"] if "axial_length" in parameters else geometry.axial_length
+    cornea_thickness = parameters.get("cornea_thickness", geometry.cornea_thickness)
+    anterior_chamber_depth = parameters.get("anterior_chamber_depth", geometry.anterior_chamber_depth)
+    lens_thickness = parameters.get("lens_thickness", geometry.lens_thickness)
 
     if None in {
-        _axial_length,
-        _cornea_thickness,
-        _anterior_chamber_depth,
-        _lens_thickness,
+        axial_length,
+        cornea_thickness,
+        anterior_chamber_depth,
+        lens_thickness,
     }:
         raise ValueError("Cannot calculate vitreous thickness from the supplied parameters.")
 
-    return _axial_length - (_cornea_thickness + _anterior_chamber_depth + _lens_thickness)
+    return axial_length - (cornea_thickness + anterior_chamber_depth + lens_thickness)
 
 
 def _check_sign(value: float | None, name: str, sign: Literal["+", "-"]) -> None:
@@ -174,8 +194,9 @@ def create_geometry(
 
     Raises
     ------
-    ValueError
+    TypeError
         If the base geometry is not a class or if it is not a subclass of EyeGeometry.
+    ValueError
         If the pupil-lens distance is greater than the anterior chamber depth.
         If the sum of the cornea thickness, anterior chamber depth and lens thickness is greater than or equal to the
         axial length.

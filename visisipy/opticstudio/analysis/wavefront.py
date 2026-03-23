@@ -19,7 +19,18 @@ if TYPE_CHECKING:
 
 
 def _pad_index(index: NDArray) -> NDArray:
-    """Pad the index of the DataFrame to include the outer edge."""
+    """Pad the index of the DataFrame to include the outer edge.
+
+    Parameters
+    ----------
+    index : NDArray
+        The index to pad.
+
+    Returns
+    -------
+    NDArray
+        The padded index.
+    """
 
     step = index[1] - index[0]
     new_index = index[0] - step
@@ -34,6 +45,16 @@ def _pad_opd_map(data: DataFrame) -> DataFrame:
     column outside the pupil. This effectively yields a grid that is (N-1) x (N-1) for an NxN sampling.
     ZOSPy returns the data without this outer row and column, but to be consistent with other backends,
     and to ensure that the output shape equals the requested sampling, this row and column are added back.
+
+    Parameters
+    ----------
+    data : DataFrame
+        The OPD map data as a pandas DataFrame.
+
+    Returns
+    -------
+    DataFrame
+        The padded OPD map as a pandas DataFrame.
     """
     x_coordinates = data.columns.to_numpy()
     y_coordinates = data.index.to_numpy()
@@ -84,6 +105,11 @@ def opd_map(
         A pandas DataFrame containing the OPD map values in waves.
     DataFrame
         The raw analysis result from the backend.
+
+    Raises
+    ------
+    RuntimeError
+        If the wavefront analysis fails or returns no data.
     """
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)

@@ -1,8 +1,22 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "schedule:monthly"
   ],
-  "labels": ["dependencies"],
-  "ignorePaths": ["pyproject.toml"]
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "matchFileNames": [
+        "pyproject.toml"
+      ],
+      "matchDepTypes": [
+        "dependencies",
+        "requires-python"
+      ],
+      "enabled": false
+    }
+  ]
 }

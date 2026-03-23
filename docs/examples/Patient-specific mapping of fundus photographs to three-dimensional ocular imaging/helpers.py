@@ -12,8 +12,23 @@ def get_ray_output_angle(
     df: pd.DataFrame,
     reference_point: tuple[float, float] = (0, 0),
     coordinate="y",
-):
-    """Calculate the output angle of a ray with respect to the optical axis and a reference point."""
+) -> float:
+    """Calculate the output angle of a ray with respect to the optical axis and a reference point.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The ray trace result as a DataFrame. It is assumed that the last row corresponds to the output ray.
+    reference_point : tuple[float, float], optional
+        The reference point (x0, y0) to calculate the angle from. Default is (0, 0).
+    coordinate : str, optional
+        The coordinate to use for the angle calculation, either "x" or "y". Default is "y".
+
+    Returns
+    -------
+    float
+        The output angle in degrees.
+    """
     x0, y0 = reference_point
     x1, y1 = df.loc[len(df) - 1, "z"], df.loc[len(df) - 1, coordinate]
 
@@ -24,10 +39,10 @@ class InputOutputAngles(NamedTuple):
     input_angle_field: float
     output_angle_pupil: float
     output_angle_np2: float
-    output_angle_retina_center: float = None
-    output_angle_navarro_np2: float = None
-    location_np2: float = None
-    location_retina_center: float = None
+    output_angle_retina_center: float | None = None
+    output_angle_navarro_np2: float | None = None
+    location_np2: float | None = None
+    location_retina_center: float | None = None
     patient: int | str | None = None
 
     @classmethod

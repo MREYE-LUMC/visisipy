@@ -9,10 +9,10 @@ import re
 import sys
 from typing import Literal
 
-if sys.version_info < (3, 11):
-    from typing_extensions import NotRequired, TypedDict, Unpack
-else:
+if sys.version_info >= (3, 11):
     from typing import NotRequired, TypedDict, Unpack
+else:
+    from typing_extensions import NotRequired, TypedDict, Unpack
 
 
 __all__ = (
@@ -73,8 +73,19 @@ class SampleSize:
         ----------
         sample_size : int | str | SampleSize
             The sample size. Can be an integer, a string in the format "NxN", or a SampleSize object.
+
+        Raises
+        ------
+        ValueError
+            If the sample size is a string that does not match the format "NxN", or if the sample size is a
+            non-positive integer.
+        TypeError
+            If the sample size is not an integer, a string in the format "NxN", or a SampleSize object.
         """
         if isinstance(sample_size, int):
+            if sample_size <= 0:
+                raise ValueError("Sample size must be a positive integer.")
+
             self.__sampling = sample_size
 
         elif isinstance(sample_size, str):
@@ -87,6 +98,13 @@ class SampleSize:
 
         elif isinstance(sample_size, SampleSize):
             self.__sampling = sample_size.sampling
+
+        else:
+            msg = (
+                f"Invalid sample size type: {type(sample_size).__name__}."
+                "Must be an integer, a string in the format 'NxN', or a SampleSize object."
+            )
+            raise TypeError(msg)
 
     @property
     def sampling(self) -> int:
@@ -114,6 +132,13 @@ class SampleSize:
         -------
         SampleSize
             A new SampleSize object with the multiplied sample size.
+
+        Raises
+        ------
+        TypeError
+            If `factor` is not an integer.
+        ValueError
+            If `factor` is not a positive integer.
         """
         if not isinstance(factor, int):
             raise TypeError("SampleSize can only be multiplied by integer factors.")
