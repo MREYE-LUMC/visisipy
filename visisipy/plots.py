@@ -842,11 +842,6 @@ def _backend_translation(geometry: EyeGeometry, backend_type: BackendType | None
     -------
     float
         Translation in mm to apply to the eye plot. Positive values translate the eye to the right, negative values to the left.
-
-    Raises
-    ------
-    ValueError
-        If an unsupported backend type is provided.
     """
 
     if backend_type is None:
