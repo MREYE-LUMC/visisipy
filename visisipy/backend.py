@@ -54,6 +54,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "DEFAULT_BACKEND_SETTINGS",
+    "BackendAccessError",
     "BackendSettings",
     "BackendType",
     "BaseBackend",

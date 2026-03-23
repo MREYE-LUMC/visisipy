@@ -208,12 +208,12 @@ class TestSaveModel:
 
         assert file.exists()
 
-    def test_save_no_model_raises_runtimeerror(
+    def test_save_no_model_raises_backendaccesserror(
         self, configure_backend: type[backend.BaseBackend], mocker: MockerFixture
     ):
         mocker.patch("visisipy.backend._BACKEND", new=configure_backend)
 
-        with pytest.raises(RuntimeError, match="No model is currently loaded in the backend"):
+        with pytest.raises(backend.BackendAccessError, match="No model is currently loaded in the backend"):
             visisipy.save_model()
 
 
