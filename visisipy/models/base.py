@@ -11,11 +11,12 @@ import visisipy.backend as _backend
 if TYPE_CHECKING:
     from os import PathLike
 
+    from visisipy.models.catalog.navarro import NavarroGeometry
     from visisipy.models.geometry import EyeGeometry
     from visisipy.models.materials import EyeMaterials
 
 
-def _get_default_geometry() -> EyeGeometry:
+def _get_default_geometry() -> NavarroGeometry:
     """Get the default eye geometry.
 
     Returns

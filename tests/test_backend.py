@@ -70,21 +70,19 @@ def mock_optiland_backend(monkeypatch):
 
 class TestSetBackend:
     @pytest.mark.windows_only
-    @pytest.mark.parametrize("name", ["opticstudio", backend.BackendType.OPTICSTUDIO])
-    def test_set_opticstudio_backend(self, name, mock_opticstudio_backend, monkeypatch):
+    def test_set_opticstudio_backend(self, mock_opticstudio_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend to avoid side effects in other tests
 
-        backend.set_backend(name, field_type="object_height")
+        backend.set_backend("opticstudio", field_type="object_height")
 
         assert mock_opticstudio_backend == backend._BACKEND
         assert mock_opticstudio_backend.initialized
         assert mock_opticstudio_backend.settings["field_type"] == "object_height"
 
-    @pytest.mark.parametrize("name", ["optiland", backend.BackendType.OPTILAND])
-    def test_set_optiland_backend(self, name, mock_optiland_backend, monkeypatch):
+    def test_set_optiland_backend(self, mock_optiland_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend to avoid side effects in other tests
 
-        backend.set_backend(name, aperture_type="image_f_number")
+        backend.set_backend("optiland", aperture_type="image_f_number")
 
         assert mock_optiland_backend == backend._BACKEND
         assert mock_optiland_backend.initialized
@@ -110,7 +108,7 @@ class TestGetBackend:
 
     def test_get_backend_sets_backend(self, mock_optiland_backend, monkeypatch):
         monkeypatch.setattr(backend, "_BACKEND", None)  # Reset the backend so get_backend() sets it
-        monkeypatch.setattr(backend, "_DEFAULT_BACKEND", backend.BackendType.OPTILAND)
+        monkeypatch.setattr(backend, "_DEFAULT_BACKEND", "optiland")
 
         assert backend._BACKEND is None
 
@@ -277,6 +275,6 @@ class TestLoadModel:
 
 def test_default_backend():
     if platform.system() == "Windows":
-        assert backend._DEFAULT_BACKEND == backend.BackendType.OPTICSTUDIO
+        assert backend._DEFAULT_BACKEND == "opticstudio"
     else:
-        assert backend._DEFAULT_BACKEND == backend.BackendType.OPTILAND
+        assert backend._DEFAULT_BACKEND == "optiland"

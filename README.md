@@ -40,12 +40,17 @@ conda install -c conda-forge visisipy
 ## Example
 
 ```python
-import visisipy
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import visisipy
+
+# Uncomment the following line to use the open-source Optiland backend instead of OpticStudio
+# visisipy.set_backend("optiland")
+
 # Initialize the default Navarro model
 model = visisipy.EyeModel()
+model.geometry.pupil.thickness = 2.0
 
 # Build the model in OpticStudio
 model.build()
@@ -60,9 +65,6 @@ raytrace = visisipy.analysis.raytrace(coordinates=coordinates)
 # Visualize the model
 fig, ax = plt.subplots()
 visisipy.plots.plot_eye(ax, model.geometry, lens_edge_thickness=0.5)
-ax.set_xlim((-7, 23))
-ax.set_ylim((-15, 15))
-ax.set_aspect('equal')
 
 sns.lineplot(raytrace, x="z", y="y", hue="field", ax=ax)
 

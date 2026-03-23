@@ -28,7 +28,6 @@ import json
 import platform
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
-from enum import Enum
 from inspect import get_annotations
 from pathlib import Path
 from types import MethodType
@@ -68,9 +67,7 @@ __all__ = (
 
 
 _BACKEND: type[BaseBackend] | None = None
-_DEFAULT_BACKEND: BackendType | Literal["opticstudio", "optiland"] = (
-    "opticstudio" if platform.system() == "Windows" else "optiland"
-)
+_DEFAULT_BACKEND: BackendType = "opticstudio" if platform.system() == "Windows" else "optiland"
 
 
 _Analysis = TypeVar("_Analysis", bound=Callable)
@@ -257,9 +254,7 @@ class BaseBackend(ABC, Generic[_Settings]):
     Backends should implement this interface to provide a unified interface for optical simulations.
     """
 
-    @_classproperty
-    @abstractmethod
-    def type(cls) -> BackendType: ...  # noqa: N805
+    type: ClassVar[BackendType]
 
     model: BaseEye | None
     settings: _Settings
@@ -369,40 +364,33 @@ class BaseBackend(ABC, Generic[_Settings]):
         Path(filename).write_text(json.dumps(cls.settings, indent=4, sort_keys=True), encoding="utf-8")
 
 
-class BackendType(str, Enum):
-    """Available backends for optical simulations."""
-
-    OPTICSTUDIO = "opticstudio"
-    OPTILAND = "optiland"
-
-    def __str__(self) -> str:
-        return self.value
+BackendType = Literal["opticstudio", "optiland"]
 
 
 @overload
 def set_backend(
-    backend: Literal[BackendType.OPTICSTUDIO, "opticstudio"],
+    backend: Literal["opticstudio"],
     **settings: Unpack[OpticStudioSettings],
 ) -> None: ...
 
 
 @overload
 def set_backend(
-    backend: Literal[BackendType.OPTILAND, "optiland"],
+    backend: Literal["optiland"],
     **settings: Unpack[OptilandSettings],
 ) -> None: ...
 
 
 def set_backend(
-    backend: BackendType | Literal["opticstudio", "optiland"] = BackendType.OPTICSTUDIO,
+    backend: BackendType = _DEFAULT_BACKEND,
     **settings: Any,
 ) -> None:
     """Set the backend to use for optical simulations.
 
     Parameters
     ----------
-    backend : Backend | str
-        The backend to use. Must be one of the values in the `Backend` enum. Defaults to `Backend.OPTICSTUDIO`.
+    backend : BackendType
+        The backend to use. Must be one of {'opticstudio', 'optiland'}. Defaults to 'opticstudio' on Windows and 'optiland' elsewhere.
     settings : BackendSettings, optional
         Dictionary with settings for the backend. Defaults to `None`.
 
@@ -419,12 +407,12 @@ def set_backend(
             f"Reconfiguring the backend is not recommended and may cause issues."
         )
 
-    if backend == BackendType.OPTICSTUDIO:
+    if backend == "opticstudio":
         from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
         _BACKEND = OpticStudioBackend
         _BACKEND.initialize(**settings)
-    elif backend == BackendType.OPTILAND:
+    elif backend == "optiland":
         from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
         _BACKEND = OptilandBackend
@@ -547,26 +535,20 @@ def load_model(filename: str | PathLike, *, apply_settings: bool = False) -> Non
     """
     filename = Path(filename)
 
+    load_backend: BackendType
+
     if filename.suffix.lower() in {".zmx", ".zos"}:
         if platform.system() != "Windows":
             msg = f"Cannot load {filename.suffix}. The OpticStudio backend is only available on Windows."
             raise RuntimeError(msg)
-        load_backend = BackendType.OPTICSTUDIO
+        load_backend = "opticstudio"
     elif filename.suffix.lower() == ".json":
-        load_backend = BackendType.OPTILAND
+        load_backend = "optiland"
     else:
         msg = f"File type {filename.suffix} is not supported by any of the available backends."
         raise ValueError(msg)
 
-    match getattr(_BACKEND, "type", None):
-        case None:
-            current_backend = None
-        case BackendType.OPTICSTUDIO:
-            current_backend = BackendType.OPTICSTUDIO
-        case BackendType.OPTILAND:
-            current_backend = BackendType.OPTILAND
-        case _:
-            current_backend = None
+    current_backend: BackendType | None = getattr(_BACKEND, "type", None)
 
     if current_backend != load_backend:
         set_backend(load_backend)

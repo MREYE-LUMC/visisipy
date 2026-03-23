@@ -9,7 +9,7 @@ import pytest
 
 from visisipy.models.catalog.navarro import NavarroGeometry
 from visisipy.models.geometry import EyeGeometry, StandardSurface, Stop
-from visisipy.plots import _plot_ellipse, _plot_hyperbola, _plot_parabola, plot_eye
+from visisipy.plots import _backend_translation, _plot_ellipse, _plot_hyperbola, _plot_parabola, plot_eye
 
 mpl.use("Agg")  # use non-interactive backend for testing
 
@@ -78,7 +78,7 @@ class TestConicSections:
 class TestPlotEye:
     """Test the plot_eye function with various eye configurations."""
 
-    def test_plot_eye_default_navarro(self):
+    def test_default_navarro(self):
         """Test plotting a default Navarro eye."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
@@ -86,7 +86,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_with_lens_edge_thickness(self):
+    def test_lens_edge_thickness(self):
         """Test plotting an eye with lens edge thickness."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
@@ -94,7 +94,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_with_retina_cutoff(self):
+    def test_retina_cutoff(self):
         """Test plotting an eye with custom retina cutoff."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
@@ -102,7 +102,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_with_positive_retina_radius(self):
+    def test_positive_retina_radius(self):
         """Test plotting an eye with incorrectly oriented retina (positive radius)."""
         # This should now work without crashing
         geometry = NavarroGeometry()
@@ -117,7 +117,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_with_strongly_curved_retina(self):
+    def test_strongly_curved_retina(self):
         """Test plotting an eye with a very strongly curved retina that might not intersect lens."""
         geometry = NavarroGeometry()
         # Create a very strongly curved retina
@@ -128,7 +128,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_non_intersecting_lens_surfaces(self):
+    def test_non_intersecting_lens_surfaces(self):
         """Test plotting an eye where lens front and back don't intersect."""
         geometry = EyeGeometry(
             cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
@@ -144,7 +144,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_parabolic_surface(self):
+    def test_parabolic_surface(self):
         """Test plotting an eye with a parabolic surface (conic = -1)."""
         geometry = NavarroGeometry()
         geometry.lens_back.asphericity = -1  # Make it parabolic
@@ -154,7 +154,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_hyperbolic_surface(self):
+    def test_hyperbolic_surface(self):
         """Test plotting an eye with a hyperbolic surface (conic < -1)."""
         geometry = NavarroGeometry()
         geometry.lens_front.asphericity = -2  # Make it hyperbolic
@@ -164,7 +164,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_invalid_lens_edge_thickness(self):
+    def test_invalid_lens_edge_thickness(self):
         """Test that negative lens edge thickness raises ValueError."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
@@ -174,7 +174,7 @@ class TestPlotEye:
 
         plt.close(fig)
 
-    def test_plot_eye_invalid_retina_cutoff(self):
+    def test_invalid_retina_cutoff(self):
         """Test that retina cutoff behind retina raises ValueError."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
@@ -184,7 +184,7 @@ class TestPlotEye:
 
         plt.close(fig)
 
-    def test_plot_eye_extreme_asphericities(self):
+    def test_extreme_asphericities(self):
         """Test plotting with extreme asphericity values."""
         geometry = EyeGeometry(
             cornea_front=StandardSurface(radius=7.72, asphericity=-0.9, thickness=0.55),
@@ -200,7 +200,7 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
-    def test_plot_eye_all_surfaces_meet_at_apexes(self):
+    def test_all_surfaces_meet_at_apexes(self):
         """Test that surfaces are correctly cut off at adjacent apex positions."""
         geometry = NavarroGeometry()
         fig, ax = plt.subplots()
@@ -213,5 +213,30 @@ class TestPlotEye:
         # The patch should have been successfully created
         compound_path = patches[0].get_path()
         assert compound_path is not None
+
+        plt.close(fig)
+
+
+class TestBackendTranslation:
+    def test_opticstudio_no_translation(self):
+        geometry = NavarroGeometry()
+
+        translation = _backend_translation(geometry, "opticstudio")
+
+        assert translation == 0.0
+
+    def test_optiland_translation(self):
+        geometry = NavarroGeometry()
+
+        translation = _backend_translation(geometry, "optiland")
+
+        assert translation == geometry.cornea_front.thickness + geometry.cornea_back.thickness
+
+    def test_unknown_backend_translation(self):
+        geometry = NavarroGeometry()
+        fig, ax = plt.subplots()
+
+        with pytest.warns(UserWarning, match="Unknown backend unknown_backend. No translation applied."):
+            plot_eye(ax, geometry, backend="unknown_backend")
 
         plt.close(fig)
