@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 
 import pytest
@@ -358,3 +359,44 @@ class TestEyeModelDict:
         assert rec_geometry.lens_front == geometry.lens_front
         assert rec_geometry.lens_back == geometry.lens_back
         assert rec_geometry.retina == geometry.retina
+
+    def test_to_json_includes_visisipy_version(self):
+        model = EyeModel()
+        json_data = model.to_json()
+        parsed = json.loads(json_data)
+
+        assert "visisipy_version" in parsed
+        assert "geometry" in parsed
+        assert "materials" in parsed
+
+    def test_from_json(self):
+        model = EyeModel()
+        json_data = model.to_json()
+        reconstructed = EyeModel.from_json(json_data)
+
+        assert isinstance(reconstructed, EyeModel)
+        assert reconstructed.materials == model.materials
+        assert reconstructed.geometry.cornea_front == model.geometry.cornea_front
+
+    def test_from_json_missing_visisipy_version_raises_valueerror(self):
+        model = EyeModel()
+        data = model.to_dict()
+        json_data = json.dumps(data)
+
+        with pytest.raises(ValueError, match='missing required "visisipy_version" key'):
+            EyeModel.from_json(json_data)
+
+    def test_save_and_load_json(self, tmp_path):
+        model = EyeModel()
+        path = tmp_path / "eye_model.json"
+
+        model.save_json(path)
+        loaded = EyeModel.load_json(path)
+
+        assert loaded.materials == model.materials
+        assert loaded.geometry.cornea_front == model.geometry.cornea_front
+        assert loaded.geometry.cornea_back == model.geometry.cornea_back
+        assert loaded.geometry.pupil == model.geometry.pupil
+        assert loaded.geometry.lens_front == model.geometry.lens_front
+        assert loaded.geometry.lens_back == model.geometry.lens_back
+        assert loaded.geometry.retina == model.geometry.retina

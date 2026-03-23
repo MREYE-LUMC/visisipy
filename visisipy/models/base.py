@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -13,6 +14,12 @@ if TYPE_CHECKING:
 
     from visisipy.models.geometry import EyeGeometry
     from visisipy.models.materials import EyeMaterials
+
+
+_JSON_NOT_VISISIPY_MESSAGE = (
+    'JSON data is missing required "visisipy_version" key. '
+    "Ensure the data was created with EyeModel.to_json()."
+)
 
 
 def _get_default_geometry() -> EyeGeometry:
@@ -155,6 +162,73 @@ class EyeModel:
             geometry=EyeGeometry.from_dict(data["geometry"]),
             materials=EyeMaterials.from_dict(data["materials"]),
         )
+
+    def to_json(self) -> str:
+        """Serialize the eye model to a JSON string.
+
+        Returns
+        -------
+        str
+            A JSON representation of the eye model.
+        """
+        from visisipy import __version__  # noqa: PLC0415
+
+        data = self.to_dict()
+        data["visisipy_version"] = __version__
+        return json.dumps(data)
+
+    @classmethod
+    def from_json(cls, data: str) -> EyeModel:
+        """Create an eye model from a JSON string.
+
+        Parameters
+        ----------
+        data : str
+            A JSON string representing an eye model.
+
+        Returns
+        -------
+        EyeModel
+            An eye model instance reconstructed from ``data``.
+
+        Raises
+        ------
+        ValueError
+            If the JSON does not contain a ``"visisipy_version"`` key.
+        """
+        parsed = json.loads(data)
+        if "visisipy_version" not in parsed:
+            raise ValueError(_JSON_NOT_VISISIPY_MESSAGE)
+        parsed.pop("visisipy_version")
+        return cls.from_dict(parsed)
+
+    def save_json(self, filename: str | PathLike) -> None:
+        """Save the eye model as JSON.
+
+        Parameters
+        ----------
+        filename : str | PathLike
+            Path to the output JSON file.
+        """
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(self.to_json())
+
+    @classmethod
+    def load_json(cls, filename: str | PathLike) -> EyeModel:
+        """Load an eye model from a JSON file.
+
+        Parameters
+        ----------
+        filename : str | PathLike
+            Path to the input JSON file.
+
+        Returns
+        -------
+        EyeModel
+            An eye model instance reconstructed from the JSON file.
+        """
+        with open(filename, encoding="utf-8") as f:
+            return cls.from_json(f.read())
 
 
 class BaseSurface(ABC):
