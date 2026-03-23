@@ -310,8 +310,8 @@ class TestEyeGeometryDict:
         assert reconstructed.vitreous_thickness == pytest.approx(example_geometry.vitreous_thickness)
 
 
-ALL_EYE_GEOMETRIES = _get_eye_geometry_registry()
-ALL_MATERIALS = _get_materials_registry()
+ALL_EYE_GEOMETRIES = _get_eye_geometry_registry().copy()  # Make a copy to avoid mutation during tests
+ALL_MATERIALS = _get_materials_registry().copy()  # Make a copy to avoid mutation during tests
 ALL_MATERIALS.pop("EyeMaterials")  # Remove base class to avoid redundant test cases
 
 
