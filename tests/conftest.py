@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, Literal
 import pytest
 
 from visisipy import EyeGeometry, EyeMaterials, EyeModel
-from visisipy.backend import BackendType, BaseBackend
 from visisipy.models.geometry import NoSurface, StandardSurface, Stop
 from visisipy.models.materials import MaterialModel
 
@@ -15,6 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
     from pathlib import Path
 
+    from visisipy.backend import BaseBackend
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.optiland.backend import OptilandBackend, OptilandSettings
 
@@ -184,16 +184,16 @@ def optiland_backend(optiland_backend_settings) -> Generator[type[OptilandBacken
 
 @pytest.fixture(
     params=[
-        pytest.param(BackendType.OPTICSTUDIO, marks=[pytest.mark.windows_only, pytest.mark.needs_opticstudio]),
-        BackendType.OPTILAND,
+        pytest.param("opticstudio", marks=[pytest.mark.windows_only, pytest.mark.needs_opticstudio]),
+        "optiland",
     ]
 )
 def configure_backend(request) -> BaseBackend:
     """Iterate over available backends for testing."""
-    if request.param == BackendType.OPTICSTUDIO:
+    if request.param == "opticstudio":
         return request.getfixturevalue("opticstudio_backend")
 
-    if request.param == BackendType.OPTILAND:
+    if request.param == "optiland":
         return request.getfixturevalue("optiland_backend")
 
     raise ValueError(f"Unknown backend type: {request.param}")

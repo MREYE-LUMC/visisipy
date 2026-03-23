@@ -10,7 +10,7 @@ from warnings import warn
 import zospy as zp
 from zospy.zpcore import OpticStudioSystem
 
-from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BackendType, BaseBackend, _classproperty
+from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BaseBackend, _classproperty
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
@@ -57,7 +57,7 @@ OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
 class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
     """OpticStudio backend."""
 
-    type = BackendType.OPTICSTUDIO
+    type = "opticstudio"
 
     zos: ZOS | None = None
     oss: OpticStudioSystem | None = None
