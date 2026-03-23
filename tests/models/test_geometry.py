@@ -184,6 +184,13 @@ class TestEyeGeometry:
         )
         assert example_geometry.vitreous_thickness == vitreous_thickness
 
+    def test_repr(self, example_geometry):
+        repr_str = repr(example_geometry)
+        repr_regex = re.compile(
+            r"^EyeGeometry\(\s*cornea_front=StandardSurface\(.*?\),\s*cornea_back=StandardSurface\(.*?\),\s*pupil=Stop\(.*?\),\s*lens_front=StandardSurface\(.*?\),\s*lens_back=StandardSurface\(.*?\),\s*retina=StandardSurface\(.*?\)\s*\)$"
+        )
+
+        assert repr_regex.match(repr_str)
 
     def test_equality(self, example_geometry):
         identical_geometry = EyeGeometry(

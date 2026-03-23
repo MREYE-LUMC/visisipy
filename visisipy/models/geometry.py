@@ -683,6 +683,19 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
             retina=cast("StandardSurface", Surface.from_dict(data["retina"])),
         )
 
+    def __repr__(self) -> str:
+        name = self.__class__.__name__
+        surfaces = {
+            "cornea_front": self.cornea_front,
+            "cornea_back": self.cornea_back,
+            "pupil": self.pupil,
+            "lens_front": self.lens_front,
+            "lens_back": self.lens_back,
+            "retina": self.retina,
+        }
+
+        return f"{name}({', '.join(f'{k}={v!r}' for k, v in surfaces.items())})"
+
     def __key(self):
         """Helper method to generate a tuple of the eye geometry's attributes for hashing and equality checks."""
         return (
@@ -699,6 +712,7 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
             return NotImplemented
 
         return self.__key() == other.__key()
+
 
 @cache
 def _get_surface_registry() -> dict[str, type[Surface]]:
