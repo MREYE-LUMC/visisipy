@@ -383,7 +383,10 @@ class TestEyeModelDict:
         data = model.to_dict()
         json_data = json.dumps(data)
 
-        with pytest.raises(ValueError, match='missing required "visisipy_version" key'):
+        with pytest.raises(
+            ValueError,
+            match="JSON data is missing required 'visisipy_version' key. Ensure the data was created with EyeModel.to_json().",
+        ):
             EyeModel.from_json(json_data)
 
     def test_save_and_load_json(self, tmp_path):
