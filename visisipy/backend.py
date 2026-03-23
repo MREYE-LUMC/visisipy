@@ -54,6 +54,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "DEFAULT_BACKEND_SETTINGS",
+    "BackendAccessError",
     "BackendSettings",
     "BackendType",
     "BaseBackend",
@@ -364,6 +365,10 @@ class BaseBackend(ABC, Generic[_Settings]):
         Path(filename).write_text(json.dumps(cls.settings, indent=4, sort_keys=True), encoding="utf-8")
 
 
+class BackendAccessError(RuntimeError):
+    """Error raised when trying to access unavailable or non-initialized backend features."""
+
+
 BackendType = Literal["opticstudio", "optiland"]
 
 
@@ -437,39 +442,38 @@ def get_backend() -> type[BaseBackend]:
     return cast("type[BaseBackend]", _BACKEND)
 
 
-def get_oss() -> OpticStudioSystem | None:
+def get_oss() -> OpticStudioSystem:
     """Get the OpticStudioSystem instance from the current backend.
 
     Returns
     -------
-    OpticStudioSystem | None
-        The OpticStudioSystem instance if the current backend is the OpticStudio backend, otherwise `None`.
+    OpticStudioSystem
+        The OpticStudioSystem instance if the OpticStudio backend is currently initialized.
+
+    Raises
+    ------
+    BackendAccessError
+        If the OpticStudioBackend is not currently initialized, or if the platform is not Windows.
     """
     if platform.system() != "Windows":
-        return None
+        raise BackendAccessError("The OpticStudio backend is only available on Windows.")
 
     from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
-    if _BACKEND is OpticStudioBackend:
-        return OpticStudioBackend.oss
-
-    return None
+    return OpticStudioBackend.get_oss()
 
 
-def get_optic() -> Optic | None:
+def get_optic() -> Optic:
     """Get the Optic instance from the current backend.
 
     Returns
     -------
     Optic
-        The Optic instance if the current backend is the Optiland backend, otherwise `None`.
+        The Optic instance if the Optiland backend is currently initialized.
     """
     from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
-    if _BACKEND is OptilandBackend:
-        return OptilandBackend.optic
-
-    return None
+    return OptilandBackend.get_optic()
 
 
 def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack[BackendSettings]):
@@ -501,13 +505,13 @@ def save_model(filename: str | PathLike | None = None) -> None:
 
     Raises
     ------
-    RuntimeError
+    BackendAccessError
         If no model is currently loaded in the backend.
     """
     backend = get_backend()
 
     if backend.model is None:
-        raise RuntimeError("No model is currently loaded in the backend.")
+        raise BackendAccessError("No model is currently loaded in the backend.")
 
     backend.save_model(filename)
 
@@ -527,7 +531,7 @@ def load_model(filename: str | PathLike, *, apply_settings: bool = False) -> Non
 
     Raises
     ------
-    RuntimeError
+    BackendAccessError
         If an OpticStudio file is specified on a non-Windows platform.
         If the model could not be loaded.
     ValueError
@@ -540,7 +544,7 @@ def load_model(filename: str | PathLike, *, apply_settings: bool = False) -> Non
     if filename.suffix.lower() in {".zmx", ".zos"}:
         if platform.system() != "Windows":
             msg = f"Cannot load {filename.suffix}. The OpticStudio backend is only available on Windows."
-            raise RuntimeError(msg)
+            raise BackendAccessError(msg)
         load_backend = "opticstudio"
     elif filename.suffix.lower() == ".json":
         load_backend = "optiland"
