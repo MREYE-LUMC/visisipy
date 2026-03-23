@@ -64,6 +64,8 @@ def _plot_surface(
     -------
     Path
         A `matplotlib.path.Path` object with the surface.
+    float
+        y-coordinate of the segment's end point, if `return_endpoint` is `True`.
 
     Arguments
     ---------
@@ -78,13 +80,6 @@ def _plot_surface(
         Position coordinate at which the surface is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-
-    Returns
-    -------
-    Path
-        A `matplotlib.path.Path` object with the surface.
-    float
-        y-coordinate of the segment's end point, if `return_endpoint` is `True`.
     """
     # Special case: radius = 0 means a flat (vertical) surface
     if radius == 0:
@@ -164,6 +159,11 @@ def _plot_ellipse(
     float
         y-coordinate of the segment's end point.
 
+    Raises
+    ------
+    ValueError
+        If cutoff is located outside the domain of the ellipse.
+
     Arguments
     ---------
     position : float
@@ -176,11 +176,6 @@ def _plot_ellipse(
         x-coordinate at which the ellipse is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-
-    Raises
-    ------
-    ValueError
-        If cutoff is located outside the domain of the ellipse.
     """
     rx, ry = _get_ellipse_sizes(radius, conic)
 
@@ -242,6 +237,11 @@ def _plot_parabola(
     float
         y-coordinate of the segment's end point.
 
+    Raises
+    ------
+    ValueError
+        If cutoff is located outside the domain of the parabola.
+
     Arguments
     ---------
     position : float
@@ -252,11 +252,6 @@ def _plot_parabola(
         x-coordinate at which the parabola is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-
-    Raises
-    ------
-    ValueError
-        If cutoff is located outside the domain of the parabola.
     """
     a = radius / 2  # The radius of curvature of a parabola is twice its focal length
 
@@ -325,6 +320,11 @@ def _plot_hyperbola(
     float
         y-coordinate of the segment's end point.
 
+    Raises
+    ------
+    ValueError
+        If cutoff is located outside the domain of the hyperbola.
+
     Arguments
     ---------
     position : float
@@ -337,11 +337,6 @@ def _plot_hyperbola(
         x-coordinate at which the hyperbola is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
-
-    Raises
-    -------
-    ValueError
-        If cutoff is located outside the domain of the hyperbola.
     """
     a, b = _get_hyperbola_sizes(radius, conic)
 
@@ -404,7 +399,6 @@ def _parabola(x, rx) -> float:
     -------
     float
         y-coordinate of the parabola at the given x-coordinate.
-
     """
 
     return 2 * np.sqrt(rx * x)
