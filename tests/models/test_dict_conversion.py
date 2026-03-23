@@ -314,6 +314,7 @@ ALL_EYE_GEOMETRIES = _get_eye_geometry_registry()
 ALL_MATERIALS = _get_materials_registry()
 ALL_MATERIALS.pop("EyeMaterials")  # Remove base class to avoid redundant test cases
 
+
 class TestEyeModelDict:
     def test_to_dict_keys(self):
         model = EyeModel()
@@ -358,7 +359,6 @@ class TestEyeModelDict:
 
         assert type(reconstructed.geometry) is type(model.geometry)
         assert reconstructed.geometry == model.geometry
-
 
     @pytest.mark.parametrize("geometry_type", ALL_EYE_GEOMETRIES.values())
     @pytest.mark.parametrize("materials_type", ALL_MATERIALS.values())
