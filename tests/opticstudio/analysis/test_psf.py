@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from contextlib import nullcontext as does_not_raise
 
 import numpy as np
@@ -190,7 +191,8 @@ class TestStrehlRatioAnalysis:
             (
                 "invalid",
                 pytest.raises(
-                    NotImplementedError, match="PSF type 'invalid' is not implemented. Only 'huygens' is supported."
+                    NotImplementedError,
+                    match=re.escape("PSF type 'invalid' is not implemented. Only 'huygens' is supported."),
                 ),
             ),
         ],

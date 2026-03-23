@@ -95,7 +95,7 @@ class TestBiconicSurface:
 
 class TestZernikeSurfaces:
     def test_base_zernike_standard_surface_raises_typeerror(self):
-        with pytest.raises(TypeError, match="Cannot instantiate abstract class BaseZernikeStandardSurface."):
+        with pytest.raises(TypeError, match=re.escape("Cannot instantiate abstract class BaseZernikeStandardSurface.")):
             BaseZernikeStandardSurface(zernike_coefficients={}, maximum_term=None)
 
     @pytest.mark.parametrize("surface_type", [ZernikeStandardSagSurface, ZernikeStandardPhaseSurface])
@@ -111,7 +111,8 @@ class TestZernikeSurfaces:
                 1,
                 1,
                 pytest.raises(
-                    ValueError, match="The Zernike coefficients contain terms that are greater than the maximum term."
+                    ValueError,
+                    match=re.escape("The Zernike coefficients contain terms that are greater than the maximum term."),
                 ),
             ),
         ],

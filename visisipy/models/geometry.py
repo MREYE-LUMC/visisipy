@@ -13,10 +13,10 @@ from visisipy.types import TypedDict
 from visisipy.wavefront import ZernikeCoefficients
 
 # Use typing_extensions.TypeVar for Python <3.13 to support default values for type variables
-if version_info < (3, 13):
-    from typing_extensions import TypeVar
-else:
+if version_info >= (3, 13):
     from typing import TypeVar
+else:
+    from typing_extensions import TypeVar
 
 __all__ = (
     "BiconicSurface",

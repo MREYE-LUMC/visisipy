@@ -174,7 +174,19 @@ class BaseOptilandSurface(BaseSurface, ABC):
         return self.surface.semi_aperture  # type: ignore
 
     def _get_material(self) -> MaterialModel | str | None:
-        """Get the material of the surface."""
+        """Get the material of the surface.
+
+        Returns
+        -------
+        MaterialModel | str | None
+            The material of the surface. This can be either a string representing the name of the material or a
+            MaterialModel instance.
+
+        Raises
+        ------
+        TypeError
+            If the material of the surface is not a string or a MaterialModel instance.
+        """
         if not self._is_built:
             return None
 
@@ -523,7 +535,14 @@ class OptilandZernikeStandardSagSurface(BaseOptilandSurface):
         norm_radius: float = 100,
         zernike_coefficients: ZernikeCoefficients | dict[int, float] | None = None,
     ) -> None:
-        """Create a new Zernike Optiland surface."""
+        """Create a new Zernike Optiland surface.
+
+        Raises
+        ------
+        ValueError
+            If `zernike_coefficients` contains a coefficient with an index greater than `number_of_terms`.
+            If any of the coefficients in `zernike_coefficients` have a non-positive index.
+        """
         super().__init__()
 
         self._comment = comment
@@ -547,7 +566,7 @@ class OptilandZernikeStandardSagSurface(BaseOptilandSurface):
         self._zernike_coefficients = (
             zernike_coefficients
             if zernike_coefficients is not None
-            else ZernikeCoefficients({i: 0 for i in range(1, number_of_terms + 1)})
+            else ZernikeCoefficients(dict.fromkeys(range(1, number_of_terms + 1), 0))
         )
 
     @_built_only_property

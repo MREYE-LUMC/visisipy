@@ -42,7 +42,13 @@ if TYPE_CHECKING:
 
 
 def model() -> EyeModel:
-    """Create the eye model used for generating the test data."""
+    """Create the eye model used for generating the test data.
+
+    Returns
+    -------
+    EyeModel
+        The eye model used for generating the test data.
+    """
     materials = NavarroMaterials543()
     geometry = EyeGeometry(
         cornea_front=BiconicSurface(
@@ -58,7 +64,13 @@ def model() -> EyeModel:
 
 
 def initialize_backends() -> list[type[BaseBackend]]:
-    """Initialize the backends with the default settings for generating the test data."""
+    """Initialize the backends with the default settings for generating the test data.
+
+    Returns
+    -------
+    list[type[BaseBackend]]
+        The initialized backends.
+    """
     OpticStudioBackend.initialize(**OPTICSTUDIO_BACKEND_SETTINGS)
     OptilandBackend.initialize(**OPTILAND_BACKEND_SETTINGS)
 
@@ -72,7 +84,18 @@ _BACKEND_SETTINGS: dict[type[BaseBackend], BackendSettings] = {
 
 
 def reset_backend_settings(backend: type[BaseBackend]) -> None:
-    """Reset the backend settings to the default values for generating the test data."""
+    """Reset the backend settings to the default values for generating the test data.
+
+    Parameters
+    ----------
+    backend : type[BaseBackend]
+        The backend for which to reset the settings.
+
+    Raises
+    ------
+    ValueError
+        If an unknown backend type is encountered.
+    """
     if backend not in _BACKEND_SETTINGS:
         raise ValueError(f"Unknown backend type: {backend}")
 
@@ -81,7 +104,22 @@ def reset_backend_settings(backend: type[BaseBackend]) -> None:
 
 
 def get_file_name(test_name: str, backend_name: str, **extra_settings: str) -> Path:
-    """Generate a file name for the test data based on the test name, backend name, and extra settings."""
+    """Generate a file name for the test data based on the test name, backend name, and extra settings.
+
+    Parameters
+    ----------
+    test_name : str
+        The name of the test for which to generate the file name.
+    backend_name : str
+        The name of the backend for which to generate the file name.
+    extra_settings : dict[str, str]
+        Additional settings to include in the file name as key-value pairs.
+
+    Returns
+    -------
+    Path
+        The generated file name as a Path object.
+    """
     file_name = f"{test_name}_{backend_name}"
 
     if extra_settings:

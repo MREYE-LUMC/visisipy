@@ -241,7 +241,7 @@ def plot_refractive_indices(
     wavelengths: np.ndarray,
     material_models: dict[str, MaterialModel],
 ) -> None:
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
 
     for (structure, material_model), color in zip(material_models.items(), TABLEAU_COLORS, strict=False):
         refractive_indices_opticstudio = opticstudio_calculate_refractive_indices(oss, wavelengths, material_model)

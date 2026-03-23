@@ -261,6 +261,11 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         path : str | PathLike | None, optional
             The path where the model should be saved. If None, the model is saved in the current working directory.
             The file extension must be .json.
+
+        Raises
+        ------
+        ValueError
+            If the file extension of the provided path is not .json.
         """
         if path is None:
             path = "model.json"
@@ -305,7 +310,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if cls.optic is None:
             raise BackendAccessError("No optic object initialized. Please initialize the backend first.")
 
-        return cast(Optic, cls.optic)
+        return cast("Optic", cls.optic)
 
     @classmethod
     def get_aperture(cls) -> tuple[ApertureType, float]:
@@ -315,6 +320,11 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         -------
         tuple[str, float]
             A tuple containing the aperture type and value.
+
+        Raises
+        ------
+        ValueError
+            If the aperture type in the optical system is not recognized.
         """
         optiland_aperture_type = cls.get_optic().aperture.ap_type
         aperture_value: float = cls.get_optic().aperture.value
@@ -368,6 +378,11 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         -------
         FieldType
             The current field type, either "angle" or "object_height".
+
+        Raises
+        ------
+        ValueError
+            If the field type in the optical system is not recognized.
         """
         optiland_field_type = cls.get_optic().field_definition
 
@@ -462,6 +477,11 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         ----------
         wavelengths : Sequence[float]
             A sequence of wavelengths to be set for the optical system.
+
+        Raises
+        ------
+        ValueError
+            If no wavelengths are provided.
         """
         if len(wavelengths) == 0:
             raise ValueError("At least one wavelength must be provided.")
@@ -551,6 +571,13 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             The precision to use for the 'torch' backend. Must be one of 'float32' or 'float64'. Defaults to 'float32'.
         torch_use_grad_mode : bool, optional
             Whether to enable gradient mode for the 'torch' backend. Defaults to False.
+
+        Raises
+        ------
+        ValueError
+            If an invalid backend is provided.
+            If an invalid torch_device is provided.
+            If an invalid torch_precision is provided.
         """
         if backend not in {"numpy", "torch"}:
             raise ValueError("computation_backend must be either 'numpy' or 'torch'.")

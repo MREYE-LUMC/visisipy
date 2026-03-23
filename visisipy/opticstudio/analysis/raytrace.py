@@ -73,6 +73,13 @@ def raytrace(
     -------
     DataFrame
         A pandas DataFrame containing the results of the ray trace analysis.
+    list[SingleRayTraceResult]
+        A list of the raw analysis results from the backend for each field and wavelength combination.
+
+    Raises
+    ------
+    ValueError
+        If the pupil coordinates are not between -1 and 1, or if the ray trace analysis fails for any field and wavelength combination.
     """
     if abs(pupil[0]) > 1 or abs(pupil[1]) > 1:
         raise ValueError("Pupil coordinates must be between -1 and 1.")

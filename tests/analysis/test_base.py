@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
@@ -94,7 +95,9 @@ class TestAnalysisDecorator:
 
         with pytest.raises(
             ValueError,
-            match="The 'model' parameter of an analysis function must have type 'EyeModel | None', got 'str'",
+            match=re.escape(
+                "The 'model' parameter of an analysis function must have type 'EyeModel | None', got 'str'"
+            ),
         ):
             base.analysis(example_analysis)
 

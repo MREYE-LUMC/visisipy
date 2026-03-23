@@ -50,6 +50,13 @@ def fft_psf(
     -------
     DataFrame
         The PSF data as a pandas DataFrame.
+    DataFrame
+        The raw PSF data from OpticStudio as a pandas DataFrame.
+
+    Raises
+    ------
+    ValueError
+        If the FFT PSF analysis fails or returns no data.
     """
 
     if not isinstance(sampling, SampleSize):
@@ -124,6 +131,13 @@ def _opticstudio_batch_raytrace(
     -------
     list[RayTraceResult]
         List of RayTraceResult objects containing the results of the ray trace.
+
+    Raises
+    ------
+    ValueError
+        If `p_x` and `p_y` do not have the same length.
+    RuntimeError
+        If the ray trace analysis fails or returns no data.
     """
     if len(p_x) != len(p_y):
         raise ValueError("p_x and p_y must have the same length")

@@ -439,7 +439,7 @@ def get_backend() -> type[BaseBackend]:
     if _BACKEND is None:
         set_backend(_DEFAULT_BACKEND)
 
-    return cast(type[BaseBackend], _BACKEND)
+    return cast("type[BaseBackend]", _BACKEND)
 
 
 def get_oss() -> OpticStudioSystem:
@@ -492,11 +492,6 @@ def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack
         The backend to update. If `None`, the current backend is used.
     **settings : Unpack[BackendSettings]
         The settings to update. The keys and values should match the backend's configuration schema.
-
-    Raises
-    ------
-    ValueError
-        If the settings are not valid for the current backend.
     """
     if backend is None:
         backend = get_backend()
