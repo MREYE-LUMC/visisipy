@@ -108,11 +108,6 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         -------
         OpticStudioAnalysisRegistry
             The `OptilandAnalysisRegistry` instance.
-
-        Raises
-        ------
-        BackendAccessError
-            If the Optiland backend has not been initialized.
         """
         if cls._analysis is None:
             cls._analysis = OptilandAnalysisRegistry(cls)

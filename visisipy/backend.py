@@ -470,11 +470,6 @@ def get_optic() -> Optic:
     -------
     Optic
         The Optic instance if the Optiland backend is currently initialized.
-
-    Raises
-    ------
-    BackendAccessError
-        If the OptilandBackend is not currently initialized.
     """
     from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
@@ -536,8 +531,6 @@ def load_model(filename: str | PathLike, *, apply_settings: bool = False) -> Non
 
     Raises
     ------
-    FileNotFoundError
-        If the specified file does not exist.
     BackendAccessError
         If an OpticStudio file is specified on a non-Windows platform.
         If the model could not be loaded.

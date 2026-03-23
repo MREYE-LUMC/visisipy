@@ -126,13 +126,14 @@ class TestGetModels:
     @pytest.mark.windows_only
     def test_get_oss_no_opticstudio_backend(self, mock_optiland_backend):
         with pytest.raises(
-            backend.BackendAccessError, match="No OpticStudio system initialized. Please initialize the backend first."
+            backend.BackendAccessError,
+            match=re.escape("No OpticStudio system initialized. Please initialize the backend first."),
         ):
             backend.get_oss()
 
     @pytest.mark.skipif(platform.system() == "Windows", reason="OpticStudio backend is available on Windows")
     def test_get_oss_no_windows(self, mock_optiland_backend):
-        with pytest.raises(backend.BackendAccessError, match="The OpticStudio backend is only available on Windows."):
+        with pytest.raises(backend.BackendAccessError, match="The OpticStudio backend is only available on Windows"):
             backend.get_oss()
 
     def test_get_optic(self, optiland_backend, mocker: MockerFixture):
@@ -144,7 +145,8 @@ class TestGetModels:
         mocker.patch.object(optiland_backend, "optic", new=None)
 
         with pytest.raises(
-            backend.BackendAccessError, match="No optic object initialized. Please initialize the backend first."
+            backend.BackendAccessError,
+            match=re.escape("No optic object initialized. Please initialize the backend first."),
         ):
             backend.get_optic()
 
