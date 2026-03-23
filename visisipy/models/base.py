@@ -170,7 +170,7 @@ class EyeModel:
 
         data = self.to_dict()
         data["visisipy_version"] = __version__
-        return json.dumps(data)
+        return json.dumps(data, allow_nan=True, indent=4)
 
     @classmethod
     def from_json(cls, data: str) -> EyeModel:
