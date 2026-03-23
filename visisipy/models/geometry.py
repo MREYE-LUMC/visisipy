@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
+from functools import cache
 from sys import version_info
-from typing import Generic, NamedTuple
+from typing import Any, Generic, NamedTuple, cast
 
 import numpy as np
 
+from visisipy.models.helpers import _collect_subclasses
 from visisipy.types import TypedDict
 from visisipy.wavefront import ZernikeCoefficients
 
@@ -41,6 +43,49 @@ class Surface(ABC):  # noqa: B024
     """
 
     thickness: float = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the surface to a dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary representation of the surface, including a ``"type"`` key with the class name.
+        """
+        result: dict[str, Any] = {"type": type(self).__name__}
+        for f in fields(self):
+            result[f.name] = getattr(self, f.name)
+        return result
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Surface:
+        """Create a surface from a dictionary.
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            A dictionary with the surface parameters. Must contain a ``"type"`` key with the class name.
+
+        Returns
+        -------
+        Surface
+            A surface instance of the class specified by ``data["type"]``.
+
+        Raises
+        ------
+        ValueError
+            If the ``"type"`` value in ``data`` does not correspond to a known surface class.
+        """
+        data = dict(data)
+        type_name = data.pop("type", cls.__name__)
+        registry = _get_surface_registry()
+        target_cls = registry.get(type_name)
+        if target_cls is None:
+            msg = f"Unknown surface type: {type_name!r}"
+            raise ValueError(msg)
+        init_field_names = {f.name for f in fields(target_cls) if f.init}
+        kwargs = {k: v for k, v in data.items() if k in init_field_names}
+        return target_cls(**kwargs)
 
 
 class _EllipsoidRadii(NamedTuple):
@@ -265,6 +310,21 @@ class BaseZernikeStandardSurface(StandardSurface, ABC):
 
         self.zernike_coefficients = ZernikeCoefficients(self.zernike_coefficients)
 
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the surface to a dictionary.
+
+        Overrides :meth:`Surface.to_dict` to serialize :class:`~visisipy.wavefront.ZernikeCoefficients`
+        as a plain dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary representation of the surface, including a ``"type"`` key with the class name.
+        """
+        result = super().to_dict()
+        result["zernike_coefficients"] = dict(self.zernike_coefficients)
+        return result
+
 
 @dataclass
 class ZernikeStandardSagSurface(BaseZernikeStandardSurface):
@@ -373,7 +433,7 @@ class EyeModelSurfaces(TypedDict, total=False):
     retina: StandardSurface
 
 
-class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBack, _Retina]):
+class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBack, _Retina]):  # noqa: PLW1641
     """Geometric parameters of an eye.
 
     Sizes are specified in mm. This class is mainly intended as a base class for more specific eye models.
@@ -569,3 +629,116 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
 
     def reverse(self):
         raise NotImplementedError
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the eye geometry to a dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            A dictionary representation of the eye geometry, including a ``"type"`` key with the class name
+            and the serialized surfaces.
+        """
+        return {
+            "type": type(self).__name__,
+            "cornea_front": self.cornea_front.to_dict(),
+            "cornea_back": self.cornea_back.to_dict(),
+            "pupil": self.pupil.to_dict(),
+            "lens_front": self.lens_front.to_dict(),
+            "lens_back": self.lens_back.to_dict(),
+            "retina": self.retina.to_dict(),
+        }
+
+    @classmethod
+    def from_dict(
+        cls, data: dict[str, Any]
+    ) -> EyeGeometry[Surface, Surface, Surface, Surface, Surface, StandardSurface]:
+        """Create an eye geometry from a dictionary.
+
+        Parameters
+        ----------
+        data : dict[str, Any]
+            A dictionary with the eye geometry parameters, as produced by :meth:`to_dict`.
+
+        Returns
+        -------
+        EyeGeometry
+            An :class:`EyeGeometry` instance with surfaces reconstructed from ``data``.
+        """
+        data = dict(data)
+
+        type_name = data.pop("type", cls.__name__)
+        registry = _get_eye_geometry_registry()
+        target_cls = registry.get(type_name)
+        if target_cls is None:
+            msg = f"Unknown geometry type: {type_name!r}"
+            raise ValueError(msg)
+
+        return target_cls(
+            cornea_front=Surface.from_dict(data["cornea_front"]),
+            cornea_back=Surface.from_dict(data["cornea_back"]),
+            pupil=Surface.from_dict(data["pupil"]),
+            lens_front=Surface.from_dict(data["lens_front"]),
+            lens_back=Surface.from_dict(data["lens_back"]),
+            retina=cast("StandardSurface", Surface.from_dict(data["retina"])),
+        )
+
+    def __repr__(self) -> str:
+        name = self.__class__.__name__
+        surfaces = {
+            "cornea_front": self.cornea_front,
+            "cornea_back": self.cornea_back,
+            "pupil": self.pupil,
+            "lens_front": self.lens_front,
+            "lens_back": self.lens_back,
+            "retina": self.retina,
+        }
+
+        return f"{name}({', '.join(f'{k}={v!r}' for k, v in surfaces.items())})"
+
+    def __key(self):
+        """Helper method to generate a tuple of the eye geometry's attributes for hashing and equality checks."""
+        return (
+            self.cornea_front,
+            self.cornea_back,
+            self.pupil,
+            self.lens_front,
+            self.lens_back,
+            self.retina,
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, EyeGeometry):
+            return NotImplemented
+
+        return self.__key() == other.__key()
+
+
+@cache
+def _get_surface_registry() -> dict[str, type[Surface]]:
+    """Build a registry of all :class:`Surface` subclasses by recursively collecting ``__subclasses__``.
+
+    Returns
+    -------
+    dict[str, type[Surface]]
+        Mapping from class name to class for :class:`Surface` and all its subclasses.
+    """
+    registry: dict[str, type[Surface]] = {}
+    _collect_subclasses(Surface, registry)
+    return registry
+
+
+@cache
+def _get_eye_geometry_registry() -> dict[
+    str, type[EyeGeometry[Surface, Surface, Surface, Surface, Surface, StandardSurface]]
+]:
+    """Build a registry of all :class:`EyeGeometry` subclasses by recursively collecting ``__subclasses__``.
+
+    Returns
+    -------
+    dict[str, type[EyeGeometry]]
+        Mapping from class name to class for :class:`EyeGeometry` and all its subclasses.
+    """
+    registry: dict[str, type[EyeGeometry[Surface, Surface, Surface, Surface, Surface, StandardSurface]]] = {}
+    _collect_subclasses(EyeGeometry, registry)
+    return registry
