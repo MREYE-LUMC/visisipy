@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass, field, fields
+from functools import cache
 from sys import version_info
-from typing import Any, Generic, NamedTuple
+from typing import Any, Generic, NamedTuple, cast
 
 import numpy as np
 
+from visisipy.models.helpers import _collect_subclasses
 from visisipy.types import TypedDict
 from visisipy.wavefront import ZernikeCoefficients
 
@@ -648,7 +650,9 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> EyeGeometry:
+    def from_dict(
+        cls, data: dict[str, Any]
+    ) -> EyeGeometry[Surface, Surface, Surface, Surface, Surface, StandardSurface]:
         """Create an eye geometry from a dictionary.
 
         Parameters
@@ -669,10 +673,11 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
             pupil=Surface.from_dict(data["pupil"]),
             lens_front=Surface.from_dict(data["lens_front"]),
             lens_back=Surface.from_dict(data["lens_back"]),
-            retina=Surface.from_dict(data["retina"]),
+            retina=cast("StandardSurface", Surface.from_dict(data["retina"])),
         )
 
 
+@cache
 def _get_surface_registry() -> dict[str, type[Surface]]:
     """Build a registry of all :class:`Surface` subclasses by recursively collecting ``__subclasses__``.
 
@@ -684,9 +689,3 @@ def _get_surface_registry() -> dict[str, type[Surface]]:
     registry: dict[str, type[Surface]] = {}
     _collect_subclasses(Surface, registry)
     return registry
-
-
-def _collect_subclasses(cls: type, registry: dict) -> None:
-    registry[cls.__name__] = cls
-    for subclass in cls.__subclasses__():
-        _collect_subclasses(subclass, registry)

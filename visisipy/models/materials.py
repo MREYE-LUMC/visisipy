@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import cache
 from typing import TYPE_CHECKING, Any
+
+from visisipy.models.helpers import _collect_subclasses
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -512,6 +515,7 @@ class GullstrandLeGrandAccommodatedMaterials(GullstrandLeGrandUnaccommodatedMate
     )
 
 
+@cache
 def _get_materials_registry() -> dict[str, type[EyeMaterials]]:
     """Build a registry of all :class:`EyeMaterials` subclasses by recursively collecting ``__subclasses__``.
 
@@ -523,9 +527,3 @@ def _get_materials_registry() -> dict[str, type[EyeMaterials]]:
     registry: dict[str, type[EyeMaterials]] = {}
     _collect_subclasses(EyeMaterials, registry)
     return registry
-
-
-def _collect_subclasses(cls: type, registry: dict) -> None:
-    registry[cls.__name__] = cls
-    for subclass in cls.__subclasses__():
-        _collect_subclasses(subclass, registry)
