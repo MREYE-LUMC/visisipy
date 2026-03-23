@@ -197,7 +197,6 @@ def create_geometry(
     TypeError
         If the base geometry is not a class or if it is not a subclass of EyeGeometry.
     ValueError
-        If the base geometry is not a class or if it is not a subclass of EyeGeometry.
         If the pupil-lens distance is greater than the anterior chamber depth.
         If the sum of the cornea thickness, anterior chamber depth and lens thickness is greater than or equal to the
         axial length.

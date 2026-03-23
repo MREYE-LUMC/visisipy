@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-import re
 from contextlib import nullcontext as does_not_raise
 from types import SimpleNamespace
 
@@ -86,7 +85,7 @@ class TestOpticStudioSurfaceProperty:
     def test_set_none(self):
         mock_surface = self.MockOpticStudioSurface(None)
 
-        with pytest.raises(AttributeError, match=re.escape("Cannot set attribute .+ of non-built surface")):
+        with pytest.raises(AttributeError, match=r"Cannot set attribute .+ of non-built surface"):
             mock_surface.comment = "New comment"
 
 
@@ -131,7 +130,7 @@ class TestOpticStudioSurfaceDataProperty:
     def test_set_none(self):
         mock_surface = self.MockOpticStudioSurface(None)
 
-        with pytest.raises(AttributeError, match=re.escape("Cannot set attribute .+ of non-built surface")):
+        with pytest.raises(AttributeError, match=r"Cannot set attribute .+ of non-built surface"):
             mock_surface.example_property = "New value"
 
 
