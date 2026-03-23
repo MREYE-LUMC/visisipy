@@ -16,12 +16,6 @@ if TYPE_CHECKING:
     from visisipy.models.materials import EyeMaterials
 
 
-_JSON_NOT_VISISIPY_MESSAGE = (
-    'JSON data is missing required "visisipy_version" key. '
-    "Ensure the data was created with EyeModel.to_json()."
-)
-
-
 def _get_default_geometry() -> EyeGeometry:
     """Get the default eye geometry."""
     # Import here to avoid circular imports
@@ -198,7 +192,9 @@ class EyeModel:
         """
         parsed = json.loads(data)
         if "visisipy_version" not in parsed:
-            raise ValueError(_JSON_NOT_VISISIPY_MESSAGE)
+            msg = "JSON data is missing required 'visisipy_version' key. Ensure the data was created with EyeModel.to_json()."
+            raise ValueError(msg)
+
         parsed.pop("visisipy_version")
         return cls.from_dict(parsed)
 
