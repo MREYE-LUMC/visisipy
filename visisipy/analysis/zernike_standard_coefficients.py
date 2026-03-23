@@ -96,6 +96,11 @@ def zernike_standard_coefficients(
     -------
     ZernikeCoefficients
         Zernike standard coefficients in Noll notation.
+
+    Raises
+    ------
+    ValueError
+        If `unit` is not "microns" or "waves".
     """
     if unit not in {"microns", "waves"}:
         raise ValueError('unit must be either "microns" or "waves"')

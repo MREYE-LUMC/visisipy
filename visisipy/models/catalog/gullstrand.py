@@ -89,6 +89,11 @@ class GullstrandLeGrandEyeModel(EyeModel):
         ----------
         accommodation : {'accommodated', 'unaccommodated'}
             The accommodation state of the eye. Must be either 'accommodated' or 'unaccommodated'.
+
+        Raises
+        ------
+        ValueError
+            If `accommodation` is not 'accommodated' or 'unaccommodated'.
         """
         geometry = GullstrandLeGrandGeometry(accommodation=accommodation)
 

@@ -46,7 +46,8 @@ class TestSetWavelength:
 
         with pytest.warns(UserWarning, match=f"Wavelength {new_wavelength} not found. Adding it to the system."):
             assert set_wavelength(opticstudio_backend, wavelength=new_wavelength) == 2
-            assert get_oss_wavelengths(oss) == [0.543, new_wavelength]
+
+        assert get_oss_wavelengths(oss) == [0.543, new_wavelength]
 
 
 def get_oss_fields(oss: OpticStudioSystem) -> list[tuple[float, float]]:
@@ -82,7 +83,8 @@ class TestSetField:
             UserWarning, match=re.escape(f"Field coordinate {new_field} not found. Adding it to the system.")
         ):
             assert set_field(opticstudio_backend, field_coordinate=new_field) == 2
-            assert get_oss_fields(oss) == [(0.0, 0.0), new_field]
+
+        assert get_oss_fields(oss) == [(0.0, 0.0), new_field]
 
     @pytest.mark.parametrize(
         "old_type,new_type,field,field_number",
@@ -112,4 +114,5 @@ class TestSetField:
 
         with pytest.warns(UserWarning, match=f"Changing field type from {old_type} to {new_type}."):
             assert set_field(opticstudio_backend, field_coordinate=field, field_type=new_type) == field_number
-            assert opticstudio_backend.get_field_type() == new_type
+
+        assert opticstudio_backend.get_field_type() == new_type

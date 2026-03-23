@@ -446,7 +446,7 @@ def get_backend() -> type[BaseBackend]:
     if _BACKEND is None:
         set_backend(_DEFAULT_BACKEND)
 
-    return cast(type[BaseBackend], _BACKEND)
+    return cast("type[BaseBackend]", _BACKEND)
 
 
 def get_oss() -> OpticStudioSystem | None:
@@ -495,11 +495,6 @@ def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack
         The backend to update. If `None`, the current backend is used.
     **settings : Unpack[BackendSettings]
         The settings to update. The keys and values should match the backend's configuration schema.
-
-    Raises
-    ------
-    ValueError
-        If the settings are not valid for the current backend.
     """
     if backend is None:
         backend = get_backend()
@@ -544,8 +539,6 @@ def load_model(filename: str | PathLike, *, apply_settings: bool = False) -> Non
 
     Raises
     ------
-    FileNotFoundError
-        If the specified file does not exist.
     RuntimeError
         If an OpticStudio file is specified on a non-Windows platform.
         If the model could not be loaded.

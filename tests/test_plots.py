@@ -113,8 +113,9 @@ class TestPlotEye:
 
         with pytest.warns(UserWarning, match="Convex retina detected. Drawing to maximum thickness of 5 mm"):
             result_ax = plot_eye(ax, geometry)
-            assert result_ax is ax
-            plt.close(fig)
+
+        assert result_ax is ax
+        plt.close(fig)
 
     def test_plot_eye_with_strongly_curved_retina(self):
         """Test plotting an eye with a very strongly curved retina that might not intersect lens."""

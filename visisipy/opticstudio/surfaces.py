@@ -405,7 +405,7 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
         self._number_of_terms = number_of_terms
         self._norm_radius = norm_radius
         self._zernike_coefficients = zernike_coefficients or ZernikeCoefficients(
-            {i: 0 for i in range(1, number_of_terms + 1)}
+            dict.fromkeys(range(1, number_of_terms + 1), 0)
         )
 
     number_of_terms: int = OpticStudioSurfaceDataProperty("NumberOfTerms")
@@ -429,11 +429,6 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
         -------
         float
             The value of the Zernike coefficient.
-
-        Raises
-        ------
-        ValueError
-            If `n` is less than 0 or larger than the maximum term.
         """
         self._validate_coefficient(n)
 
@@ -448,11 +443,6 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
             The Zernike coefficient to set.
         value : float
             The value of the Zernike coefficient.
-
-        Raises
-        ------
-        ValueError
-            If `n` is less than 0 or larger than the maximum term.
         """
         self._validate_coefficient(n)
 

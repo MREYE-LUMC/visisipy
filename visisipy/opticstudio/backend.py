@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 from warnings import warn
 
 import zospy as zp
-from zospy.zpcore import OpticStudioSystem
 
 from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BackendType, BaseBackend, _classproperty
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
@@ -19,7 +18,7 @@ if TYPE_CHECKING:
     from os import PathLike
 
     from zospy.api import _ZOSAPI
-    from zospy.zpcore import ZOS
+    from zospy.zpcore import ZOS, OpticStudioSystem
 
     from visisipy import EyeModel
     from visisipy.types import ApertureType, FieldCoordinate, FieldType, NotRequired, Unpack
@@ -312,7 +311,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         if cls.oss is None:
             raise RuntimeError("No OpticStudio system initialized. Please initialize the backend first.")
 
-        return cast(OpticStudioSystem, cls.oss)
+        return cast("OpticStudioSystem", cls.oss)
 
     @classmethod
     def get_aperture(cls) -> tuple[ApertureType, float]:
@@ -406,6 +405,11 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         -------
         FieldType
             The field type of the optical system, either "angle" or "object_height".
+
+        Raises
+        ------
+        ValueError
+            If the field type in the optical system is not supported.
         """
         field_type = cls.get_oss().SystemData.Fields.GetFieldType()
         if field_type == zp.constants.SystemData.FieldType.Angle:
@@ -547,6 +551,11 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         ----------
         wavelengths : Sequence[float]
             A sequence of wavelengths to be set for the optical system.
+
+        Raises
+        ------
+        ValueError
+            If no wavelengths are provided.
         """
         if len(wavelengths) == 0:
             raise ValueError("At least one wavelength must be provided.")
@@ -609,7 +618,13 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
     @classmethod
     def iter_fields(cls) -> Generator[tuple[int, _ZOSAPI.SystemData.IField], Any, None]:
-        """Iterate over the fields in the optical system."""
+        """Iterate over the fields in the optical system.
+
+        Yields
+        ------
+        tuple[int, IField]
+            A tuple containing the field number and the field object.
+        """
         for i in range(cls.get_oss().SystemData.Fields.NumberOfFields):
             field = cls.get_oss().SystemData.Fields.GetField(i + 1)
 
@@ -617,7 +632,13 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
     @classmethod
     def iter_wavelengths(cls) -> Generator[tuple[int, float], Any, None]:
-        """Iterate over the wavelengths in the optical system."""
+        """Iterate over the wavelengths in the optical system.
+
+        Yields
+        ------
+        tuple[int, float]
+            A tuple containing the wavelength number and the wavelength value.
+        """
         for i in range(cls.get_oss().SystemData.Wavelengths.NumberOfWavelengths):
             yield i + 1, cls.get_oss().SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
 

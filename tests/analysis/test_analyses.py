@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import re
 from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
 import pytest
 
 import visisipy
-import visisipy.backend
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
@@ -227,7 +227,7 @@ class TestStrehlRatioAnalysis:
             ("huygens", does_not_raise()),
             (
                 "invalid",
-                pytest.raises(ValueError, match="Invalid psf_type: invalid. Must be 'fft' or 'huygens'"),
+                pytest.raises(ValueError, match=re.escape("Invalid psf_type: invalid. Must be 'fft' or 'huygens'")),
             ),
         ],
     )

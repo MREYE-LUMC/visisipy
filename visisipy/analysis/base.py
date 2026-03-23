@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 __all__ = ("_AUTOMATIC_BACKEND", "analysis")
 
 
-_AUTOMATIC_BACKEND = cast(type[BaseBackend], object())
+_AUTOMATIC_BACKEND = cast("type[BaseBackend]", object())
 """Default sentinel value for the backend parameter in analysis functions.
 
 The `backend` parameter in analysis functions is not optional, but does not need to be specified if the default
@@ -126,11 +126,6 @@ def analysis(function: Callable[..., T1 | tuple[T1, T2]]) -> Callable:
     -------
     Callable
         The analysis function.
-
-    Raises
-    ------
-    ValueError
-        If the signature of the analysis function is invalid.
     """
     _validate_analysis_signature(function)
 

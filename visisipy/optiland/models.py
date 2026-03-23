@@ -103,9 +103,11 @@ class OptilandEye(BaseEye):
 
         Raises
         ------
-        AssertionError
-            If the pupil is not located at the stop position.
-            If the retina is not located at the last surface.
+        ValueError
+            If `object_distance` is set to a finite value while the optical system is not empty.
+            If `start_from_index` is greater than the index of the last surface in the optical system.
+            If the pupil is not located at the stop position after building the eye model.
+            If the retina is not located at the image position after building the eye model.
         """
         # Create an object surface if it does not exist
         if optic.surface_group.num_surfaces != 0 and object_distance != float("inf"):

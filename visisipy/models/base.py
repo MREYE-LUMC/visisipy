@@ -16,7 +16,13 @@ if TYPE_CHECKING:
 
 
 def _get_default_geometry() -> EyeGeometry:
-    """Get the default eye geometry."""
+    """Get the default eye geometry.
+
+    Returns
+    -------
+    EyeGeometry
+        The default eye geometry.
+    """
     # Import here to avoid circular imports
     from visisipy.models.catalog.navarro import NavarroGeometry  # noqa: PLC0415
 
@@ -24,7 +30,13 @@ def _get_default_geometry() -> EyeGeometry:
 
 
 def _get_default_materials() -> EyeMaterials:
-    """Get the default eye materials."""
+    """Get the default eye materials.
+
+    Returns
+    -------
+    EyeMaterials
+        The default eye materials.
+    """
     # Import here to avoid circular imports
     from visisipy.models.materials import NavarroMaterials  # noqa: PLC0415
 
@@ -88,6 +100,13 @@ class EyeModel:
             If `True`, the existing model in the backend will be overwritten.
         object_distance : float
             Distance between the cornea front and the surface preceding the eye model.
+        **kwargs
+            Additional keyword arguments to be passed to the backend when building the model.
+
+        Returns
+        -------
+        BaseEye
+            The built eye model in the backend.
         """
         backend = _backend.get_backend()
         self._built = backend.build_model(
@@ -220,9 +239,6 @@ class BaseEye(ABC):
             New value of the surface attribute
         surfaces : list[str]
             List of surfaces to be updated. If not specified, all surfaces are updated.
-
-        Returns
-        -------
         """
         surfaces = [self.surfaces[s] for s in surface_names] if surface_names is not None else self.surfaces.values()
 

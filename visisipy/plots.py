@@ -78,6 +78,13 @@ def _plot_surface(
         Position coordinate at which the surface is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
+
+    Returns
+    -------
+    Path
+        A `matplotlib.path.Path` object with the surface.
+    float
+        y-coordinate of the segment's end point, if `return_endpoint` is `True`.
     """
     # Special case: radius = 0 means a flat (vertical) surface
     if radius == 0:
@@ -96,7 +103,20 @@ def _plot_surface(
 
 
 def _get_ellipse_sizes(radius: float, conic: float) -> tuple[float, float]:
-    """Calculate rx and ry (axial and radial radii) of an ellipse from its radius of curvature and conic."""
+    """Calculate rx and ry (axial and radial radii) of an ellipse from its radius of curvature and conic.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of curvature at the apex of the ellipse.
+    conic : float
+        Conic constant (asphericity) of the ellipse. Must be > -1.
+
+    Returns
+    -------
+    tuple[float, float]
+        A tuple containing the axial radius (rx) and radial radius (ry) of the ellipse.
+    """
     # Prolate or oblate does not matter in this case
     return radius / (conic + 1), radius / np.sqrt(conic + 1)
 
@@ -156,6 +176,11 @@ def _plot_ellipse(
         x-coordinate at which the ellipse is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
+
+    Raises
+    ------
+    ValueError
+        If cutoff is located outside the domain of the ellipse.
     """
     rx, ry = _get_ellipse_sizes(radius, conic)
 
@@ -227,6 +252,11 @@ def _plot_parabola(
         x-coordinate at which the parabola is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
+
+    Raises
+    ------
+    ValueError
+        If cutoff is located outside the domain of the parabola.
     """
     a = radius / 2  # The radius of curvature of a parabola is twice its focal length
 
@@ -307,6 +337,11 @@ def _plot_hyperbola(
         x-coordinate at which the hyperbola is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
+
+    Raises
+    -------
+    ValueError
+        If cutoff is located outside the domain of the hyperbola.
     """
     a, b = _get_hyperbola_sizes(radius, conic)
 
@@ -332,7 +367,22 @@ def _plot_hyperbola(
 
 
 def _ellipse(x, rx, ry) -> float:
-    """Upper segment of an ellipse. Used to find intersections between lens surfaces."""
+    """Upper segment of an ellipse. Used to find intersections between lens surfaces.
+
+    Parameters
+    ----------
+    x : float
+        x-coordinate relative to the ellipse center.
+    rx : float
+        Axial radius of the ellipse.
+    ry : float
+        Transverse radius of the ellipse.
+
+    Returns
+    -------
+    float
+        y-coordinate of the ellipse at the given x-coordinate.
+    """
 
     # Make sure the upper half is calculated
     ry = abs(ry)
@@ -341,13 +391,42 @@ def _ellipse(x, rx, ry) -> float:
 
 
 def _parabola(x, rx) -> float:
-    """Upper segment of a parabola. Used to find intersections between lens surfaces."""
+    """Upper segment of a parabola. Used to find intersections between lens surfaces.
+
+    Parameters
+    ----------
+    x : float
+        x-coordinate relative to the parabola vertex.
+    rx : float
+        Axial radius of curvature of the parabola.
+
+    Returns
+    -------
+    float
+        y-coordinate of the parabola at the given x-coordinate.
+
+    """
 
     return 2 * np.sqrt(rx * x)
 
 
 def _hyperbola(x, rx, ry) -> float:
-    """Upper segment of a hyperbola. Used to find intersections between lens surfaces."""
+    """Upper segment of a hyperbola. Used to find intersections between lens surfaces.
+
+    Parameters
+    ----------
+    x : float
+        x-coordinate relative to the hyperbola center.
+    rx : float
+        Axial radius of the hyperbola.
+    ry : float
+        Transverse radius of the hyperbola.
+
+    Returns
+    -------
+    float
+        y-coordinate of the hyperbola at the given x-coordinate.
+    """
 
     # Make sure the upper half is calculated
     ry = abs(ry)
@@ -356,7 +435,22 @@ def _hyperbola(x, rx, ry) -> float:
 
 
 def _lens_surface_function(radius, conic, position) -> Callable[[float], float]:
-    """Function for the upper segment of a lens surface. Used to find intersections between lens surfaces."""
+    """Function for the upper segment of a lens surface. Used to find intersections between lens surfaces.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of curvature of the lens surface.
+    conic : float
+        Conic constant (asphericity) of the lens surface.
+    position : float
+        Position of the lens surface at the optical axis.
+
+    Returns
+    -------
+    Callable[[float], float]
+        A function that takes an x-coordinate and returns the y-coordinate of the lens surface at that x-coordinate.
+    """
     if radius in {0, np.inf}:
 
         def surface_function(x: float) -> float:
@@ -387,7 +481,18 @@ def _lens_surface_function(radius, conic, position) -> Callable[[float], float]:
 
 
 def _is_ellipse(surface: StandardSurface) -> bool:
-    """Determine if a surface is an ellipse (conic > -1)."""
+    """Determine if a surface is an ellipse (conic > -1).
+
+    Parameters
+    ----------
+    surface : StandardSurface
+        The surface to check.
+
+    Returns
+    -------
+    bool
+        True if the surface is an ellipse, False otherwise.
+    """
     return surface.asphericity > -1
 
 
@@ -395,6 +500,23 @@ def _is_convex(radius: float, side: Literal["image", "object"]) -> bool:
     """Determine if a surface is convex.
 
     Convex surfaces have a positive radius on the object side and a negative radius on the image side.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of curvature of the surface.
+    side : {"image", "object"}
+        Indicates if the surface is on the image side or object side of the optical system.
+
+    Returns
+    -------
+    bool
+        True if the surface is convex, False otherwise.
+
+    Raises
+    ------
+    ValueError
+        If `side` is not set to "image" or "object".
     """
     if side == "object":
         return radius > 0
@@ -409,6 +531,18 @@ def _is_concave(radius: float, side: Literal["image", "object"]) -> bool:
     """Determine if a surface is concave (negative radius).
 
     Concave surfaces have a negative radius on the object side and a positive radius on the image side.
+
+    Parameters
+    ----------
+    radius : float
+        Radius of curvature of the surface.
+    side : {"image", "object"}
+        Indicates if the surface is on the image side or object side of the optical system.
+
+    Returns
+    -------
+    bool
+        True if the surface is concave, False otherwise.
     """
     if radius == 0:
         return False
@@ -417,7 +551,22 @@ def _is_concave(radius: float, side: Literal["image", "object"]) -> bool:
 
 
 def _find_intersection(func1: Callable[[float], float], func2: Callable[[float], float], x0: float) -> float | None:
-    """Find intersection of two surface functions. Returns None if no intersection found."""
+    """Find intersection of two surface functions. Returns `None` if no intersection found.
+
+    Parameters
+    ----------
+    func1 : Callable[[float], float]
+        First surface function.
+    func2 : Callable[[float], float]
+        Second surface function.
+    x0 : float
+        Initial guess for the intersection point.
+
+    Returns
+    -------
+    float | None
+        x-coordinate of the intersection point, or `None` if no intersection found.
+    """
     try:
         result = fsolve(lambda x: func1(x) - func2(x), x0=x0, full_output=True)
         x_intersect, _, ier, _ = result
@@ -433,6 +582,19 @@ def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list:
 
     Returns list of vertices for connecting edges: [front_top, back_top, front_bottom, back_bottom]
     or [front_top, back_bottom, front_bottom, back_top] depending on which pairing minimizes distance.
+
+    Parameters
+    ----------
+    front_surface : Path
+        Path of the front surface.
+    back_surface : Path
+        Path of the back surface.
+
+    Returns
+    -------
+    list
+        List of vertices for connecting edges: [front_top, back_top, front_bottom, back_bottom]
+        or [front_top, back_bottom, front_bottom, back_top] depending on which pairing minimizes distance.
     """
     # Get y-coordinates of endpoints
     front_y0 = front_surface.vertices[0][1]
@@ -685,6 +847,11 @@ def _set_axis_limits(
         Transversal radius of the retina.
     padding : float
         Padding in mm to add around the eye geometry.
+
+    Raises
+    ------
+    ValueError
+        If `padding` is negative.
     """
     if padding < 0:
         raise ValueError("Padding must be positive.")

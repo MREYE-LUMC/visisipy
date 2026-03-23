@@ -73,13 +73,13 @@ class TestCreateGeometry:
         assert geometry.cornea_back.radius == 0.81 * geometry.cornea_front.radius
 
     def test_base_no_class_raises_typeerror(self, base_geometry):
-        with pytest.raises(TypeError, match="The base geometry must be a class."):
+        with pytest.raises(TypeError, match=re.escape("The base geometry must be a class.")):
             create_geometry(base=base_geometry())
 
     def test_base_no_eyegeometry_raises_typeerror(self, base_geometry):
         class InvalidGeometry: ...
 
-        with pytest.raises(TypeError, match="The base geometry must be a subclass of EyeGeometry."):
+        with pytest.raises(TypeError, match=re.escape("The base geometry must be a subclass of EyeGeometry.")):
             create_geometry(base=InvalidGeometry)
 
     def test_estimate_cornea_back_and_radius_warns(self, base_geometry, example_geometry_parameters):
@@ -110,7 +110,7 @@ class TestCreateGeometry:
     def test_pupil_lens_distance_larger_than_anterior_chamber_depth_raises_valueerror(self, base_geometry):
         with pytest.raises(
             ValueError,
-            match="The pupil-lens distance cannot be greater than the anterior chamber depth.",
+            match=re.escape("The pupil-lens distance cannot be greater than the anterior chamber depth."),
         ):
             create_geometry(
                 base=base_geometry,
@@ -170,7 +170,7 @@ class TestCreateGeometry:
 
         with pytest.raises(
             ValueError,
-            match="Cannot calculate vitreous thickness from the supplied parameters.",
+            match=re.escape("Cannot calculate vitreous thickness from the supplied parameters."),
         ):
             create_geometry(base_geometry, axial_length=20)
 
@@ -184,8 +184,10 @@ class TestCreateGeometry:
     def test_invalid_vitreous_thickness_raises_valueerror(self, base_geometry, geometry_parameters):
         with pytest.raises(
             ValueError,
-            match="The sum of the cornea thickness, anterior chamber depth, and lens thickness is "
-            "greater than or equal to the axial length.",
+            match=re.escape(
+                "The sum of the cornea thickness, anterior chamber depth, and lens thickness is "
+                "greater than or equal to the axial length."
+            ),
         ):
             create_geometry(
                 base=base_geometry,

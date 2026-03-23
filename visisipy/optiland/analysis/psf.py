@@ -41,6 +41,11 @@ def _effective_pupil_sampling(pupil_sampling: int | SampleSize) -> int:
     -------
     int
         The effective pupil sampling value, which is the number of rays used to sample the wavefront in the exit pupil.
+
+    Raises
+    ------
+    ValueError
+        If `pupil_sampling` is less than 32, which is the minimum pupil sampling for FFT PSF calculation.
     """
     pupil_sampling = int(pupil_sampling)
 
@@ -98,8 +103,8 @@ def fft_psf(
 
     # psf._get_psf_units returns tuples of single-element or scalar arrays, depending on the computation backend.
     psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # noqa: SLF001
-    psf_extent_x = cast(float, psf_extent_x)
-    psf_extent_y = cast(float, psf_extent_y)
+    psf_extent_x = cast("float", psf_extent_x)
+    psf_extent_y = cast("float", psf_extent_y)
     index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
