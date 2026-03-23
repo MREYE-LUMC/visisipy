@@ -433,7 +433,7 @@ class EyeModelSurfaces(TypedDict, total=False):
     retina: StandardSurface
 
 
-class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBack, _Retina]):
+class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBack, _Retina]):  # noqa: PLW1641
     """Geometric parameters of an eye.
 
     Sizes are specified in mm. This class is mainly intended as a base class for more specific eye models.
@@ -666,8 +666,15 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
             An :class:`EyeGeometry` instance with surfaces reconstructed from ``data``.
         """
         data = dict(data)
-        data.pop("type", None)
-        return EyeGeometry(
+
+        type_name = data.pop("type", cls.__name__)
+        registry = _get_eye_geometry_registry()
+        target_cls = registry.get(type_name)
+        if target_cls is None:
+            msg = f"Unknown geometry type: {type_name!r}"
+            raise ValueError(msg)
+
+        return target_cls(
             cornea_front=Surface.from_dict(data["cornea_front"]),
             cornea_back=Surface.from_dict(data["cornea_back"]),
             pupil=Surface.from_dict(data["pupil"]),
@@ -676,6 +683,22 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
             retina=cast("StandardSurface", Surface.from_dict(data["retina"])),
         )
 
+    def __key(self):
+        """Helper method to generate a tuple of the eye geometry's attributes for hashing and equality checks."""
+        return (
+            self.cornea_front,
+            self.cornea_back,
+            self.pupil,
+            self.lens_front,
+            self.lens_back,
+            self.retina,
+        )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, EyeGeometry):
+            return NotImplemented
+
+        return self.__key() == other.__key()
 
 @cache
 def _get_surface_registry() -> dict[str, type[Surface]]:
@@ -688,4 +711,20 @@ def _get_surface_registry() -> dict[str, type[Surface]]:
     """
     registry: dict[str, type[Surface]] = {}
     _collect_subclasses(Surface, registry)
+    return registry
+
+
+@cache
+def _get_eye_geometry_registry() -> dict[
+    str, type[EyeGeometry[Surface, Surface, Surface, Surface, Surface, StandardSurface]]
+]:
+    """Build a registry of all :class:`EyeGeometry` subclasses by recursively collecting ``__subclasses__``.
+
+    Returns
+    -------
+    dict[str, type[EyeGeometry]]
+        Mapping from class name to class for :class:`EyeGeometry` and all its subclasses.
+    """
+    registry: dict[str, type[EyeGeometry[Surface, Surface, Surface, Surface, Surface, StandardSurface]]] = {}
+    _collect_subclasses(EyeGeometry, registry)
     return registry

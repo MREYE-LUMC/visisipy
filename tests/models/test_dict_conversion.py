@@ -17,6 +17,7 @@ from visisipy.models.geometry import (
     Surface,
     ZernikeStandardPhaseSurface,
     ZernikeStandardSagSurface,
+    _get_eye_geometry_registry,
 )
 from visisipy.models.materials import (
     BennettRabbettsMaterials,
@@ -29,6 +30,7 @@ from visisipy.models.materials import (
     NavarroMaterials543,
     NavarroMaterials589,
     NavarroMaterials633,
+    _get_materials_registry,
 )
 
 
@@ -308,6 +310,10 @@ class TestEyeGeometryDict:
         assert reconstructed.vitreous_thickness == pytest.approx(example_geometry.vitreous_thickness)
 
 
+ALL_EYE_GEOMETRIES = _get_eye_geometry_registry()
+ALL_MATERIALS = _get_materials_registry()
+ALL_MATERIALS.pop("EyeMaterials")  # Remove base class to avoid redundant test cases
+
 class TestEyeModelDict:
     def test_to_dict_keys(self):
         model = EyeModel()
@@ -345,20 +351,28 @@ class TestEyeModelDict:
         assert type(reconstructed.materials) is type(model.materials)
         assert reconstructed.materials == model.materials
 
-    def test_roundtrip_preserves_geometry_surfaces(self):
+    def test_roundtrip_preserves_geometry(self):
         model = EyeModel()
         data = model.to_dict()
         reconstructed = EyeModel.from_dict(data)
 
-        geometry = model.geometry
-        rec_geometry = reconstructed.geometry
+        assert type(reconstructed.geometry) is type(model.geometry)
+        assert reconstructed.geometry == model.geometry
 
-        assert rec_geometry.cornea_front == geometry.cornea_front
-        assert rec_geometry.cornea_back == geometry.cornea_back
-        assert rec_geometry.pupil == geometry.pupil
-        assert rec_geometry.lens_front == geometry.lens_front
-        assert rec_geometry.lens_back == geometry.lens_back
-        assert rec_geometry.retina == geometry.retina
+
+    @pytest.mark.parametrize("geometry_type", ALL_EYE_GEOMETRIES.values())
+    @pytest.mark.parametrize("materials_type", ALL_MATERIALS.values())
+    def test_roundtrip_full(self, geometry_type, materials_type):
+        model = EyeModel(
+            geometry=geometry_type(),
+            materials=materials_type(),
+        )
+        data = model.to_dict()
+        reconstructed = EyeModel.from_dict(data)
+
+        assert type(reconstructed.geometry) is geometry_type
+        assert type(reconstructed.materials) is materials_type
+        assert reconstructed == model
 
     def test_to_json_includes_visisipy_version(self):
         model = EyeModel()
@@ -375,8 +389,7 @@ class TestEyeModelDict:
         reconstructed = EyeModel.from_json(json_data)
 
         assert isinstance(reconstructed, EyeModel)
-        assert reconstructed.materials == model.materials
-        assert reconstructed.geometry.cornea_front == model.geometry.cornea_front
+        assert reconstructed == model
 
     def test_from_json_missing_visisipy_version_raises_valueerror(self):
         model = EyeModel()
@@ -403,3 +416,10 @@ class TestEyeModelDict:
         assert loaded.geometry.lens_front == model.geometry.lens_front
         assert loaded.geometry.lens_back == model.geometry.lens_back
         assert loaded.geometry.retina == model.geometry.retina
+
+    def test_save_json_invalid_extension_raises_valueerror(self, tmp_path):
+        model = EyeModel()
+        path = tmp_path / "eye_model.txt"
+
+        with pytest.raises(ValueError, match="Output filename must have a .json extension."):
+            model.save_json(path)

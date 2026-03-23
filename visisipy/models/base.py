@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import visisipy.backend as _backend
@@ -206,7 +207,17 @@ class EyeModel:
         ----------
         filename : str | PathLike
             Path to the output JSON file.
+
+        Raises
+        ------
+        ValueError
+            If the output filename does not have a .json extension.
         """
+        filename = Path(filename)
+
+        if not filename.suffix == ".json":
+            raise ValueError("Output filename must have a .json extension.")
+
         with open(filename, "w", encoding="utf-8") as f:
             f.write(self.to_json())
 
