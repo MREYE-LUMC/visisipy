@@ -14,7 +14,14 @@ from optiland.fields.field_types.object_height import ObjectHeightField
 from optiland.fileio import load_optiland_file, save_optiland_file
 from optiland.optic import Optic
 
-from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BaseBackend, Unpack, _classproperty
+from visisipy.backend import (
+    DEFAULT_BACKEND_SETTINGS,
+    BackendAccessError,
+    BackendSettings,
+    BaseBackend,
+    Unpack,
+    _classproperty,
+)
 from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
 
@@ -104,7 +111,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
         Raises
         ------
-        RuntimeError
+        BackendAccessError
             If the Optiland backend has not been initialized.
         """
         if cls._analysis is None:
@@ -292,11 +299,11 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
         Raises
         ------
-        RuntimeError
+        BackendAccessError
             If the optic object is not initialized.
         """
         if cls.optic is None:
-            raise RuntimeError("No optic object initialized. Please initialize the backend first.")
+            raise BackendAccessError("No optic object initialized. Please initialize the backend first.")
 
         return cast(Optic, cls.optic)
 

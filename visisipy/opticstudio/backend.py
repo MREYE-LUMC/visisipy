@@ -10,7 +10,13 @@ from warnings import warn
 import zospy as zp
 from zospy.zpcore import OpticStudioSystem
 
-from visisipy.backend import DEFAULT_BACKEND_SETTINGS, BackendSettings, BaseBackend, _classproperty
+from visisipy.backend import (
+    DEFAULT_BACKEND_SETTINGS,
+    BackendAccessError,
+    BackendSettings,
+    BaseBackend,
+    _classproperty,
+)
 from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
 from visisipy.opticstudio.models import BaseOpticStudioEye, OpticStudioEye
 
@@ -80,11 +86,11 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         Raises
         ------
-        RuntimeError
+        BackendAccessError
             If the OpticStudio backend has not been initialized.
         """
         if cls.oss is None:
-            raise RuntimeError("The opticstudio backend has not been initialized.")
+            raise BackendAccessError("The opticstudio backend has not been initialized.")
         if cls._analysis is None:
             cls._analysis = OpticStudioAnalysisRegistry(cls)
 
@@ -306,11 +312,11 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         Raises
         ------
-        RuntimeError
+        BackendAccessError
             If the OpticStudio system is not initialized.
         """
         if cls.oss is None:
-            raise RuntimeError("No OpticStudio system initialized. Please initialize the backend first.")
+            raise BackendAccessError("No OpticStudio system initialized. Please initialize the backend first.")
 
         return cast(OpticStudioSystem, cls.oss)
 
