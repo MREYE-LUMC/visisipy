@@ -8,8 +8,10 @@ from typing import TYPE_CHECKING, Literal, overload
 import numpy as np
 from matplotlib import patches
 from matplotlib.path import Path
+from matplotlib.transforms import Affine2D
 from scipy.optimize import fsolve
 
+from visisipy.backend import BackendType, get_backend
 from visisipy.models import EyeGeometry, EyeModel
 
 if TYPE_CHECKING:
@@ -666,8 +668,51 @@ def _plot_retina(
     )
 
 
+def _backend_translation(geometry: EyeGeometry, backend_type: BackendType | None = None) -> float:
+    """Calculate translation to apply to the eye plot based on the backend type.
+
+    Different backends use different reference surfaces for the origin.
+    All plotting functions use the pupil as the reference surface (position 0), which is the convention for OpticStudio.
+    For other backends, a translation is applied to align the pupil with the reference surface used by the backend.
+
+    Parameters
+    ----------
+    geometry : EyeGeometry
+        Eye geometry, used to calculate the translation based on the reference surface of the backend.
+    backend_type : BackendType | None
+        Type of the backend. If None, uses the current backend.
+
+    Returns
+    -------
+    float
+        Translation in mm to apply to the eye plot. Positive values translate the eye to the right, negative values to the left.
+
+    Raises
+    ------
+    ValueError
+        If an unsupported backend type is provided.
+    """
+
+    if backend_type is None:
+        backend_type = get_backend().type
+
+    match backend_type:
+        case "opticstudio":
+            return 0.0
+        case "optiland":
+            return geometry.cornea_front.thickness + geometry.cornea_back.thickness
+        case _:
+            warnings.warn(f"Unknown backend {backend_type}. No translation applied.", stacklevel=2)
+            return 0.0
+
+
 def _set_axis_limits(
-    ax: Axes, cornea_front_position: float, retina_position: float, retina_radius: float, padding: float = 3.0
+    ax: Axes,
+    cornea_front_position: float,
+    retina_position: float,
+    retina_radius: float,
+    padding: float = 3.0,
+    translation: float = 0.0,
 ) -> None:
     """Set axis limits to fit the eye geometry with some padding.
 
@@ -685,6 +730,8 @@ def _set_axis_limits(
         Transversal radius of the retina.
     padding : float
         Padding in mm to add around the eye geometry.
+    translation : float
+        Additional translation to apply to the limits, e.g. for backend differences.
     """
     if padding < 0:
         raise ValueError("Padding must be positive.")
@@ -692,8 +739,8 @@ def _set_axis_limits(
     current_xlims = ax.get_xlim()
     current_ylims = ax.get_ylim()
 
-    x_min = cornea_front_position - padding
-    x_max = retina_position + padding
+    x_min = cornea_front_position - padding + translation
+    x_max = retina_position + padding + translation
     y_max = abs(retina_radius) + padding
     y_min = -y_max
 
@@ -706,13 +753,20 @@ def plot_eye(
     geometry: EyeModel | EyeGeometry,
     lens_edge_thickness: float = 0.0,
     retina_cutoff_position: float | None = None,
+    backend: BackendType | None = None,
     **kwargs,
 ) -> Axes:
     """Plot an eye.
 
     Plot an eye with geometric parameters specified by an `EyeGeometry` object.
-    The eye is oriented along the horizontal axis, with the pupil center located at `(0, 0)`.
+    The eye is oriented along the horizontal axis. The location of the origin depends on the reference surface of the backend:
+
+    - For OpticStudio, the origin is at the pupil, so the eye is plotted with the pupil at x=0.
+    - For Optiland, the origin is at the anterior cornea, so the cornea apex is plotted at x=0.
+
     Additional translations and rotations can be applied using matplotlib patch transforms.
+    The axis limits are automatically adjusted to fit the eye geometry with some padding,
+    and the aspect ratio is set to equal.
 
     Parameters
     ----------
@@ -726,6 +780,8 @@ def plot_eye(
     retina_cutoff_position : float
         Location to which the retina should be drawn. Defaults to the lens's posterior apex. For a value of `0`, the
         cutoff is located at the pupil.
+    backend : BackendType | None
+        Type of the backend to determine the reference surface for the plot. If None, uses the current backend.
 
     Returns
     -------
@@ -752,8 +808,8 @@ def plot_eye(
         raise ValueError(message)
 
     # Positions
-    cornea_front_pos = -1 * (geometry.cornea_thickness + geometry.anterior_chamber_depth)
-    cornea_back_pos = -geometry.anterior_chamber_depth
+    cornea_front_pos = -1 * (geometry.cornea_front.thickness + geometry.cornea_back.thickness)
+    cornea_back_pos = -geometry.cornea_back.thickness
     pupil_pos = 0.0
     lens_front_pos = pupil_pos + geometry.pupil_lens_distance
     lens_back_pos = lens_front_pos + geometry.lens_thickness
@@ -796,6 +852,11 @@ def plot_eye(
     pupil = Path(vertices, codes)
 
     eye = Path.make_compound_path(cornea, pupil, lens, retina)
+    translation = _backend_translation(geometry, backend)
+
+    if translation != 0.0:
+        eye = eye.transformed(Affine2D().translate(translation, 0))
+
     ax.add_patch(patches.PathPatch(eye, fill=None, **kwargs))
 
     if _is_ellipse(geometry.retina):
@@ -804,6 +865,7 @@ def plot_eye(
         bbox = retina.get_extents()
         max_retina_radius = max(abs(bbox.y0), abs(bbox.y1))
 
-    _set_axis_limits(ax, cornea_front_pos, retina_pos, max_retina_radius)
+    _set_axis_limits(ax, cornea_front_pos, retina_pos, max_retina_radius, translation=translation)
+    ax.set_aspect("equal")
 
     return ax
