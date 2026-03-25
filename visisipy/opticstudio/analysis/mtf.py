@@ -25,19 +25,21 @@ def _transform_mtf_series(series: Series, direction: Literal["sagittal", "tangen
     return series
 
 
-FIELD_NAME_REGEX = re.compile(r"Field: (?P<x>-?\d+[.,]\d*), (?P<y>-?\d+[.,]\d*) [()\w]+")
+FIELD_VALUE_REGEX = re.compile(r"-?\d+(?:[.,]\d+)?")
 
 
 def _parse_field_name(field_name: str) -> FieldCoordinate:
-    match = FIELD_NAME_REGEX.match(field_name)
+    values = FIELD_VALUE_REGEX.findall(field_name)
 
-    if match is None:
+    if not values or len(values) > 2:  # noqa: PLR2004
         raise ValueError(f"Could not parse field name: {field_name}")
 
-    x = float(match.group("x").replace(",", "."))
-    y = float(match.group("y").replace(",", "."))
+    values = [float(v.replace(",", ".")) for v in values]
 
-    return (x, y)
+    if len(values) == 1:
+        return (0.0, values[0])
+
+    return values[0], values[1]
 
 
 def _build_mtf_result(fft_mtf_result: DataFrame) -> MTFResult:
