@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from visisipy.models import EyeModel
     from visisipy.types import FieldType, SampleSize
 
+__all__ = ("MTFResult", "SingleMTFResult", "fft_mtf")
+
 
 @dataclass(frozen=True)
 class SingleMTFResult:

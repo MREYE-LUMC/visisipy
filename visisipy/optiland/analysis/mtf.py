@@ -102,7 +102,7 @@ def fft_mtf(
         fields=normalized_field,
         wavelength=wavelength,
         num_rays=_effective_pupil_sampling(sampling),
-        grid_size=2 * int(sampling),
+        grid_size=int(2 * sampling),
         max_freq="cutoff" if maximum_frequency == "default" else maximum_frequency,
     )
 
