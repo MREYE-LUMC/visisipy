@@ -391,7 +391,7 @@ class TestOptilandBackendSettings:
             if torch_device is not None:
                 assert optiland.backend.get_device() == torch_device
             if torch_precision is not None:
-                assert str(optiland.backend.get_precision()) == f"torch.{torch_precision}"
+                assert str(optiland.backend._config.get_precision()) == f"torch.{torch_precision}"
             if torch_gradient_mode is not None:
                 assert optiland.backend.grad_mode.requires_grad == torch_gradient_mode
 
