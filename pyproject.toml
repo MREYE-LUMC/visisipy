@@ -155,7 +155,7 @@ summary-quotes-same-line = true
 linewrap-full-docstring = true
 
 [tool.uv.sources]
-optiland = { git = "https://github.com/HarrisonKramer/optiland.git", rev = "master" }
+optiland = { git = "https://github.com/HarrisonKramer/optiland.git", rev = "db464edca44e3be87dd02c034abfd5ca96cdf0ea" }
 
 [dependency-groups]
 dev = [
