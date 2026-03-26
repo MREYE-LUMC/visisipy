@@ -23,6 +23,40 @@ class BaseAnalysisTest(ABC):
         ...
 
 
+class FFTMTFTest(BaseAnalysisTest):
+    def __init__(
+        self,
+        coordinate: tuple[float, float],
+        sampling: int,
+        wavelength: float,
+    ) -> None:
+        self.coordinate = coordinate
+        self.sampling = sampling
+        self.wavelength = wavelength
+
+    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+        backend.update_settings(fields=[self.coordinate])
+
+        result = visisipy.analysis.fft_mtf(
+            model=model,
+            field_coordinate=self.coordinate,
+            field_type="angle",
+            sampling=self.sampling,
+            wavelength=self.wavelength,
+            backend=backend,
+        )
+
+        # Convert the result to a dataframe for easier comparison and loading.
+        return pd.DataFrame(
+            {
+                "frequency_tangential": result[self.coordinate].tangential.index,
+                "mtf_tangential": result[self.coordinate].tangential.values,
+                "frequency_sagittal": result[self.coordinate].sagittal.index,
+                "mtf_sagittal": result[self.coordinate].sagittal.values,
+            }
+        )
+
+
 class FFTPSFTest(BaseAnalysisTest):
     def __init__(
         self,

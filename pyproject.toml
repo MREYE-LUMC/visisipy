@@ -96,6 +96,7 @@ python = ["3.10", "3.11", "3.12", "3.13"]
 [tool.pytest.ini_options]
 markers = [
     "needs_opticstudio: test needs OpticStudio and will be skipped if it is not available",
+    "no_mock_backend: test should not use the mock backend fixture",
     "test_data: test uses test data specified with this marker",
     "windows_only: test can only be run on Windows",
     "xfail_if_torch_backend: test is expected to fail if Optiland's computation backend is set to 'torch'",
@@ -152,6 +153,9 @@ max-line-length = 120
 max-summary-lines = 1
 summary-quotes-same-line = true
 linewrap-full-docstring = true
+
+[tool.uv.sources]
+optiland = { git = "https://github.com/HarrisonKramer/optiland.git", rev = "db464edca44e3be87dd02c034abfd5ca96cdf0ea" }
 
 [dependency-groups]
 dev = [
