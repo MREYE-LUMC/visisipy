@@ -71,10 +71,14 @@ class OptilandSettings(BackendSettings, total=False):
     """The ray aiming method to be used in the optic. Must be one of 'paraxial', 'robust', or 'iterative'."""
 
     ray_aiming_max_iterations: int
-    """The maximum number of iterations for the 'iterative' ray aiming method. Only used if ray_aiming is set to 'iterative'."""
+    """The maximum number of iterations for the 'iterative' ray aiming method. Only used if ray_aiming is set to
+    'iterative'.
+    """
 
     ray_aiming_tolerance: float
-    """The tolerance for convergence for the 'iterative' ray aiming method. Only used if ray_aiming is set to 'iterative'."""
+    """The tolerance for convergence for the 'iterative' ray aiming method. Only used if ray_aiming is set to
+    'iterative'.
+    """
 
 
 OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
