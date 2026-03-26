@@ -345,8 +345,13 @@ class TestOptilandBackendSettings:
                 None,
                 pytest.raises(ValueError, match="ray_aiming must be one of 'paraxial', 'robust', or 'iterative'"),
             ),
-            ("iterative", -1, 1e-5, pytest.raises(ValueError, match="max_iterations must be a positive integer")),
-            ("iterative", 100, -1e-5, pytest.raises(ValueError, match="tolerance must be a positive float")),
+            (
+                "iterative",
+                -1,
+                1e-5,
+                pytest.raises(ValueError, match="ray_aiming_max_iterations must be a positive integer"),
+            ),
+            ("iterative", 100, -1e-5, pytest.raises(ValueError, match="ray_aiming_tolerance must be a positive float")),
         ],
     )
     def test_ray_aiming(

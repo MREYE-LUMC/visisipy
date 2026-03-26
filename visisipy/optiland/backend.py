@@ -163,8 +163,8 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         )
         cls.set_ray_aiming(
             ray_aiming=cls.get_setting("ray_aiming"),
-            max_iterations=cls.get_setting("ray_aiming_max_iterations"),
-            tolerance=cls.get_setting("ray_aiming_tolerance"),
+            ray_aiming_max_iterations=cls.get_setting("ray_aiming_max_iterations"),
+            ray_aiming_tolerance=cls.get_setting("ray_aiming_tolerance"),
         )
 
     @classmethod
@@ -376,36 +376,40 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         )
 
     @classmethod
-    def set_ray_aiming(cls, ray_aiming: OptilandRayAimingType, max_iterations: int, tolerance: float) -> None:
+    def set_ray_aiming(
+        cls, ray_aiming: OptilandRayAimingType, ray_aiming_max_iterations: int, ray_aiming_tolerance: float
+    ) -> None:
         """Set the ray aiming method for the optic.
 
         Parameters
         ----------
         ray_aiming : OptilandRayAimingType
             The ray aiming method to be used in the optic. Must be one of 'paraxial', 'robust', or 'iterative'.
-        max_iterations : int
+        ray_aiming_max_iterations : int
             The maximum number of iterations for the 'iterative' ray aiming method. Only used if ray_aiming is set to 'iterative'.
-        tolerance : float
+        ray_aiming_tolerance : float
             The tolerance for convergence for the 'iterative' ray aiming method. Only used if ray_aiming is set to 'iterative'.
 
         Raises
         ------
         ValueError
             If an invalid ray aiming method is provided.
-            If max_iterations is not a positive integer.
-            If tolerance is not a positive float.
+            If ray_aiming_max_iterations is not a positive integer.
+            If ray_aiming_tolerance is not a positive float.
         """
 
         if ray_aiming not in {"paraxial", "robust", "iterative"}:
             raise ValueError("ray_aiming must be one of 'paraxial', 'robust', or 'iterative'.")
 
-        if max_iterations <= 0:
+        if ray_aiming_max_iterations <= 0:
             raise ValueError("ray_aiming_max_iterations must be a positive integer.")
 
-        if tolerance <= 0:
+        if ray_aiming_tolerance <= 0:
             raise ValueError("ray_aiming_tolerance must be a positive float.")
 
-        cls.get_optic().set_ray_aiming(mode=ray_aiming, max_iter=max_iterations, tolerance=tolerance)
+        cls.get_optic().set_ray_aiming(
+            mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance
+        )
 
     @classmethod
     def get_fields(cls) -> list[tuple[float, float]]:
