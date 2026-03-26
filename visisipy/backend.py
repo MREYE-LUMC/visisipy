@@ -146,10 +146,10 @@ class BaseAnalysisRegistry(ABC):
     @abstractmethod
     def fft_mtf(
         self,
-        sampling: SampleSize | str | int = 64,
         field_coordinate: FieldCoordinate | Literal["all"] = "all",
         field_type: FieldType = "angle",
         wavelength: float | None = None,
+        sampling: SampleSize | str | int = 64,
         maximum_frequency: float | Literal["default"] = "default",
     ) -> tuple[MTFResult, Any]: ...
 

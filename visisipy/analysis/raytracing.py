@@ -13,6 +13,10 @@ if TYPE_CHECKING:
 
     from visisipy import EyeModel
     from visisipy.backend import BaseBackend
+    from visisipy.types import FieldType
+
+
+__all__ = ("raytrace",)
 
 
 @overload
@@ -20,7 +24,7 @@ def raytrace(
     model: EyeModel | None = None,
     coordinates: Iterable[tuple[float, float]] | None = None,
     wavelengths: Iterable[float] | None = None,
-    field_type: Literal["angle", "object"] = "angle",
+    field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
     *,
     return_raw_result: Literal[False] = False,
@@ -33,7 +37,7 @@ def raytrace(
     model: EyeModel | None = None,
     coordinates: Iterable[tuple[float, float]] | None = None,
     wavelengths: Iterable[float] | None = None,
-    field_type: Literal["angle", "object"] = "angle",
+    field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
     *,
     return_raw_result: Literal[True] = True,
@@ -46,7 +50,7 @@ def raytrace(
     model: EyeModel | None = None,  # noqa: ARG001
     coordinates: Iterable[tuple[float, float]] | None = None,
     wavelengths: Iterable[float] | None = None,
-    field_type: Literal["angle", "object"] = "angle",
+    field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
     *,
     return_raw_result: bool = False,  # noqa: ARG001
@@ -75,7 +79,7 @@ def raytrace(
     wavelengths : Iterable[float], optional
         An iterable of wavelengths to be used in the ray trace. Defaults to `None`, which uses the wavelengths
         defined in the backend.
-    field_type : Literal["angle", "object_height"], optional
+    field_type : FieldType, optional
         The type of field to be used in the ray trace. Can be either "angle" or "object_height". Defaults to "angle".
     pupil : tuple[float, float], optional
         A tuple representing the pupil coordinates for the ray trace. Defaults to (0, 0).
