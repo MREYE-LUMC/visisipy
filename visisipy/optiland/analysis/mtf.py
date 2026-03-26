@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
+from optiland.backend import to_numpy
 from optiland.mtf import ScalarFFTMTF, VectorialFFTMTF
 from pandas import Series
 
@@ -61,10 +62,10 @@ def _build_mtf_result(
     result = MTFResult()
 
     for i, field in enumerate(fields):
-        tangential_mtf = mtf.mtf[i][0]
-        tangential_index = mtf.freq_tang[i]
-        sagittal_mtf = mtf.mtf[i][1]
-        sagittal_index = mtf.freq_sag[i]
+        tangential_mtf = to_numpy(mtf.mtf[i][0])
+        tangential_index = to_numpy(mtf.freq_tang[i])
+        sagittal_mtf = to_numpy(mtf.mtf[i][1])
+        sagittal_index = to_numpy(mtf.freq_sag[i])
 
         tangential_series = Series(tangential_mtf, index=tangential_index, name="Tangential MTF")
         tangential_series.index.name = "frequency"
