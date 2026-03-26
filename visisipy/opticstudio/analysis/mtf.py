@@ -65,12 +65,46 @@ def _build_mtf_result(fft_mtf_result: DataFrame) -> MTFResult:
 
 def fft_mtf(
     backend: type[OpticStudioBackend],
-    sampling: SampleSize | str | int = 64,
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
     wavelength: float | None = None,
+    sampling: SampleSize | str | int = 64,
     maximum_frequency: float | Literal["default"] = "default",
 ) -> tuple[MTFResult, DataFrame]:
+    """Calculate the FFT Modulation Transfer Function (MTF).
+
+    Parameters
+    ----------
+    backend : type[OpticStudioBackend]
+        Reference to the OpticStudio backend.
+    field_coordinate : FieldCoordinate | Literal["all"]
+        The field coordinate(s) at which the MTF is calculated. Can be a specific coordinate (e.g., (0, 0)) or
+        "all" to calculate for all fields in the backend. Defaults to "all".
+    field_type : FieldType
+        The field type to be used in the analysis. Can be either "angle" or "object_height". Defaults to "angle".
+        This parameter is only used when `field_coordinate` is specified.
+    wavelength : float | None
+        The wavelength at which the MTF is calculated. If `None`, the first wavelength in the backend is used.
+    sampling : SampleSize | str | int
+        The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where
+        N is an integer. Only symmetric sample sizes are supported. Defaults to 128.
+    maximum_frequency : float | Literal["default"]
+        The maximum frequency (in cycles per millimeter) to calculate the MTF up to. If "default", the cutoff frequency is
+        determined automatically. Defaults to "default".
+
+    Returns
+    -------
+    MTFResult
+        The MTF data as an MTFResult object, which provides access to the tangential and sagittal MTF values for
+        each field coordinate.
+    DataFrame
+        The raw MTF data as a pandas DataFrame.
+
+    Raises
+    ------
+    RuntimeError
+        If the FFT MTF analysis fails to run or returns no data.
+    """
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 

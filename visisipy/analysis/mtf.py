@@ -91,10 +91,10 @@ class MTFResult(UserDict[FieldCoordinate, SingleMTFResult]):
 @overload
 def fft_mtf(
     model: EyeModel | None = None,
-    sampling: SampleSize | str | int = 64,
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
     wavelength: float | None = None,
+    sampling: SampleSize | str | int = 128,
     maximum_frequency: float | Literal["default"] = "default",
     *,
     return_raw_result: Literal[False] = False,
@@ -105,10 +105,10 @@ def fft_mtf(
 @overload
 def fft_mtf(
     model: EyeModel | None = None,
-    sampling: SampleSize | str | int = 64,
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
     wavelength: float | None = None,
+    sampling: SampleSize | str | int = 128,
     maximum_frequency: float | Literal["default"] = "default",
     *,
     return_raw_result: Literal[True] = True,
@@ -119,23 +119,59 @@ def fft_mtf(
 @analysis
 def fft_mtf(
     model: EyeModel | None = None,  # noqa: ARG001
-    sampling: SampleSize | str | int = 64,
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
     wavelength: float | None = None,
+    sampling: SampleSize | str | int = 128,
     maximum_frequency: float | Literal["default"] = "default",
     *,
     return_raw_result: bool = False,  # noqa: ARG001
     backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
 ) -> tuple[MTFResult, Any]:
+    """Calculate the FFT Modulation Transfer Function (MTF).
+
+    Parameters
+    ----------
+    model : EyeModel | None
+        The eye model to be used in the analysis. If `None`, the current eye model will be used.
+    field_coordinate : FieldCoordinate | Literal["all"]
+        The field coordinate(s) at which the MTF is calculated. Can be a specific coordinate (e.g., (0, 0)) or
+        "all" to calculate for all fields in the backend. Defaults to "all".
+    field_type : FieldType
+        The field type to be used in the analysis. Can be either "angle" or "object_height". Defaults to "angle".
+        This parameter is only used when `field_coordinate` is specified.
+    wavelength : float | None
+        The wavelength at which the MTF is calculated. If `None`, the first wavelength in the backend is used.
+    sampling : SampleSize | str | int
+        The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where
+        N is an integer. Only symmetric sample sizes are supported. Defaults to 128.
+    maximum_frequency : float | Literal["default"]
+        The maximum frequency (in cycles per millimeter) to calculate the MTF up to. If "default", the default
+        maximum frequency is used by the backend. Defaults to "default".
+    return_raw_result : bool, optional
+        Return the raw analysis result from the backend. Defaults to `False`.
+    backend : type[BaseBackend]
+        The backend to be used for the analysis. If not provided, the default backend is used.
+
+    Returns
+    -------
+    MTFResult
+        The MTF data as an MTFResult object, which provides access to the tangential and sagittal MTF values for
+        each field coordinate.
+
+    Raises
+    ------
+    ValueError
+        If `field_coordinate` is not a valid FieldCoordinate or "all".
+    """
     if isinstance(field_coordinate, str) and field_coordinate != "all":
         msg = f"Invalid value for field_coordinate: {field_coordinate}. Expected a FieldCoordinate or 'all'."
         raise ValueError(msg)
 
     return backend.analysis.fft_mtf(
-        sampling=sampling,
         field_coordinate=field_coordinate,
         field_type=field_type,
         wavelength=wavelength,
+        sampling=sampling,
         maximum_frequency=maximum_frequency,
     )
