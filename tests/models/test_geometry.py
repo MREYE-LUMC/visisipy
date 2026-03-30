@@ -184,3 +184,35 @@ class TestEyeGeometry:
             + example_geometry_parameters["lens_thickness"]
         )
         assert example_geometry.vitreous_thickness == vitreous_thickness
+
+    def test_repr(self, example_geometry):
+        repr_str = repr(example_geometry)
+        repr_regex = re.compile(
+            r"^EyeGeometry\(\s*cornea_front=StandardSurface\(.*?\),\s*cornea_back=StandardSurface\(.*?\),\s*pupil=Stop\(.*?\),\s*lens_front=StandardSurface\(.*?\),\s*lens_back=StandardSurface\(.*?\),\s*retina=StandardSurface\(.*?\)\s*\)$"
+        )
+
+        assert repr_regex.match(repr_str)
+
+    def test_equality(self, example_geometry):
+        identical_geometry = EyeGeometry(
+            cornea_front=example_geometry.cornea_front,
+            cornea_back=example_geometry.cornea_back,
+            pupil=example_geometry.pupil,
+            lens_front=example_geometry.lens_front,
+            lens_back=example_geometry.lens_back,
+            retina=example_geometry.retina,
+        )
+
+        assert example_geometry == identical_geometry
+
+    def test_inequality(self, example_geometry):
+        different_geometry = EyeGeometry(
+            cornea_front=StandardSurface(radius=13),
+            cornea_back=example_geometry.cornea_back,
+            pupil=example_geometry.pupil,
+            lens_front=example_geometry.lens_front,
+            lens_back=example_geometry.lens_back,
+            retina=example_geometry.retina,
+        )
+
+        assert example_geometry != different_geometry
