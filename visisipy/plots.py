@@ -62,15 +62,8 @@ def _plot_surface(
     The segment is cut off at the x-coordinate specified by `cutoff`.
     The orientation of the surface is controlled with the sign of `radius`.
 
-    Returns
-    -------
-    Path
-        A `matplotlib.path.Path` object with the surface.
-    float
-        y-coordinate of the segment's end point, if `return_endpoint` is `True`.
-
-    Arguments
-    ---------
+    Parameters
+    ----------
     position : float
         Position of the surface at the optical axis.
     radius : float
@@ -82,6 +75,13 @@ def _plot_surface(
         Position coordinate at which the surface is cut off.
     return_endpoint : bool
         If true, returns the y coordinate of the arc endpoint.
+
+    Returns
+    -------
+    Path
+        A `matplotlib.path.Path` object with the surface.
+    float
+        y-coordinate of the segment's end point, if `return_endpoint` is `True`.
     """
     # Special case: radius = 0 means a flat (vertical) surface
     if radius == 0:
@@ -154,6 +154,19 @@ def _plot_ellipse(
     The ellipse is cut off at the x-coordinate specified by `cutoff`. If cutoff is unreachable,
     draws to max_thickness.
 
+    Parameters
+    ----------
+    position : float
+        Coordinate of the ellipse apex.
+    radius : float
+        Radius of curvature at the apex.
+    conic : float
+        Conic constant (asphericity) of the ellipse. Must be > -1.
+    cutoff : float
+        x-coordinate at which the ellipse is cut off.
+    return_endpoint : bool
+        If true, returns the y coordinate of the arc endpoint.
+
     Returns
     -------
     Path
@@ -165,19 +178,6 @@ def _plot_ellipse(
     ------
     ValueError
         If cutoff is located outside the domain of the ellipse.
-
-    Arguments
-    ---------
-    position : float
-        Coordinate of the ellipse apex.
-    radius : float
-        Radius of curvature at the apex.
-    conic : float
-        Conic constant (asphericity) of the ellipse. Must be > -1.
-    cutoff : float
-        x-coordinate at which the ellipse is cut off.
-    return_endpoint : bool
-        If true, returns the y coordinate of the arc endpoint.
     """
     rx, ry = _get_ellipse_sizes(radius, conic)
 
@@ -232,6 +232,17 @@ def _plot_parabola(
     The parabola is cut off at the x-coordinate specified by `cutoff`. If cutoff is unreachable,
     draws to max_thickness.
 
+    Parameters
+    ----------
+    position : float
+        Coordinate of the parabola apex.
+    radius : float
+        Radius of curvature at the apex.
+    cutoff : float
+        x-coordinate at which the parabola is cut off.
+    return_endpoint : bool
+        If true, returns the y coordinate of the arc endpoint.
+
     Returns
     -------
     Path
@@ -243,17 +254,6 @@ def _plot_parabola(
     ------
     ValueError
         If cutoff is located outside the domain of the parabola.
-
-    Arguments
-    ---------
-    position : float
-        Coordinate of the parabola apex.
-    radius : float
-        Radius of curvature at the apex.
-    cutoff : float
-        x-coordinate at which the parabola is cut off.
-    return_endpoint : bool
-        If true, returns the y coordinate of the arc endpoint.
     """
     a = radius / 2  # The radius of curvature of a parabola is twice its focal length
 
@@ -315,6 +315,19 @@ def _plot_hyperbola(
     The hyperbola is cut off at the x-coordinate specified by `cutoff`. If cutoff is unreachable,
     draws to max_thickness.
 
+    Parameters
+    ----------
+    position : float
+        Coordinate of the hyperbola apex.
+    radius : float
+        Radius of curvature at the apex.
+    conic : float
+        Conic constant (asphericity) of the hyperbola. Must be < -1.
+    cutoff : float
+        x-coordinate at which the hyperbola is cut off.
+    return_endpoint : bool
+        If true, returns the y coordinate of the arc endpoint.
+
     Returns
     -------
     Path
@@ -326,19 +339,6 @@ def _plot_hyperbola(
     ------
     ValueError
         If cutoff is located outside the domain of the hyperbola.
-
-    Arguments
-    ---------
-    position : float
-        Coordinate of the hyperbola apex.
-    radius : float
-        Radius of curvature at the apex.
-    conic : float
-        Conic constant (asphericity) of the hyperbola. Must be < -1.
-    cutoff : float
-        x-coordinate at which the hyperbola is cut off.
-    return_endpoint : bool
-        If true, returns the y coordinate of the arc endpoint.
     """
     a, b = _get_hyperbola_sizes(radius, conic)
 
