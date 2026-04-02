@@ -24,7 +24,7 @@ __all__ = ("fft_psf", "huygens_psf", "strehl_ratio")
 
 
 def fft_psf(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -34,7 +34,7 @@ def fft_psf(
 
     Parameters
     ----------
-    backend : type[OpticStudioBackend]
+    backend : OpticStudioBackend
         Reference to the OpticStudio backend.
     field_coordinate : tuple[float, float], optional
         The field coordinate (x, y) in mm. If `None`, the first field in OpticStudio is used. Defaults to `None`.
@@ -73,7 +73,7 @@ def fft_psf(
         psf_type=zp.constants.Analysis.Settings.Psf.FftPsfType.Linear,
         surface="Image",
         normalize=False,
-    ).run(backend.get_oss())
+    ).run(backend.oss)
 
     if psf_result.data is None:
         raise ValueError("Failed to run FFT PSF analysis.")
@@ -241,7 +241,7 @@ def _get_huygens_psf_extent(oss: OpticStudioSystem, field: int = 1, wavelength_n
 
 
 def huygens_psf(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -252,7 +252,7 @@ def huygens_psf(
 
     Parameters
     ----------
-    backend : type[OpticStudioBackend]
+    backend : OpticStudioBackend
         Reference to the OpticStudio backend.
     field_coordinate : tuple[float, float], optional
         The field coordinate (x, y) in mm. If `None`, the first field in OpticStudio is used. Defaults to `None`.
@@ -282,7 +282,7 @@ def huygens_psf(
 
     wavelength_number = set_wavelength(backend, wavelength)
     field_number = set_field(backend, field_coordinate, field_type)
-    extent = _get_huygens_psf_extent(backend.get_oss(), field=field_number, wavelength_number=wavelength_number)
+    extent = _get_huygens_psf_extent(backend.oss, field=field_number, wavelength_number=wavelength_number)
     image_delta = extent / int(image_sampling)
 
     psf_result = zp.analyses.psf.HuygensPSFAndStrehlRatio(
@@ -297,13 +297,13 @@ def huygens_psf(
         use_polarization=False,
         use_centroid=False,
         normalize=False,
-    ).run(backend.get_oss())
+    ).run(backend.oss)
 
     return psf_result.data.psf, psf_result.data
 
 
 def strehl_ratio(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -316,7 +316,7 @@ def strehl_ratio(
 
     Parameters
     ----------
-    backend : type[OpticStudioBackend]
+    backend : OpticStudioBackend
         Reference to the OpticStudio backend.
     field_coordinate : FieldCoordinate | None
         The field coordinate at which the Strehl ratio is calculated. If `None`, the first field coordinate in

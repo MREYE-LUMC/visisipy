@@ -32,7 +32,7 @@ def zernike_standard_coefficients(
     unit: ZernikeUnit = "microns",
     *,
     return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> ZernikeCoefficients: ...
 
 
@@ -47,7 +47,7 @@ def zernike_standard_coefficients(
     unit: ZernikeUnit = "microns",
     *,
     return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[ZernikeCoefficients, Any]: ...
 
 
@@ -62,7 +62,7 @@ def zernike_standard_coefficients(
     unit: ZernikeUnit = "microns",
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[ZernikeCoefficients, Any]:
     """Calculates the Zernike standard coefficients at the retina surface.
 
@@ -89,7 +89,7 @@ def zernike_standard_coefficients(
         The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend to be used for the analysis. If not provided, the current backend is used.
 
     Returns
@@ -128,7 +128,7 @@ def rms_hoa(
     unit: ZernikeUnit = "microns",
     *,
     return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> float: ...
 
 
@@ -145,7 +145,7 @@ def rms_hoa(
     unit: ZernikeUnit = "microns",
     *,
     return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[float, Any]: ...
 
 
@@ -162,7 +162,7 @@ def rms_hoa(
     unit: ZernikeUnit = "microns",
     *,
     return_raw_result: bool = True,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[float, Any]:
     """Calculates the root-mean-square (RMS) of higher-order aberrations (HOA) in the eye model.
 
@@ -200,7 +200,7 @@ def rms_hoa(
         The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend to be used for the analysis. If not provided, the current backend is used.
 
     Returns

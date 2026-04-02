@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from optiland.backend import to_numpy
 from optiland.wavefront import ZernikeOPD
 
+from visisipy.optiland.analysis.helpers import set_field, set_wavelength
 from visisipy.types import SampleSize, ZernikeUnit
 from visisipy.wavefront import ZernikeCoefficients
 
@@ -31,7 +32,7 @@ def _build_zernike_coefficients(
 
 
 def zernike_standard_coefficients(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -43,7 +44,7 @@ def zernike_standard_coefficients(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         Reference to the Optiland backend.
     field_coordinate : tuple[float, float] | None, optional
         The field coordinate for the Zernike calculation. When `None`, the first field in OpticStudio is used.
@@ -69,18 +70,11 @@ def zernike_standard_coefficients(
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
-    if field_coordinate is not None:
-        backend.set_fields([field_coordinate], field_type=field_type)
-
-    if wavelength is None:
-        wavelength = backend.get_wavelengths()[0]
-    else:
-        backend.set_wavelengths([wavelength])
-
-    normalized_field = backend.get_optic().fields.get_field_coords()[0]
+    wavelength = set_wavelength(backend, wavelength)
+    normalized_field = set_field(backend, field_coordinate, field_type)
 
     zernike_opd = ZernikeOPD(
-        backend.get_optic(),
+        backend.optic,
         field=normalized_field,
         wavelength=wavelength,
         num_rings=int(sampling),

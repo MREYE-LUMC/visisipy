@@ -8,7 +8,7 @@ import pandas as pd
 import zospy as zp
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Sequence
 
     from zospy.analyses.raysandspots.single_ray_trace import SingleRayTraceResult
 
@@ -31,9 +31,9 @@ def _build_raytrace_result(raytrace_results: list[pd.DataFrame]) -> pd.DataFrame
 
 
 def raytrace(
-    backend: type[OpticStudioBackend],
-    coordinates: Iterable[FieldCoordinate] | None = None,
-    wavelengths: Iterable[float] | None = None,
+    backend: OpticStudioBackend,
+    coordinates: Sequence[FieldCoordinate] | None = None,
+    wavelengths: Sequence[float] | None = None,
     field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
 ) -> tuple[pd.DataFrame, list[SingleRayTraceResult]]:
@@ -53,15 +53,15 @@ def raytrace(
 
     Parameters
     ----------
-    backend : type[OpticStudioBackend]
+    backend : OpticStudioBackend
         Reference to the OpticStudio backend.
-    coordinates : Iterable[tuple[float, float]], optional
-        An iterable of tuples representing the coordinates for the ray trace.
+    coordinates : Sequence[tuple[float, float]], optional
+        A sequence of tuples representing the coordinates for the ray trace.
         If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.
         If `field_type` is "object_height", the coordinates should be the object heights along the
         (X, Y) axes in mm. Defaults to `None`, which uses the fields defined in the backend.
-    wavelengths : Iterable[float], optional
-        An iterable of wavelengths to be used in the ray trace. Defaults to `None`, which uses the wavelengths
+    wavelengths : Sequence[float], optional
+        A sequence of wavelengths to be used in the ray trace. Defaults to `None`, which uses the wavelengths
         defined in the backend.
     field_type : Literal["angle", "object_height"], optional
         The type of field to be used in the ray trace. Can be either "angle" or "object_height". Defaults to
@@ -101,7 +101,7 @@ def raytrace(
                 field=field_number,
                 wavelength=wavelength_number,
                 global_coordinates=True,
-            ).run(backend.get_oss())
+            ).run(backend.oss)
             real_ray_trace = raytrace_result.data.real_ray_trace_data
 
             if real_ray_trace is None:

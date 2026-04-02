@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 __all__ = ("_AUTOMATIC_BACKEND", "analysis")
 
 
-_AUTOMATIC_BACKEND = cast("type[BaseBackend]", object())
+_AUTOMATIC_BACKEND = cast("BaseBackend", object())
 """Default sentinel value for the backend parameter in analysis functions.
 
 The `backend` parameter in analysis functions is not optional, but does not need to be specified if the default
@@ -85,7 +85,7 @@ def _validate_analysis_signature(function: Callable[..., Any | tuple[Any, Any]])
         )
 
 
-def _build_model(model: EyeModel, backend: type[BaseBackend]) -> None:
+def _build_model(model: EyeModel, backend: BaseBackend) -> None:
     """Build the model in OpticStudio if it is not already built.
 
     Parameters
@@ -134,7 +134,7 @@ def analysis(function: Callable[..., T1 | tuple[T1, T2]]) -> Callable:
         model: EyeModel | None = None,
         *args: Any,
         return_raw_result: bool = False,
-        backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+        backend: BaseBackend = _AUTOMATIC_BACKEND,
         **kwargs: Any,
     ) -> T1 | tuple[T1, T2]:
         if backend is None or backend is _AUTOMATIC_BACKEND:

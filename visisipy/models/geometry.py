@@ -664,6 +664,11 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         -------
         EyeGeometry
             An :class:`EyeGeometry` instance with surfaces reconstructed from ``data``.
+
+        Raises
+        ------
+        ValueError
+            If the ``"type"`` value in ``data`` does not correspond to a known eye geometry class.
         """
         data = dict(data)
 
@@ -697,7 +702,13 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         return f"{name}({', '.join(f'{k}={v!r}' for k, v in surfaces.items())})"
 
     def __key(self):
-        """Helper method to generate a tuple of the eye geometry's attributes for hashing and equality checks."""
+        """Helper method to generate a tuple of the eye geometry's attributes for hashing and equality checks.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the eye geometry's attributes in a consistent order.
+        """
         return (
             self.cornea_front,
             self.cornea_back,

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def set_wavelength(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     wavelength: float | None = None,
 ) -> int:
     """Set the wavelength in the OpticStudio backend.
@@ -37,7 +37,7 @@ def set_wavelength(
 
 
 def set_field(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     field_coordinate: tuple[float, float] | None = None,
     field_type: FieldType = "angle",
 ) -> int:

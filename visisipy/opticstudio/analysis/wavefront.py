@@ -70,7 +70,7 @@ def _pad_opd_map(data: DataFrame) -> DataFrame:
 
 
 def opd_map(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -83,8 +83,8 @@ def opd_map(
 
     Parameters
     ----------
-    model : EyeModel | None
-        The eye model to use for the wavefront calculation. If `None`, the currently built model will be used.
+    backend : OpticStudioBackend
+        Reference to the OpticStudio backend.
     field_coordinate : FieldCoordinate | None
         The coordinate of the field for which the wavefront is calculated. If `None`, the current field coordinate will be used.
     wavelength : float | None
@@ -133,7 +133,7 @@ def opd_map(
         sub_aperture_y=0.0,
         sub_aperture_r=1.0,
         contour_format="",
-    ).run(backend.get_oss())
+    ).run(backend.oss)
 
     if wavefront_result.data is None:
         raise RuntimeError("Wavefront analysis failed.")

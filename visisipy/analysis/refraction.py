@@ -29,7 +29,7 @@ def refraction(
     *,
     use_higher_order_aberrations: bool = True,
     return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> FourierPowerVectorRefraction: ...
 
 
@@ -44,7 +44,7 @@ def refraction(
     *,
     use_higher_order_aberrations: bool = True,
     return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[FourierPowerVectorRefraction, Any]: ...
 
 
@@ -59,7 +59,7 @@ def refraction(
     *,
     use_higher_order_aberrations: bool = True,
     return_raw_result: bool = False,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[FourierPowerVectorRefraction, Any]:
     """Calculates the ocular refraction.
 
@@ -88,7 +88,7 @@ def refraction(
         model.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns

@@ -8,6 +8,7 @@ from warnings import warn
 import zospy as zp
 
 from visisipy.analysis.refraction import zernike_data_to_refraction
+from visisipy.opticstudio.analysis.helpers import set_wavelength
 from visisipy.opticstudio.analysis.zernike_coefficients import (
     zernike_standard_coefficients,
 )
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 
 
 def refraction(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     sampling: SampleSize | str | int = 64,
@@ -38,7 +39,7 @@ def refraction(
 
     Parameters
     ----------
-    backend : type[OpticStudioBackend]
+    backend : OpticStudioBackend
         Reference to the OpticStudio backend.
     field_coordinate : tuple[float, float], optional
         The field coordinate for the Zernike calculation. When `None`, the first field in OpticStudio is used.
@@ -64,7 +65,7 @@ def refraction(
           The ocular refraction in Fourier power vector form.
     """
     # Get the wavelength from OpticStudio if not specified
-    wavelength = backend.get_wavelengths()[0] if wavelength is None else wavelength
+    wavelength = set_wavelength(backend, wavelength)
 
     # Temporarily change the pupil diameter
     old_pupil_value = None
@@ -80,7 +81,7 @@ def refraction(
 
         backend.update_pupil(pupil_diameter)
 
-    pupil_data = zp.functions.lde.get_pupil(backend.get_oss())
+    pupil_data = zp.functions.lde.get_pupil(backend.oss)
     zernike_coefficients, raw_result = zernike_standard_coefficients(
         backend,
         field_coordinate=field_coordinate,
