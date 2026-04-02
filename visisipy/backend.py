@@ -34,7 +34,7 @@ from types import MethodType
 from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
 from warnings import warn
 
-from visisipy.types import NotRequired, TypedDict, Unpack, ZernikeUnit
+from visisipy.types import TypedDict, Unpack, ZernikeUnit
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -233,7 +233,7 @@ class BackendSettings(TypedDict, total=False):
     'image_f_number', or 'object_numeric_aperture'.
     """
 
-    aperture_value: NotRequired[float]
+    aperture_value: float
     """The aperture value to use in the optical system. Not required for 'float_by_stop_size'."""
 
 

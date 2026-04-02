@@ -78,8 +78,8 @@ API <api/index>
 [zospy]: https://zospy.readthedocs.io/
 [opticstudio]: https://www.ansys.com/products/optics/ansys-zemax-opticstudio
 [optiland]: https://optiland.readthedocs.io/
-[backends]: user_guide/backend.ipynb
-[refraction]: user_guide/analyses.ipynb#refraction
+[backends]: user_guide/04_backend.ipynb
+[refraction]: user_guide/05_analyses.ipynb#refraction
 [demo]: https://demo.mreye.nl/visisipy
 
 [^navarro]: Escudero-Sanz, I., & Navarro, R. (1999). Off-axis aberrations of a wide-angle schematic eye model. JOSA A, 16(8), 1881–1891. https://doi.org/10.1364/JOSAA.16.001881

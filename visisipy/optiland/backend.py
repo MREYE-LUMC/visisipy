@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from os import PathLike
 
     from visisipy import EyeModel
-    from visisipy.types import ApertureType, FieldType
+    from visisipy.types import ApertureType, FieldType, OptilandRayAimingType
 
 
 __all__ = (
@@ -67,6 +67,19 @@ class OptilandSettings(BackendSettings, total=False):
     'torch'.
     """
 
+    ray_aiming: OptilandRayAimingType
+    """The ray aiming method to be used in the optic. Must be one of 'paraxial', 'robust', or 'iterative'."""
+
+    ray_aiming_max_iterations: int
+    """The maximum number of iterations for the 'iterative' ray aiming method. Only used if ray_aiming is set to
+    'iterative'.
+    """
+
+    ray_aiming_tolerance: float
+    """The tolerance for convergence for the 'iterative' ray aiming method. Only used if ray_aiming is set to
+    'iterative'.
+    """
+
 
 OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
     **DEFAULT_BACKEND_SETTINGS,
@@ -74,6 +87,9 @@ OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
     "torch_device": "cpu",
     "torch_precision": "float64",
     "torch_use_grad_mode": False,
+    "ray_aiming": "paraxial",
+    "ray_aiming_max_iterations": 10,
+    "ray_aiming_tolerance": 1e-6,
 }
 """Default settings for the Optiland backend."""
 
@@ -144,6 +160,11 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             torch_device=cls.get_setting("torch_device"),
             torch_precision=cls.get_setting("torch_precision"),
             torch_use_grad_mode=cls.get_setting("torch_use_grad_mode"),
+        )
+        cls.set_ray_aiming(
+            ray_aiming=cls.get_setting("ray_aiming"),
+            ray_aiming_max_iterations=cls.get_setting("ray_aiming_max_iterations"),
+            ray_aiming_tolerance=cls.get_setting("ray_aiming_tolerance"),
         )
 
     @classmethod
@@ -352,6 +373,42 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         cls.get_optic().set_aperture(
             aperture_type=OPTILAND_APERTURES[aperture_type],
             value=aperture_value,
+        )
+
+    @classmethod
+    def set_ray_aiming(
+        cls, ray_aiming: OptilandRayAimingType, ray_aiming_max_iterations: int, ray_aiming_tolerance: float
+    ) -> None:
+        """Set the ray aiming method for the optic.
+
+        Parameters
+        ----------
+        ray_aiming : OptilandRayAimingType
+            The ray aiming method to be used in the optic. Must be one of 'paraxial', 'robust', or 'iterative'.
+        ray_aiming_max_iterations : int
+            The maximum number of iterations for the 'iterative' ray aiming method. Only used if ray_aiming is set to 'iterative'.
+        ray_aiming_tolerance : float
+            The tolerance for convergence for the 'iterative' ray aiming method. Only used if ray_aiming is set to 'iterative'.
+
+        Raises
+        ------
+        ValueError
+            If an invalid ray aiming method is provided.
+            If ray_aiming_max_iterations is not a positive integer.
+            If ray_aiming_tolerance is not a positive float.
+        """
+
+        if ray_aiming not in {"paraxial", "robust", "iterative"}:
+            raise ValueError("ray_aiming must be one of 'paraxial', 'robust', or 'iterative'.")
+
+        if ray_aiming_max_iterations <= 0:
+            raise ValueError("ray_aiming_max_iterations must be a positive integer.")
+
+        if ray_aiming_tolerance <= 0:
+            raise ValueError("ray_aiming_tolerance must be a positive float.")
+
+        cls.get_optic().set_ray_aiming(
+            mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance
         )
 
     @classmethod
