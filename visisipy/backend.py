@@ -31,7 +31,7 @@ from collections.abc import Callable, Sequence
 from inspect import get_annotations
 from pathlib import Path
 from types import MethodType
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, Self, TypeVar, cast, overload
 from warnings import warn
 from weakref import WeakValueDictionary
 
@@ -258,6 +258,15 @@ class BaseBackend(ABC, Generic[_Settings]):
     """
 
     _instances: WeakValueDictionary[type[Self], Self] = WeakValueDictionary()
+
+    def __new__(cls, *args, **kwargs) -> Self:  # noqa: ARG004
+        """Store the first instance of each backend subclass to allow retrieving existing instances later."""
+        instance = super().__new__(cls)
+
+        if cls not in cls._instances:
+            cls._instances[cls] = instance
+
+        return instance
 
     def __init__(self) -> None:
         self._register(self)
