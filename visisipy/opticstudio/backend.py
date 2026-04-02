@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from os import PathLike
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self
+from typing import TYPE_CHECKING, Any, Literal
 from warnings import warn
 
 import zospy as zp

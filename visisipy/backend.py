@@ -31,7 +31,7 @@ from collections.abc import Callable, Sequence
 from inspect import get_annotations
 from pathlib import Path
 from types import MethodType
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, Self, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
 from warnings import warn
 from weakref import WeakValueDictionary
 
