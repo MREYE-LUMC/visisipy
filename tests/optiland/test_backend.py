@@ -363,11 +363,11 @@ class TestOptilandBackendSettings:
         with expectation:
             optiland_backend.update_settings(**args)
 
-            assert optiland_backend.optic.ray_aiming_config["mode"] == ray_aiming_mode
+            assert optiland_backend.optic.ray_tracer.ray_aiming_config["mode"] == ray_aiming_mode
             if max_iterations is not None:
-                assert optiland_backend.optic.ray_aiming_config["max_iter"] == max_iterations
+                assert optiland_backend.optic.ray_tracer.ray_aiming_config["max_iter"] == max_iterations
             if tolerance is not None:
-                assert optiland_backend.optic.ray_aiming_config["tolerance"] == tolerance
+                assert optiland_backend.optic.ray_tracer.ray_aiming_config["tolerance"] == tolerance
 
     @pytest.mark.parametrize(
         "computation_backend,torch_device,torch_precision,torch_gradient_mode,expectation",
