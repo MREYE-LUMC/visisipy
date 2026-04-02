@@ -23,13 +23,13 @@ def get_oss_wavelengths(oss: OpticStudioSystem) -> list[float]:
 
 
 class TestSetWavelength:
-    def test_set_wavelength_none(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_set_wavelength_none(self, opticstudio_backend: OpticStudioBackend):
         default_wavelength_number = 1
 
         assert set_wavelength(opticstudio_backend, wavelength=None) == default_wavelength_number
 
-    def test_set_wavelength_existing(self, opticstudio_backend: type[OpticStudioBackend]):
-        oss = opticstudio_backend.get_oss()
+    def test_set_wavelength_existing(self, opticstudio_backend: OpticStudioBackend):
+        oss = opticstudio_backend.oss
         assert get_oss_wavelengths(oss) == [0.543]
         extra_wavelength_1 = 0.430
         extra_wavelength_2 = 0.320
@@ -39,8 +39,8 @@ class TestSetWavelength:
         assert set_wavelength(opticstudio_backend, wavelength=extra_wavelength_1) == 2
         assert get_oss_wavelengths(oss) == [0.543, extra_wavelength_1, extra_wavelength_2]
 
-    def test_set_wavelength_new(self, opticstudio_backend: type[OpticStudioBackend]):
-        oss = opticstudio_backend.get_oss()
+    def test_set_wavelength_new(self, opticstudio_backend: OpticStudioBackend):
+        oss = opticstudio_backend.oss
         assert get_oss_wavelengths(oss) == [0.543]
         new_wavelength = 0.430
 
@@ -58,13 +58,13 @@ def get_oss_fields(oss: OpticStudioSystem) -> list[tuple[float, float]]:
 
 
 class TestSetField:
-    def test_set_field_none(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_set_field_none(self, opticstudio_backend: OpticStudioBackend):
         default_field_number = 1
 
         assert set_field(opticstudio_backend, field_coordinate=None) == default_field_number
 
-    def test_set_field_existing(self, opticstudio_backend: type[OpticStudioBackend]):
-        oss = opticstudio_backend.get_oss()
+    def test_set_field_existing(self, opticstudio_backend: OpticStudioBackend):
+        oss = opticstudio_backend.oss
         assert get_oss_fields(oss) == [(0.0, 0.0)]
         extra_field_1 = (0.0, 10.0)
         extra_field_2 = (10.0, 0.0)
@@ -74,8 +74,8 @@ class TestSetField:
         assert set_field(opticstudio_backend, field_coordinate=extra_field_1) == 2
         assert get_oss_fields(oss) == [(0.0, 0.0), extra_field_1, extra_field_2]
 
-    def test_set_field_new(self, opticstudio_backend: type[OpticStudioBackend]):
-        oss = opticstudio_backend.get_oss()
+    def test_set_field_new(self, opticstudio_backend: OpticStudioBackend):
+        oss = opticstudio_backend.oss
         assert get_oss_fields(oss) == [(0.0, 0.0)]
         new_field = (10.0, 0.0)
 
@@ -101,9 +101,9 @@ class TestSetField:
         new_type: FieldType,
         field: tuple[float, float] | None,
         field_number: int,
-        opticstudio_backend: type[OpticStudioBackend],
+        opticstudio_backend: OpticStudioBackend,
     ):
-        oss = opticstudio_backend.get_oss()
+        oss = opticstudio_backend.oss
 
         if old_type == "angle":
             oss.SystemData.Fields.SetFieldType(zp.constants.SystemData.FieldType.Angle)

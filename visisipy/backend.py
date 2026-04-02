@@ -450,7 +450,7 @@ def set_backend(
 
     if _BACKEND is not None:
         warn(
-            f"The backend is already set to {_BACKEND.__name__}. "
+            f"The backend is already set to {_BACKEND.__class__.__name__}. "
             f"Reconfiguring the backend is not recommended and may cause issues."
         )
 
@@ -503,7 +503,7 @@ def get_oss() -> OpticStudioSystem:
     if instance := OpticStudioBackend.get_instance():
         return instance.oss
 
-    raise BackendAccessError("The OpticStudio backend is not currently initialized.")
+    raise BackendAccessError("The OpticStudio backend has not been initialized.")
 
 
 def get_optic() -> Optic:
@@ -524,7 +524,7 @@ def get_optic() -> Optic:
     if instance := OptilandBackend.get_instance():
         return instance.optic
 
-    raise BackendAccessError("The Optiland backend is not currently initialized.")
+    raise BackendAccessError("The Optiland backend has not been initialized.")
 
 
 def update_settings(backend: BaseBackend | None = None, **settings: Unpack[BackendSettings]):
@@ -534,7 +534,7 @@ def update_settings(backend: BaseBackend | None = None, **settings: Unpack[Backe
 
     Parameters
     ----------
-    backend : type[BaseBackend] | None
+    backend : BaseBackend | None
         The backend to update. If `None`, the current backend is used.
     **settings : Unpack[BackendSettings]
         The settings to update. The keys and values should match the backend's configuration schema.

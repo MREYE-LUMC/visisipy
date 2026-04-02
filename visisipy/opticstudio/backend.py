@@ -101,12 +101,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
             self.validate_settings(settings)
             self.settings.update(settings)
 
-        self._zos = zp.ZOS(
-            zosapi_nethelper=self.settings.get("zosapi_nethelper"),
-            opticstudio_directory=self.settings.get("opticstudio_directory"),
-        )
-        self._oss = self.zos.connect(self.get_setting("mode"))
-
+        self.connect()
         self.new_model()
 
     type = "opticstudio"
@@ -318,17 +313,28 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         if apply_settings:
             self._apply_settings()
 
+    def connect(self) -> None:
+        """Connect to OpticStudio if not already connected."""
+        if self._zos is None:
+            self._zos = zp.ZOS(
+                zosapi_nethelper=self.settings.get("zosapi_nethelper"),
+                opticstudio_directory=self.settings.get("opticstudio_directory"),
+            )
+
+        if self._oss is None:
+            self._oss = self.zos.connect(self.get_setting("mode"))
+
     def disconnect(self) -> None:
         """Disconnects the OpticStudio backend.
 
         This method closes the current optical system, sets the system and ZOS instances to None,
         and disconnects the ZOS instance.
         """
-        if self.oss is not None:
+        if self._oss is not None:
             self.oss.close()
             self._oss = None
 
-        if self.zos is not None:
+        if self._zos is not None:
             self.zos.disconnect()
             self._zos = None
 

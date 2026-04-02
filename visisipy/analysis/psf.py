@@ -70,7 +70,7 @@ def fft_psf(
         is an integer. Only symmetric sample sizes are supported. Defaults to 128.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns

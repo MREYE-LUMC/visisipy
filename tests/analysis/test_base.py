@@ -10,6 +10,8 @@ from visisipy import EyeModel
 from visisipy.analysis import base
 
 if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
     from visisipy.backend import BaseBackend
 
 
@@ -22,12 +24,12 @@ class MockBackend:
 
 
 @pytest.fixture
-def mock_backend(monkeypatch):
+def mock_backend(mocker: MockerFixture) -> MockBackend:
     """Mock the backend for testing."""
 
     backend = MockBackend()
 
-    monkeypatch.setattr(base, "get_backend", lambda: backend)
+    mocker.patch("visisipy.analysis.base.get_backend", return_value=backend)
 
     return backend
 
@@ -36,7 +38,7 @@ def mock_backend(monkeypatch):
 def example_analysis():
     """Example analysis function to test the analysis decorator."""
 
-    def example_analysis(model: EyeModel | None, x: int, *, return_raw_result: bool, backend: type[BaseBackend]):
+    def example_analysis(model: EyeModel | None, x: int, *, return_raw_result: bool, backend: BaseBackend):
         return x, x
 
     return example_analysis
@@ -60,8 +62,8 @@ class TestAnalysisDecorator:
 
     def test_get_backend(self, mock_backend):
         def example_analysis(
-            model: EyeModel | None, x: int, *, return_raw_result: bool, backend: type[BaseBackend]
-        ) -> tuple[type[BaseBackend], int]:
+            model: EyeModel | None, x: int, *, return_raw_result: bool, backend: BaseBackend
+        ) -> tuple[BaseBackend, int]:
             return backend, x
 
         decorated_analysis = base.analysis(example_analysis)
@@ -70,8 +72,8 @@ class TestAnalysisDecorator:
 
     def test_pass_backend(self):
         def example_analysis(
-            model: EyeModel | None, x: int, *, return_raw_result: bool, backend: type[BaseBackend]
-        ) -> tuple[type[BaseBackend], int]:
+            model: EyeModel | None, x: int, *, return_raw_result: bool, backend: BaseBackend
+        ) -> tuple[BaseBackend, int]:
             return backend, x
 
         decorated_analysis = base.analysis(example_analysis)
@@ -80,7 +82,7 @@ class TestAnalysisDecorator:
         assert decorated_analysis(EyeModel(), 1, backend=backend) == backend
 
     def test_no_model_raises_valueerror(self):
-        def example_analysis(x, *, return_raw_result: bool = False, backend: type[BaseBackend]):
+        def example_analysis(x, *, return_raw_result: bool = False, backend: BaseBackend):
             return x, x
 
         with pytest.raises(
@@ -90,7 +92,7 @@ class TestAnalysisDecorator:
             base.analysis(example_analysis)
 
     def test_invalid_model_annotation_raises_valueerror(self):
-        def example_analysis(model: str, x, *, return_raw_result: bool = False, backend: type[BaseBackend]):
+        def example_analysis(model: str, x, *, return_raw_result: bool = False, backend: BaseBackend):
             return x, x
 
         with pytest.raises(
@@ -102,7 +104,7 @@ class TestAnalysisDecorator:
             base.analysis(example_analysis)
 
     def test_no_return_raw_result_raises_valueerror(self):
-        def example_analysis(model: EyeModel | None, x, *, backend: type[BaseBackend]):
+        def example_analysis(model: EyeModel | None, x, *, backend: BaseBackend):
             return x, x
 
         with pytest.raises(
@@ -117,7 +119,7 @@ class TestAnalysisDecorator:
             x,
             return_raw_result: bool,
             *,
-            backend: type[BaseBackend],
+            backend: BaseBackend,
         ):
             return x, x
 
@@ -128,7 +130,7 @@ class TestAnalysisDecorator:
             base.analysis(example_analysis)
 
     def test_invalid_return_raw_result_annotation_raises_valueerror(self):
-        def example_analysis(model: EyeModel | None, x, *, return_raw_result: str, backend: type[BaseBackend]):
+        def example_analysis(model: EyeModel | None, x, *, return_raw_result: str, backend: BaseBackend):
             return x, x
 
         with pytest.raises(
@@ -143,12 +145,12 @@ class TestAnalysisDecorator:
 
         with pytest.raises(
             ValueError,
-            match=r"The analysis function must have a keyword-only 'backend' parameter of type 'type\[BaseBackend\]'",
+            match="The analysis function must have a keyword-only 'backend' parameter of type 'BaseBackend'",
         ):
             base.analysis(example_analysis)
 
     def test_no_keyword_only_backend_raises_valueerror(self):
-        def example_analysis(model: EyeModel | None, x, backend: type[BaseBackend], *, return_raw_result: bool):
+        def example_analysis(model: EyeModel | None, x, backend: BaseBackend, *, return_raw_result: bool):
             return x, x
 
         with pytest.raises(
@@ -163,7 +165,6 @@ class TestAnalysisDecorator:
 
         with pytest.raises(
             ValueError,
-            match=r"The 'backend' parameter of an analysis function must have type 'type\[BaseBackend\]', "
-            r"got 'str'",
+            match="The 'backend' parameter of an analysis function must have type 'BaseBackend', got 'str'",
         ):
             base.analysis(example_analysis)

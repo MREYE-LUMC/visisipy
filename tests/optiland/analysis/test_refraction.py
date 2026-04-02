@@ -1,58 +1,16 @@
 from __future__ import annotations
 
 import math
-from types import MethodType, SimpleNamespace
+from typing import TYPE_CHECKING
 
 import pytest
-from optiland.surfaces import Surface
 
 from tests.helpers import build_args
 from visisipy.models import EyeModel
 from visisipy.types import SampleSize
 
-
-class MockSurface:
-    def __init__(self):
-        self.semi_aperture = 1.0
-        self.changed_semi_aperture = False
-
-    @property
-    def semi_aperture(self):
-        return self._semi_aperture
-
-    @semi_aperture.setter
-    def semi_aperture(self, value):
-        self.changed_semi_aperture = True
-        self._semi_aperture = value
-
-
-class MockOptilandModel:
-    def __init__(self):
-        self._pupil = SimpleNamespace(surface=MockSurface())
-
-    @property
-    def pupil(self):
-        return self._pupil
-
-
-def patch_surface(surface: Surface, monkeypatch):
-    def set_semi_aperture(self, a):
-        self.changed_semi_aperture = True
-        self.semi_aperture = a
-
-    monkeypatch.setattr(surface, "set_semi_aperture", MethodType(set_semi_aperture, Surface))
-    monkeypatch.setattr(surface, "changed_semi_aperture", False, raising=False)
-
-
-@pytest.fixture
-def mock_update_pupil(optiland_backend, monkeypatch):
-    monkeypatch.setattr(optiland_backend, "aperture_history", [], raising=False)
-
-    @classmethod
-    def update_pupil(cls, pupil_diameter):
-        cls.aperture_history.append(pupil_diameter)
-
-    monkeypatch.setattr(optiland_backend, "update_pupil", update_pupil)
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 class TestRefractionAnalysis:
@@ -120,24 +78,21 @@ class TestRefractionAnalysis:
         ],
     )
     def test_change_pupil(
-        self,
-        pupil_diameter,
-        change_pupil_diameter,
-        optiland_backend,
-        mock_update_pupil,
-        optiland_analysis,
+        self, pupil_diameter, change_pupil_diameter, optiland_backend, optiland_analysis, mocker: MockerFixture
     ):
         optiland_backend.build_model(EyeModel())
         optiland_backend.update_settings(aperture_type="float_by_stop_size", aperture_value=1.0)
 
-        assert optiland_backend.aperture_history == []
+        spy = mocker.spy(optiland_backend, "update_pupil")
 
         optiland_analysis.refraction(pupil_diameter=pupil_diameter)
 
         if change_pupil_diameter:
-            assert optiland_backend.aperture_history == [pupil_diameter, 1.0]
+            assert spy.call_count == 2
+            assert spy.call_args_list[0] == mocker.call(pupil_diameter)
+            assert spy.call_args_list[1] == mocker.call(1.0)
         else:
-            assert optiland_backend.aperture_history == []
+            spy.assert_not_called()
 
     @pytest.mark.parametrize(
         "aperture_type,pupil_diameter",

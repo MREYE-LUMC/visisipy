@@ -114,7 +114,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
     @property
     def optic(self) -> Optic:
         if self._optic is None:
-            raise BackendAccessError("No optic object initialized. Please initialize the backend first.")
+            raise BackendAccessError("The Optiland backend has not been initialized.")
 
         return self._optic
 

@@ -101,6 +101,7 @@ markers = [
     "xfail_if_torch_backend: test is expected to fail if Optiland's computation backend is set to 'torch'",
 ]
 filterwarnings = [
+    "ignore:(Field coordinate|Wavelength) .+ not found. Adding it to the system:UserWarning",
     "ignore:invalid value encountered in \\w+:RuntimeWarning",
     "ignore:Conversion of an array with ndim > 0 to a scalar is deprecated:DeprecationWarning",
     "error:The default model for AbbeMaterial will change:FutureWarning"

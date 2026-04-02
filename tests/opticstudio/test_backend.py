@@ -10,13 +10,13 @@ import pytest
 import zospy as zp
 
 from visisipy import EyeModel
-from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS
+from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS, OpticStudioBackend
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
     from zospy.zpcore import OpticStudioSystem
 
-    from visisipy.opticstudio.backend import OpticStudioBackend, OpticStudioSettings
+    from visisipy.opticstudio.backend import OpticStudioSettings
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -28,11 +28,11 @@ OPTICSTUDIO_FIELD_TYPES: dict[str, str] = {
 
 
 class TestOpticStudioBackend:
-    def test_initialize_opticstudio(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_initialize_opticstudio(self, opticstudio_backend: OpticStudioBackend):
         assert opticstudio_backend.zos is not None
         assert opticstudio_backend.oss is not None
 
-    def test_new_model(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_new_model(self, opticstudio_backend: OpticStudioBackend):
         # Change a setting and add a new surface
         opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength = 0.640
         opticstudio_backend.oss.LDE.InsertNewSurfaceAt(2)
@@ -47,7 +47,7 @@ class TestOpticStudioBackend:
         )
         assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
 
-    def test_build_model(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_build_model(self, opticstudio_backend: OpticStudioBackend):
         model = EyeModel()
 
         opticstudio_backend.build_model(model)
@@ -59,7 +59,7 @@ class TestOpticStudioBackend:
     @pytest.mark.parametrize(
         "aperture_type", ["entrance_pupil_diameter", "float_by_stop_size", "image_f_number", "object_numeric_aperture"]
     )
-    def test_build_model_updates_aperture_value(self, opticstudio_backend, aperture_type):
+    def test_build_model_updates_aperture_value(self, opticstudio_backend: OpticStudioBackend, aperture_type):
         model = EyeModel()
 
         # Ensure the aperture value is different from the eye model pupil diameter
@@ -70,15 +70,15 @@ class TestOpticStudioBackend:
         if aperture_type == "float_by_stop_size":
             # For float by stop size, the value is interpreted as the semi-diameter
             assert opticstudio_backend.get_setting("aperture_value") == model.geometry.pupil.semi_diameter * 2
-            assert opticstudio_backend.get_oss().LDE.GetSurfaceAt(3).SemiDiameter == model.geometry.pupil.semi_diameter
+            assert opticstudio_backend.oss.LDE.GetSurfaceAt(3).SemiDiameter == model.geometry.pupil.semi_diameter
             assert opticstudio_backend.get_aperture() == ("float_by_stop_size", model.geometry.pupil.semi_diameter * 2)
         else:
             # For other aperture types, the value is interpreted as the aperture value
             assert opticstudio_backend.get_setting("aperture_value") == aperture_value
-            assert opticstudio_backend.get_oss().SystemData.Aperture.ApertureValue == aperture_value
+            assert opticstudio_backend.oss.SystemData.Aperture.ApertureValue == aperture_value
             assert opticstudio_backend.get_aperture() == (aperture_type, aperture_value)
 
-    def test_clear_model(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_clear_model(self, opticstudio_backend: OpticStudioBackend):
         model = EyeModel()
 
         opticstudio_backend.build_model(model)
@@ -90,7 +90,7 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.model is None
         assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
 
-    def test_save_model(self, opticstudio_backend: type[OpticStudioBackend], tmp_path):
+    def test_save_model(self, opticstudio_backend: OpticStudioBackend, tmp_path):
         model = EyeModel()
 
         opticstudio_backend.build_model(model)
@@ -124,9 +124,9 @@ class TestOpticStudioBackend:
             ),
         ],
     )
-    def test_load_model(self, opticstudio_backend: type[OpticStudioBackend], datadir, filename, expectation):
+    def test_load_model(self, opticstudio_backend: OpticStudioBackend, datadir, filename, expectation):
         file = datadir / "test_load_models" / filename
-        oss: OpticStudioSystem = opticstudio_backend.get_oss()
+        oss: OpticStudioSystem = opticstudio_backend.oss
 
         with expectation:
             opticstudio_backend.load_model(file, apply_settings=False)
@@ -138,9 +138,9 @@ class TestOpticStudioBackend:
             assert oss.SystemData.Wavelengths.NumberOfWavelengths == 4
             assert oss.SystemData.Fields.NumberOfFields == 4
 
-    def test_load_model_apply_settings(self, opticstudio_backend: type[OpticStudioBackend], datadir):
+    def test_load_model_apply_settings(self, opticstudio_backend: OpticStudioBackend, datadir):
         file = datadir / "test_load_models" / "navarro_eye.zmx"
-        oss: OpticStudioSystem = opticstudio_backend.get_oss()
+        oss: OpticStudioSystem = opticstudio_backend.oss
 
         opticstudio_backend.load_model(file, apply_settings=True)
 
@@ -150,11 +150,11 @@ class TestOpticStudioBackend:
         assert oss.SystemData.Wavelengths.NumberOfWavelengths == 1
         assert oss.SystemData.Fields.NumberOfFields == 1
 
-    def test_disconnect(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_disconnect(self, opticstudio_backend: OpticStudioBackend):
         opticstudio_backend.disconnect()
 
-        assert opticstudio_backend.zos is None
-        assert opticstudio_backend.oss is None
+        assert opticstudio_backend._zos is None
+        assert opticstudio_backend._oss is None
 
     @pytest.mark.parametrize(
         "aperture_type,aperture_value",
@@ -165,7 +165,7 @@ class TestOpticStudioBackend:
             ("object_numeric_aperture", 0.1),
         ],
     )
-    def test_get_aperture(self, opticstudio_backend: type[OpticStudioBackend], aperture_type, aperture_value):
+    def test_get_aperture(self, opticstudio_backend: OpticStudioBackend, aperture_type, aperture_value):
         opticstudio_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)
 
         assert opticstudio_backend.get_aperture() == (aperture_type, aperture_value)
@@ -204,7 +204,7 @@ class TestOpticStudioBackend:
         ],
     )
     def test_set_fields(
-        self, opticstudio_backend: type[OpticStudioBackend], coordinates, field_type, field_constant, expectation
+        self, opticstudio_backend: OpticStudioBackend, coordinates, field_type, field_constant, expectation
     ):
         with expectation:
             opticstudio_backend.set_fields(coordinates, field_type)
@@ -218,26 +218,26 @@ class TestOpticStudioBackend:
                 zp.constants.SystemData.FieldType, field_constant
             )
 
-    def test_get_fields(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_get_fields(self, opticstudio_backend: OpticStudioBackend):
         coordinates = [(0, 0), (0, 10), (-10, 0), (10, -10)]
 
         for i, f in enumerate(coordinates, start=1):
             if i == 1:
-                field = opticstudio_backend.get_oss().SystemData.Fields.GetField(i)
+                field = opticstudio_backend.oss.SystemData.Fields.GetField(i)
                 field.X, field.Y = f
             else:
-                opticstudio_backend.get_oss().SystemData.Fields.AddField(*f, 1)
+                opticstudio_backend.oss.SystemData.Fields.AddField(*f, 1)
 
         assert opticstudio_backend.get_fields() == coordinates
 
-    def test_add_field(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_add_field(self, opticstudio_backend: OpticStudioBackend):
         new_field = (10, 10)
         existing_fields = opticstudio_backend.get_fields()
 
         assert opticstudio_backend.add_field(new_field) == len(existing_fields) + 1
         assert opticstudio_backend.get_fields() == [*existing_fields, new_field]
 
-    def test_get_field_number(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_get_field_number(self, opticstudio_backend: OpticStudioBackend):
         opticstudio_backend.set_fields([(0, 0), (0, 10), (-10, 0), (10, -10)])
 
         assert opticstudio_backend.get_field_number((0, 0)) == 1
@@ -253,8 +253,8 @@ class TestOpticStudioBackend:
             "object_height",
         ],
     )
-    def test_get_field_type(self, field_type, opticstudio_backend: type[OpticStudioBackend]):
-        oss = opticstudio_backend.get_oss()
+    def test_get_field_type(self, field_type, opticstudio_backend: OpticStudioBackend):
+        oss = opticstudio_backend.oss
 
         oss.SystemData.Fields.SetFieldType(
             zp.constants.process_constant(zp.constants.SystemData.FieldType, OPTICSTUDIO_FIELD_TYPES[field_type])
@@ -274,8 +274,8 @@ class TestOpticStudioBackend:
             ),
         ],
     )
-    def test_set_field_type(self, old_type, new_type, expectation, opticstudio_backend: type[OpticStudioBackend]):
-        oss = opticstudio_backend.get_oss()
+    def test_set_field_type(self, old_type, new_type, expectation, opticstudio_backend: OpticStudioBackend):
+        oss = opticstudio_backend.oss
         oss.SystemData.Fields.SetFieldType(
             zp.constants.process_constant(zp.constants.SystemData.FieldType, OPTICSTUDIO_FIELD_TYPES[old_type])
         )
@@ -295,7 +295,7 @@ class TestOpticStudioBackend:
             ([], pytest.raises(ValueError, match="At least one wavelength must be provided")),
         ],
     )
-    def test_set_wavelengths(self, wavelengths, expectation, opticstudio_backend: type[OpticStudioBackend]):
+    def test_set_wavelengths(self, wavelengths, expectation, opticstudio_backend: OpticStudioBackend):
         with expectation:
             opticstudio_backend.set_wavelengths(wavelengths)
 
@@ -303,25 +303,25 @@ class TestOpticStudioBackend:
             for i, wavelength in enumerate(wavelengths, start=1):
                 assert opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(i).Wavelength == wavelength
 
-    def test_add_wavelength(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_add_wavelength(self, opticstudio_backend: OpticStudioBackend):
         new_wavelength = 0.430
         existing_wavelengths = opticstudio_backend.get_wavelengths()
 
         assert opticstudio_backend.add_wavelength(new_wavelength) == len(existing_wavelengths) + 1
         assert opticstudio_backend.get_wavelengths() == [*existing_wavelengths, new_wavelength]
 
-    def test_get_wavelengths(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_get_wavelengths(self, opticstudio_backend: OpticStudioBackend):
         wavelengths = [0.543, 0.650]
 
         for i, w in enumerate(wavelengths, start=1):
             if i == 1:
-                opticstudio_backend.get_oss().SystemData.Wavelengths.GetWavelength(i).Wavelength = w
+                opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(i).Wavelength = w
             else:
-                opticstudio_backend.get_oss().SystemData.Wavelengths.AddWavelength(w, i)
+                opticstudio_backend.oss.SystemData.Wavelengths.AddWavelength(w, i)
 
         assert opticstudio_backend.get_wavelengths() == wavelengths
 
-    def test_get_wavelength_number(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_get_wavelength_number(self, opticstudio_backend: OpticStudioBackend):
         opticstudio_backend.set_wavelengths([0.543, 0.650])
 
         assert opticstudio_backend.get_wavelength_number(0.543) == 1
@@ -337,7 +337,7 @@ class TestOpticStudioBackend:
             ("object_numeric_aperture", 0.2),
         ],
     )
-    def test_update_pupil(self, opticstudio_backend: type[OpticStudioBackend], aperture_type, new_aperture_value):
+    def test_update_pupil(self, opticstudio_backend: OpticStudioBackend, aperture_type, new_aperture_value):
         opticstudio_backend.update_settings(
             aperture_type=aperture_type,
             aperture_value=1,
@@ -350,17 +350,15 @@ class TestOpticStudioBackend:
         if aperture_type == "float_by_stop_size":
             # For float by stop size, the value is interpreted as the semi-diameter
             assert (
-                opticstudio_backend.get_oss()
-                .LDE.GetSurfaceAt(opticstudio_backend.get_oss().LDE.StopSurface)
-                .SemiDiameter
+                opticstudio_backend.oss.LDE.GetSurfaceAt(opticstudio_backend.oss.LDE.StopSurface).SemiDiameter
                 == new_aperture_value / 2
             )
         else:
-            assert opticstudio_backend.get_oss().SystemData.Aperture.ApertureValue == new_aperture_value
+            assert opticstudio_backend.oss.SystemData.Aperture.ApertureValue == new_aperture_value
 
 
 class TestOpticStudioBackendSettings:
-    def test_update_settings(self, opticstudio_backend: type[OpticStudioBackend]):
+    def test_update_settings(self, opticstudio_backend: OpticStudioBackend):
         settings: OpticStudioSettings = {
             "field_type": "object_height",
             "fields": [(0, 0), (0, 10), (-10, 0), (10, -10)],
@@ -381,7 +379,7 @@ class TestOpticStudioBackendSettings:
             ("object_height", [(0, 0), (0, 10), (-10, 0), (10, -10)], "ObjectHeight"),
         ],
     )
-    def test_field(self, field_type, fields, expected_field_type, opticstudio_backend: type[OpticStudioBackend]):
+    def test_field(self, field_type, fields, expected_field_type, opticstudio_backend: OpticStudioBackend):
         opticstudio_backend.update_settings(field_type=field_type, fields=fields)
 
         assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(fields)
@@ -397,7 +395,7 @@ class TestOpticStudioBackendSettings:
         "wavelengths",
         [[0.543, 0.650], [0.543, 0.650, 0.450]],
     )
-    def test_wavelength(self, wavelengths, opticstudio_backend: type[OpticStudioBackend]):
+    def test_wavelength(self, wavelengths, opticstudio_backend: OpticStudioBackend):
         opticstudio_backend.update_settings(wavelengths=wavelengths)
 
         assert opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths == len(wavelengths)
@@ -414,7 +412,7 @@ class TestOpticStudioBackendSettings:
         ],
     )
     def test_aperture(
-        self, aperture_type, aperture_value, expected_aperture_type, opticstudio_backend: type[OpticStudioBackend]
+        self, aperture_type, aperture_value, expected_aperture_type, opticstudio_backend: OpticStudioBackend
     ):
         opticstudio_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)
 
@@ -433,7 +431,7 @@ class TestOpticStudioBackendSettings:
             ("real", "Real"),
         ],
     )
-    def test_ray_aiming(self, ray_aiming, expected, opticstudio_backend: type[OpticStudioBackend]):
+    def test_ray_aiming(self, ray_aiming, expected, opticstudio_backend: OpticStudioBackend):
         opticstudio_backend.update_settings(ray_aiming=ray_aiming)
 
         assert opticstudio_backend.oss.SystemData.RayAiming.RayAiming == zp.constants.process_constant(
@@ -466,20 +464,20 @@ class TestOpticStudioBackendSettings:
             ),
         ],
     )
-    def test_validate_settings(self, settings, expectation, opticstudio_backend: type[OpticStudioBackend]):
+    def test_validate_settings(self, settings, expectation, opticstudio_backend: OpticStudioBackend):
         with expectation:
             opticstudio_backend.validate_settings(settings)
+
+    def test_init_calls_validate_settings(self, mocker: MockerFixture):
+        patch = mocker.patch("visisipy.opticstudio.backend.OpticStudioBackend.validate_settings")
+
+        OpticStudioBackend(fields=[])
+
+        assert patch.call_args_list[0] == mocker.call({"fields": []})
 
     @pytest.mark.parametrize(
         "method,kwargs",
         [
-            pytest.param(
-                "initialize",
-                {"name": "invalid_field"},
-                marks=pytest.mark.filterwarnings(
-                    "ignore:The OpticStudio backend has already been initialized:UserWarning",
-                ),
-            ),
             (
                 "update_settings",
                 {"name": "invalid_field"},
@@ -491,7 +489,7 @@ class TestOpticStudioBackendSettings:
         ],
     )
     def test_validate_settings_is_called(
-        self, method, kwargs, mocker: MockerFixture, opticstudio_backend: type[OpticStudioBackend]
+        self, method, kwargs, mocker: MockerFixture, opticstudio_backend: OpticStudioBackend
     ):
         patch = mocker.patch.object(opticstudio_backend, "validate_settings")
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -8,42 +9,10 @@ from tests.helpers import build_args
 from visisipy.models import EyeModel
 from visisipy.types import SampleSize
 
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
+
 pytestmark = [pytest.mark.needs_opticstudio]
-
-
-class MockPupil:
-    def __init__(self):
-        self.semi_diameter_history = []
-        self.semi_diameter = 0.5
-
-    @property
-    def semi_diameter(self):
-        return self._semi_diameter
-
-    @semi_diameter.setter
-    def semi_diameter(self, value):
-        self.semi_diameter_history.append(value)
-        self._semi_diameter = value
-
-
-class MockOpticstudioModel:
-    def __init__(self):
-        self._pupil = MockPupil()
-
-    @property
-    def pupil(self):
-        return self._pupil
-
-
-@pytest.fixture
-def mock_update_pupil(opticstudio_backend, monkeypatch):
-    monkeypatch.setattr(opticstudio_backend, "aperture_history", [], raising=False)
-
-    @classmethod
-    def update_pupil(cls, pupil_diameter):
-        cls.aperture_history.append(pupil_diameter)
-
-    monkeypatch.setattr(opticstudio_backend, "update_pupil", update_pupil)
 
 
 class TestRefractionAnalysis:
@@ -96,18 +65,20 @@ class TestRefractionAnalysis:
         ],
     )
     def test_change_pupil(
-        self, opticstudio_backend, mock_update_pupil, opticstudio_analysis, pupil_diameter, change_pupil_diameter
+        self, opticstudio_backend, opticstudio_analysis, pupil_diameter, change_pupil_diameter, mocker: MockerFixture
     ):
         opticstudio_backend.update_settings(aperture_type="float_by_stop_size", aperture_value=1.0)
 
-        assert opticstudio_backend.aperture_history == []
+        spy = mocker.spy(opticstudio_backend, "update_pupil")
 
         opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)
 
         if change_pupil_diameter:
-            assert opticstudio_backend.aperture_history == [pupil_diameter, 1.0]
+            assert spy.call_count == 2
+            assert spy.call_args_list[0] == mocker.call(pupil_diameter)
+            assert spy.call_args_list[1] == mocker.call(1.0)
         else:
-            assert opticstudio_backend.aperture_history == []
+            spy.assert_not_called()
 
     @pytest.mark.parametrize(
         "aperture_type,pupil_diameter",
