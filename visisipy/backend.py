@@ -276,7 +276,6 @@ class BaseBackend(ABC, Generic[_Settings]):
         -------
         BaseBackend | None
             The current instance of the backend, or None if it has not been initialized yet.
-
         """
         if cls not in cls._instances:
             return None
