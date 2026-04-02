@@ -102,6 +102,7 @@ markers = [
 ]
 filterwarnings = [
     "ignore:(Field coordinate|Wavelength) .+ not found. Adding it to the system:UserWarning",
+    "ignore:Changing field type from angle to object_height:UserWarning",
     "ignore:invalid value encountered in \\w+:RuntimeWarning",
     "ignore:Conversion of an array with ndim > 0 to a scalar is deprecated:DeprecationWarning",
     "error:The default model for AbbeMaterial will change:FutureWarning"

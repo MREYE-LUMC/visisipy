@@ -10,9 +10,9 @@ import sys
 from typing import Literal
 
 if sys.version_info >= (3, 11):
-    from typing import NotRequired, TypedDict, Unpack
+    from typing import NotRequired, Self, TypedDict, Unpack
 else:
-    from typing_extensions import NotRequired, TypedDict, Unpack
+    from typing_extensions import NotRequired, Self, TypedDict, Unpack
 
 
 __all__ = (
@@ -21,6 +21,7 @@ __all__ = (
     "FieldType",
     "NotRequired",
     "SampleSize",
+    "Self",
     "TypedDict",
     "Unpack",
     "ZernikeUnit",

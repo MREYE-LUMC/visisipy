@@ -31,11 +31,11 @@ from collections.abc import Callable, Sequence
 from inspect import get_annotations
 from pathlib import Path
 from types import MethodType
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, Self, TypeVar, cast, overload
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
 from warnings import warn
 from weakref import WeakValueDictionary
 
-from visisipy.types import NotRequired, TypedDict, Unpack, ZernikeUnit
+from visisipy.types import NotRequired, Self, TypedDict, Unpack, ZernikeUnit
 
 if TYPE_CHECKING:
     from os import PathLike
@@ -281,7 +281,7 @@ class BaseBackend(ABC, Generic[_Settings]):
         if cls not in cls._instances:
             return None
 
-        return cast("Self", cls._instances[cls])
+        return cls._instances[cls]
 
     @abstractmethod
     def __init__(self, **settings: Unpack[BackendSettings]) -> None: ...
