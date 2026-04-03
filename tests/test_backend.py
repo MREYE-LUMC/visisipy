@@ -15,7 +15,7 @@ else:
     OpticStudioBackend = object
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from os import PathLike
     from pathlib import Path
 
     from pytest_mock import MockerFixture
@@ -26,26 +26,41 @@ if TYPE_CHECKING:
 # pyright: reportOptionalMemberAccess=false, reportTypedDictNotRequiredAccess=false
 
 
-class MockBackend:
+class MockBackend(backend.BaseBackend):
     """Mock backend for testing purposes."""
 
     def __init__(self, **settings: Any):
-        self.settings: dict[str, Any] = settings
+        self._settings: dict[str, Any] = settings
         self.oss = object()
         self.optic = object()
-
-    @classmethod
-    def get_instance(cls) -> MockBackend | None:
-        return None
 
     def update_settings(self, **settings):
         if len(settings) > 0:
             self.settings.update(settings)
 
+    @property
+    def analysis(self):
+        return None
+
+    @property
+    def settings(self) -> dict[str, Any]:
+        return self._settings
+
+    @property
+    def model(self) -> backend.BaseEye | None:
+        return None
+
+    def build_model(self, model: visisipy.EyeModel) -> None: ...
+
+    def clear_model(self) -> None: ...
+
+    def load_model(self, filename: str | PathLike, *, apply_settings: bool = False) -> None: ...
+
+    def save_model(self, filename: str | PathLike | None = None) -> None: ...
+
 
 def make_mock_backend(mocker: MockerFixture, name: str = "MockBackend"):
-    mock_instance = mocker.MagicMock()
-    mock_instance.settings = {}
+    mock_instance = MockBackend()
     mock_instance.__class__.__name__ = name
 
     mock_class = mocker.MagicMock()
@@ -62,19 +77,10 @@ def make_mock_backend(mocker: MockerFixture, name: str = "MockBackend"):
 
 @pytest.fixture
 def mock_backend(mocker: MockerFixture):
-    mocker.patch("visisipy.backend._BACKEND", new=MockBackend())
+    _, mock_instance = make_mock_backend(mocker)
+    mocker.patch("visisipy.backend._BACKEND", new=mock_instance)
 
-
-def singleton(instance: MockBackend) -> Callable[..., MockBackend]:
-    """Helper function to create a singleton instance of the MockBackend for testing."""
-
-    def inner(**settings: Any) -> MockBackend:
-        instance.update_settings(**settings)
-        return instance
-
-    inner.get_instance = lambda: None
-
-    return inner
+    return mock_instance
 
 
 @pytest.fixture
@@ -91,6 +97,20 @@ def mock_optiland_backend(mocker: MockerFixture):
     mocker.patch("visisipy.optiland.OptilandBackend", new=mock_class)
 
     return mock_instance
+
+
+class TestGetInstance:
+    def test_backend_saves_instance(self):
+        instance = MockBackend()
+
+        assert MockBackend._instances[MockBackend] is instance
+        assert backend.BaseBackend._instances[MockBackend] is instance
+
+    def test_get_instance_returns_first_instance(self):
+        instance = MockBackend()
+        _ = MockBackend()
+
+        assert MockBackend.get_instance() is instance
 
 
 class TestSetBackend:
