@@ -13,24 +13,24 @@ right sidebar.
 :maxdepth: 2
 :caption: Getting started
 
-installation
-example
+01_installation
+02_example
 ```
 
 ```{toctree}
 :maxdepth: 2
 :caption: Simulation workflow
 
-eye_models
-backend
-analyses
+03_eye_models
+04_backend
+05_analyses
 ```
 
 ```{toctree}
 :maxdepth: 2
 :caption: Advanced usage
 
-backend_direct
-custom_surfaces
-asymmetric_models
+06_backend_direct
+07_custom_surfaces
+08_asymmetric_models
 ```

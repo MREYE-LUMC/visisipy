@@ -20,6 +20,8 @@ __all__ = (
     "FieldCoordinate",
     "FieldType",
     "NotRequired",
+    "OpticStudioRayAimingType",
+    "OptilandRayAimingType",
     "SampleSize",
     "Self",
     "TypedDict",
@@ -35,6 +37,8 @@ ApertureType = Literal[
 ]
 FieldType = Literal["angle", "object_height"]
 FieldCoordinate = tuple[float, float]
+OpticStudioRayAimingType = Literal["off", "paraxial", "real"]
+OptilandRayAimingType = Literal["paraxial", "robust", "iterative"]
 ZernikeUnit = Literal["microns", "waves"]
 
 

@@ -252,6 +252,7 @@ class TestOptilandBackendSettings:
             "aperture_type": "entrance_pupil_diameter",
             "aperture_value": 3.0,
             "computation_backend": "numpy",
+            "ray_aiming": "robust",
         }
 
         optiland_backend.update_settings(**settings)
@@ -327,6 +328,46 @@ class TestOptilandBackendSettings:
 
             assert optiland_backend.optic.aperture.ap_type == expected_aperture_type
             assert optiland_backend.optic.aperture.value == aperture_value
+
+    @pytest.mark.parametrize(
+        "ray_aiming_mode,max_iterations,tolerance,expectation",
+        [
+            ("paraxial", None, None, does_not_raise()),
+            ("robust", None, None, does_not_raise()),
+            ("iterative", 100, 1e-5, does_not_raise()),
+            (
+                "invalid",
+                None,
+                None,
+                pytest.raises(ValueError, match="ray_aiming must be one of 'paraxial', 'robust', or 'iterative'"),
+            ),
+            (
+                "iterative",
+                -1,
+                1e-5,
+                pytest.raises(ValueError, match="ray_aiming_max_iterations must be a positive integer"),
+            ),
+            ("iterative", 100, -1e-5, pytest.raises(ValueError, match="ray_aiming_tolerance must be a positive float")),
+        ],
+    )
+    def test_ray_aiming(
+        self, ray_aiming_mode, max_iterations, tolerance, expectation, optiland_backend: type[OptilandBackend]
+    ):
+        args = build_args(
+            ray_aiming=ray_aiming_mode,
+            ray_aiming_max_iterations=max_iterations,
+            ray_aiming_tolerance=tolerance,
+            non_null_defaults={"ray_aiming_max_iterations", "ray_aiming_tolerance"},
+        )
+
+        with expectation:
+            optiland_backend.update_settings(**args)
+
+            assert optiland_backend.get_optic().ray_aiming_config["mode"] == ray_aiming_mode
+            if max_iterations is not None:
+                assert optiland_backend.get_optic().ray_aiming_config["max_iter"] == max_iterations
+            if tolerance is not None:
+                assert optiland_backend.get_optic().ray_aiming_config["tolerance"] == tolerance
 
     @pytest.mark.parametrize(
         "computation_backend,torch_device,torch_precision,torch_gradient_mode,expectation",

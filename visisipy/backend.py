@@ -235,7 +235,7 @@ class BackendSettings(TypedDict, total=False):
     'image_f_number', or 'object_numeric_aperture'.
     """
 
-    aperture_value: NotRequired[float]
+    aperture_value: float
     """The aperture value to use in the optical system. Not required for 'float_by_stop_size'."""
 
 

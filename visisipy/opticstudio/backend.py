@@ -26,13 +26,10 @@ if TYPE_CHECKING:
     from zospy.zpcore import ZOS, OpticStudioSystem
 
     from visisipy import EyeModel
-    from visisipy.types import ApertureType, FieldCoordinate, FieldType, NotRequired, Self, Unpack
+    from visisipy.types import ApertureType, FieldCoordinate, FieldType, NotRequired, OpticStudioRayAimingType, Self, Unpack
 
 
 __all__ = ("OpticStudioBackend", "OpticStudioSettings")
-
-
-RayAimingType = Literal["off", "paraxial", "real"]
 
 
 class OpticStudioSettings(BackendSettings, total=False):
@@ -47,7 +44,7 @@ class OpticStudioSettings(BackendSettings, total=False):
     opticstudio_directory: NotRequired[str]
     """Path to the OpticStudio installation directory. If not provided, the path is automatically determined."""
 
-    ray_aiming: RayAimingType
+    ray_aiming: OpticStudioRayAimingType
     """The ray aiming method to be used in the optical system. Must be one of 'off', 'paraxial', or 'real'."""
 
 
@@ -618,7 +615,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         return None
 
     @staticmethod
-    def set_ray_aiming(oss: OpticStudioSystem, ray_aiming: RayAimingType) -> None:
+    def set_ray_aiming(oss: OpticStudioSystem, ray_aiming: OpticStudioRayAimingType) -> None:
         if ray_aiming == "off":
             oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Off
         elif ray_aiming == "paraxial":
