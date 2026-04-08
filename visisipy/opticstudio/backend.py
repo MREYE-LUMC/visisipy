@@ -79,7 +79,10 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
             )
             return instance
 
-        return super().__new__(cls)
+        instance = super().__new__(cls)
+        instance.__initialized = False
+
+        return instance
 
     def __init__(self, **settings: Unpack[OpticStudioSettings]) -> None:
         """Initialize the OpticStudio backend.
@@ -91,6 +94,9 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         settings : OpticStudioSettings | None, optional
             The settings to be used for the OpticStudio backend. If None, the default settings are used.
         """
+        if self.__initialized:
+            return
+
         self._zos = None
         self._oss = None
         self._model = None
@@ -103,6 +109,8 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         self.connect()
         self.new_model()
+
+        self.__initialized = True
 
     type = "opticstudio"
     _settings_type = OpticStudioSettings

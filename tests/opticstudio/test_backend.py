@@ -31,16 +31,20 @@ class TestOpticStudioBackend:
     def test_initialize_opticstudio(self, opticstudio_backend: OpticStudioBackend):
         assert opticstudio_backend.zos is not None
         assert opticstudio_backend.oss is not None
+        assert opticstudio_backend._OpticStudioBackend__initialized is True
 
-    def test_singleton(self, opticstudio_backend: OpticStudioBackend):
+    def test_singleton(self, opticstudio_backend: OpticStudioBackend, mocker: MockerFixture):
         with pytest.warns(
             UserWarning,
             match=re.escape("An instance of the OpticStudio backend already exists. Returning the existing instance."),
         ):
             new_backend = OpticStudioBackend()
 
+        spy = mocker.spy(OpticStudioBackend, "new_model")
+
         assert new_backend is opticstudio_backend
         assert OpticStudioBackend.get_instance() is opticstudio_backend
+        spy.assert_not_called()
 
     def test_new_model(self, opticstudio_backend: OpticStudioBackend):
         # Change a setting and add a new surface
