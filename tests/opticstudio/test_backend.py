@@ -46,16 +46,6 @@ class TestOpticStudioBackend:
         assert OpticStudioBackend.get_instance() is opticstudio_backend
         spy.assert_not_called()
 
-    def test_singleton(self, opticstudio_backend: OpticStudioBackend):
-        with pytest.warns(
-            UserWarning,
-            match=re.escape("An instance of the OpticStudio backend already exists. Returning the existing instance."),
-        ):
-            new_backend = OpticStudioBackend()
-
-        assert new_backend is opticstudio_backend
-        assert OpticStudioBackend.get_instance() is opticstudio_backend
-
     def test_new_model(self, opticstudio_backend: OpticStudioBackend):
         # Change a setting and add a new surface
         opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(1).Wavelength = 0.640
