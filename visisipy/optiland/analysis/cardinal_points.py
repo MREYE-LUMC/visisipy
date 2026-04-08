@@ -55,7 +55,7 @@ def cardinal_points(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         Reference to the Optiland backend.
     surface_1 : int | None, optional
         The first surface to be used in the analysis. If `None`, the first surface in the system will be used.

@@ -66,7 +66,7 @@ def fft_psf(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         Reference to the Optiland backend.
     field_coordinate : tuple[float, float], optional
         The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.

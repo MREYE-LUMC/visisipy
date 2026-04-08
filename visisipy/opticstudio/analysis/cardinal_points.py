@@ -50,7 +50,7 @@ def cardinal_points(
 
     Parameters
     ----------
-    backend : type[OpticStudioBackend]
+    backend : OpticStudioBackend
         Reference to the OpticStudio backend.
     surface_1 : int | None, optional
         The first surface to be used in the analysis. If `None`, the first surface in the system will be used.

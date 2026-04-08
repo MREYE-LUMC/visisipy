@@ -65,7 +65,7 @@ def raytrace(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         The Optiland backend to use for the ray trace.
     coordinates : Sequence[FieldCoordinate], optional
         A sequence of tuples representing the coordinates for the ray trace.
