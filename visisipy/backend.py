@@ -35,7 +35,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast
 from warnings import warn
 from weakref import WeakValueDictionary
 
-from visisipy.types import NotRequired, Self, TypedDict, Unpack, ZernikeUnit
+from visisipy.types import Self, TypedDict, Unpack, ZernikeUnit
 
 if TYPE_CHECKING:
     from os import PathLike

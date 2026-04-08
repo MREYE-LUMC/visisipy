@@ -26,7 +26,15 @@ if TYPE_CHECKING:
     from zospy.zpcore import ZOS, OpticStudioSystem
 
     from visisipy import EyeModel
-    from visisipy.types import ApertureType, FieldCoordinate, FieldType, NotRequired, OpticStudioRayAimingType, Self, Unpack
+    from visisipy.types import (
+        ApertureType,
+        FieldCoordinate,
+        FieldType,
+        NotRequired,
+        OpticStudioRayAimingType,
+        Self,
+        Unpack,
+    )
 
 
 __all__ = ("OpticStudioBackend", "OpticStudioSettings")

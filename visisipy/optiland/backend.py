@@ -164,10 +164,10 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             torch_precision=self.get_setting("torch_precision"),
             torch_use_grad_mode=self.get_setting("torch_use_grad_mode"),
         )
-        cls.set_ray_aiming(
-            ray_aiming=cls.get_setting("ray_aiming"),
-            ray_aiming_max_iterations=cls.get_setting("ray_aiming_max_iterations"),
-            ray_aiming_tolerance=cls.get_setting("ray_aiming_tolerance"),
+        self.set_ray_aiming(
+            ray_aiming=self.get_setting("ray_aiming"),
+            ray_aiming_max_iterations=self.get_setting("ray_aiming_max_iterations"),
+            ray_aiming_tolerance=self.get_setting("ray_aiming_tolerance"),
         )
 
     def update_settings(self, **settings: Unpack[OptilandSettings]) -> None:
@@ -345,9 +345,8 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             value=aperture_value,
         )
 
-    @classmethod
     def set_ray_aiming(
-        cls, ray_aiming: OptilandRayAimingType, ray_aiming_max_iterations: int, ray_aiming_tolerance: float
+        self, ray_aiming: OptilandRayAimingType, ray_aiming_max_iterations: int, ray_aiming_tolerance: float
     ) -> None:
         """Set the ray aiming method for the optic.
 
@@ -377,10 +376,8 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if ray_aiming_tolerance <= 0:
             raise ValueError("ray_aiming_tolerance must be a positive float.")
 
-        cls.get_optic().set_ray_aiming(
-            mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance
-        )
-    
+        self.optic.set_ray_aiming(mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance)
+
     def get_fields(self) -> list[tuple[float, float]]:
         """Get the fields in the optical system.
 
