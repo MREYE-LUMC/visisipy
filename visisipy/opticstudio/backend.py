@@ -111,6 +111,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         self.new_model()
 
         self.__initialized = True
+        super().__init__()
 
     type = "opticstudio"
     _settings_type = OpticStudioSettings
@@ -188,13 +189,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
             self.validate_settings(settings)
             self.settings.update(settings)
 
-        if self.oss is None:
-            warn(
-                "The OpticStudio backend settings can only be applied after initialization. "
-                "Settings will be applied when the backend is initialized."
-            )
-        else:
-            self._apply_settings()
+        self._apply_settings()
 
     def new_model(
         self,

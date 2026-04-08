@@ -34,6 +34,8 @@ class MockBackend(backend.BaseBackend):
         self.oss = object()
         self.optic = object()
 
+        super().__init__()
+
     def update_settings(self, **settings):
         if len(settings) > 0:
             self.settings.update(settings)

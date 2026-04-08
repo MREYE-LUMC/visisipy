@@ -483,11 +483,12 @@ class TestOpticStudioBackendSettings:
             opticstudio_backend.validate_settings(settings)
 
     def test_init_calls_validate_settings(self, mocker: MockerFixture):
-        patch = mocker.patch("visisipy.opticstudio.backend.OpticStudioBackend.validate_settings")
+        patch_validate_settings = mocker.patch("visisipy.opticstudio.backend.OpticStudioBackend.validate_settings")
+        mocker.patch.multiple(OpticStudioBackend, _instances={}, connect=mocker.Mock(), new_model=mocker.Mock())
 
         OpticStudioBackend(fields=[])
 
-        assert patch.call_args_list[0] == mocker.call({"fields": []})
+        assert patch_validate_settings.call_args_list[0] == mocker.call({"fields": []})
 
     @pytest.mark.parametrize(
         "method,kwargs",

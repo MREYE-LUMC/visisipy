@@ -107,6 +107,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             self.settings.update(settings)
 
         self.new_model()
+        super().__init__()
 
     type = "optiland"
     _settings_type = OptilandSettings
