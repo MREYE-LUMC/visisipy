@@ -23,13 +23,12 @@ class OptilandAnalysisRegistry(BaseAnalysisRegistry):
 
     def __init__(self, backend: OptilandBackend):
         super().__init__(backend)
-        self._optic = backend.optic
 
-    cardinal_points = _AnalysisMethod(cardinal_points)
-    fft_psf = _AnalysisMethod(fft_psf)
-    huygens_psf = _AnalysisMethod(huygens_psf)
-    opd_map = _AnalysisMethod(opd_map)
-    raytrace = _AnalysisMethod(raytrace)
-    refraction = _AnalysisMethod(refraction)
-    strehl_ratio = _AnalysisMethod(strehl_ratio)
-    zernike_standard_coefficients = _AnalysisMethod(zernike_standard_coefficients)
+    cardinal_points: _AnalysisMethod = _AnalysisMethod(cardinal_points)
+    fft_psf: _AnalysisMethod = _AnalysisMethod(fft_psf)
+    huygens_psf: _AnalysisMethod = _AnalysisMethod(huygens_psf)
+    opd_map: _AnalysisMethod = _AnalysisMethod(opd_map)
+    raytrace: _AnalysisMethod = _AnalysisMethod(raytrace)
+    refraction: _AnalysisMethod = _AnalysisMethod(refraction)
+    strehl_ratio: _AnalysisMethod = _AnalysisMethod(strehl_ratio)
+    zernike_standard_coefficients: _AnalysisMethod = _AnalysisMethod(zernike_standard_coefficients)

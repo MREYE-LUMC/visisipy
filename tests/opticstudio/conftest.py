@@ -21,4 +21,4 @@ def oss(zos, opticstudio_connection_mode, request):
 
     yield oss
 
-    zos.disconnect()
+    oss.new()

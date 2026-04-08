@@ -11,7 +11,7 @@ __all__ = ("set_field", "set_wavelength")
 
 
 def set_wavelength(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     wavelength: float | None = None,
 ) -> float:
     """Set the wavelength in the Optiland backend.
@@ -38,7 +38,7 @@ def set_wavelength(
 
 
 def set_field(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     field_coordinate: tuple[float, float] | None = None,
     field_type: FieldType = "angle",
 ) -> tuple[float, float]:
@@ -71,4 +71,6 @@ def set_field(
     else:
         field_index = 0
 
-    return backend.get_optic().fields.get_field_coords()[field_index]
+    field_x, field_y = backend.optic.fields.get_field_coords()[field_index]
+
+    return float(field_x), float(field_y)

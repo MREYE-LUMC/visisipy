@@ -23,7 +23,7 @@ def fft_psf(
     sampling: SampleSize | str | int = 128,
     *,
     return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> DataFrame: ...
 
 
@@ -36,7 +36,7 @@ def fft_psf(
     sampling: SampleSize | str | int = 128,
     *,
     return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[DataFrame, Any]: ...
 
 
@@ -49,7 +49,7 @@ def fft_psf(
     sampling: SampleSize | str | int = 128,
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> DataFrame | tuple[DataFrame, Any]:
     """Calculate the FFT Point Spread Function (PSF) at the retina surface.
 
@@ -70,7 +70,7 @@ def fft_psf(
         is an integer. Only symmetric sample sizes are supported. Defaults to 128.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns
@@ -97,7 +97,7 @@ def huygens_psf(
     image_sampling: SampleSize | str | int = 128,
     *,
     return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> DataFrame: ...
 
 
@@ -111,7 +111,7 @@ def huygens_psf(
     image_sampling: SampleSize | str | int = 128,
     *,
     return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[DataFrame, Any]: ...
 
 
@@ -125,7 +125,7 @@ def huygens_psf(
     image_sampling: SampleSize | str | int = 128,
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> DataFrame | tuple[DataFrame, Any]:
     """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
 
@@ -149,7 +149,7 @@ def huygens_psf(
         symmetric sample sizes are supported. Defaults to 128.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns
@@ -177,7 +177,7 @@ def strehl_ratio(
     psf_type: Literal["fft", "huygens"] = "huygens",
     *,
     return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> float: ...
 
 
@@ -191,7 +191,7 @@ def strehl_ratio(
     psf_type: Literal["fft", "huygens"] = "huygens",
     *,
     return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[float, Any]: ...
 
 
@@ -205,7 +205,7 @@ def strehl_ratio(
     psf_type: Literal["fft", "huygens"] = "huygens",
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> float | tuple[float, Any]:
     """Calculate the Strehl ratio of the optical system.
 
@@ -231,7 +231,7 @@ def strehl_ratio(
         Not all psf types are supported by all backends.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns

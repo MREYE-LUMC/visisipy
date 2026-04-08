@@ -92,7 +92,7 @@ def generate_opd_map(wavefront: WavefrontData, distribution: BaseDistribution, s
 
 
 def opd_map(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -139,7 +139,7 @@ def opd_map(
     normalized_field = set_field(backend, field_coordinate, field_type)
 
     opd_result = OPD(
-        optic=backend.get_optic(),
+        optic=backend.optic,
         wavelength=wavelength,
         field=normalized_field,
         num_rays=int(sampling),

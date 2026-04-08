@@ -56,7 +56,7 @@ def cardinal_points(
     surface_2: int | None = None,
     *,
     return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> CardinalPointsResult: ...
 
 
@@ -67,7 +67,7 @@ def cardinal_points(
     surface_2: int | None = None,
     *,
     return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[CardinalPointsResult, Any]: ...
 
 
@@ -78,7 +78,7 @@ def cardinal_points(
     surface_2: int | None = None,
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[CardinalPointsResult, Any]:
     """Get the cardinal points of the system between `surface_1` and `surface_2`.
 
@@ -94,7 +94,7 @@ def cardinal_points(
         Defaults to `None`.
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns

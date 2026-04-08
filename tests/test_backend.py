@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import platform
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import pytest
 
 import visisipy.optiland
 from visisipy import backend
-from visisipy.optiland.backend import OptilandBackend
 
 if platform.system() == "Windows":
     from visisipy.opticstudio.backend import OpticStudioBackend
@@ -16,57 +15,104 @@ else:
     OpticStudioBackend = object
 
 if TYPE_CHECKING:
+    from os import PathLike
     from pathlib import Path
 
     from pytest_mock import MockerFixture
+
+    from visisipy.optiland.backend import OptilandBackend
 
 # ruff: noqa: SLF001
 # pyright: reportOptionalMemberAccess=false, reportTypedDictNotRequiredAccess=false
 
 
-class MockBackend:
-    """Mock backend for testing purposes.
+class MockBackend(backend.BaseBackend):
+    """Mock backend for testing purposes."""
 
-    Unlike the real backends, instances of this class are used instead of the class itself.
-    This is necessary to make sure modifications to the backend settings are not shared between tests.
-    """
-
-    __name__ = "MockBackend"
-
-    def __init__(self):
-        self.settings: dict[str, Any] = {}
-        self.initialized: bool = False
+    def __init__(self, **settings: Any):
+        self._settings: dict[str, Any] = settings
         self.oss = object()
         self.optic = object()
 
-    def initialize(self, **settings):
-        self.initialized = True
-        self.settings = settings
+        super().__init__()
 
     def update_settings(self, **settings):
         if len(settings) > 0:
             self.settings.update(settings)
 
+    @property
+    def analysis(self):
+        return None
+
+    @property
+    def settings(self) -> dict[str, Any]:
+        return self._settings
+
+    @property
+    def model(self) -> backend.BaseEye | None:
+        return None
+
+    def build_model(self, model: visisipy.EyeModel) -> None: ...
+
+    def clear_model(self) -> None: ...
+
+    def load_model(self, filename: str | PathLike, *, apply_settings: bool = False) -> None: ...
+
+    def save_model(self, filename: str | PathLike | None = None) -> None: ...
+
+
+def make_mock_backend(mocker: MockerFixture, name: str = "MockBackend"):
+    mock_instance = MockBackend()
+    mock_instance.__class__.__name__ = name
+
+    mock_class = mocker.MagicMock()
+    mock_class.get_instance = mocker.MagicMock(return_value=None)
+
+    def factory(**settings: Any) -> MockBackend:
+        mock_instance.settings.update(**settings)
+        return mock_instance
+
+    mock_class.side_effect = factory
+
+    return mock_class, mock_instance
+
 
 @pytest.fixture
 def mock_backend(mocker: MockerFixture):
-    mocker.patch("visisipy.backend._BACKEND", new=MockBackend())
+    _, mock_instance = make_mock_backend(mocker)
+    mocker.patch("visisipy.backend._BACKEND", new=mock_instance)
+
+    return mock_instance
 
 
 @pytest.fixture
 def mock_opticstudio_backend(mocker: MockerFixture):
-    instance = MockBackend()
-    mocker.patch("visisipy.opticstudio.OpticStudioBackend", new=instance)
+    mock_class, mock_instance = make_mock_backend(mocker, name="MockOpticStudioBackend")
+    mocker.patch("visisipy.opticstudio.OpticStudioBackend", new=mock_class)
 
-    return instance
+    return mock_instance
 
 
 @pytest.fixture
 def mock_optiland_backend(mocker: MockerFixture):
-    instance = MockBackend()
-    mocker.patch("visisipy.optiland.OptilandBackend", new=instance)
+    mock_class, mock_instance = make_mock_backend(mocker, name="MockOptilandBackend")
+    mocker.patch("visisipy.optiland.OptilandBackend", new=mock_class)
 
-    return instance
+    return mock_instance
+
+
+class TestGetInstance:
+    def test_backend_saves_instance(self):
+        instance = MockBackend()
+
+        assert MockBackend._instances[MockBackend] is instance
+        assert backend.BaseBackend._instances[MockBackend] is instance
+
+    def test_get_instance_returns_first_instance(self):
+        instance = MockBackend()
+        _ = MockBackend()
+
+        assert MockBackend.get_instance() is instance
 
 
 class TestSetBackend:
@@ -77,7 +123,6 @@ class TestSetBackend:
         backend.set_backend("opticstudio", field_type="object_height")
 
         assert mock_opticstudio_backend == backend._BACKEND
-        assert mock_opticstudio_backend.initialized
         assert mock_opticstudio_backend.settings["field_type"] == "object_height"
 
     def test_set_optiland_backend(self, mock_optiland_backend, mocker: MockerFixture):
@@ -86,15 +131,14 @@ class TestSetBackend:
         backend.set_backend("optiland", aperture_type="image_f_number")
 
         assert mock_optiland_backend == backend._BACKEND
-        assert mock_optiland_backend.initialized
         assert mock_optiland_backend.settings["aperture_type"] == "image_f_number"
 
     def test_set_backend_twice_raises_warning(self, mock_optiland_backend):
         backend.set_backend("optiland")
-        with pytest.warns(UserWarning, match="The backend is already set to MockBackend"):
+        with pytest.warns(UserWarning, match="The backend is already set to MockOptilandBackend"):
             backend.set_backend("optiland")
 
-    @pytest.mark.filterwarnings("ignore:The backend is already set to MockBackend")
+    @pytest.mark.filterwarnings("ignore:The backend is already set to MockOptilandBackend")
     def test_set_unknown_backend(self):
         with pytest.raises(ValueError, match="Unknown backend: unknown"):
             backend.set_backend("unknown")
@@ -124,15 +168,19 @@ class TestGetModels:
         assert backend.get_oss() is opticstudio_backend.oss
 
     @pytest.mark.windows_only
-    def test_get_oss_no_opticstudio_backend(self, mock_optiland_backend):
+    def test_get_oss_no_opticstudio_backend(self, mocker: MockerFixture):
+        mocker.patch("visisipy.opticstudio.backend.OpticStudioBackend.get_instance", return_value=None)
+
         with pytest.raises(
             backend.BackendAccessError,
-            match=re.escape("No OpticStudio system initialized. Please initialize the backend first."),
+            match="The OpticStudio backend has not been initialized",
         ):
             backend.get_oss()
 
     @pytest.mark.skipif(platform.system() == "Windows", reason="OpticStudio backend is available on Windows")
-    def test_get_oss_no_windows(self, mock_optiland_backend):
+    def test_get_oss_no_windows(self, mock_optiland_backend, mocker: MockerFixture):
+        mocker.patch("visisipy.backend._BACKEND", new=mock_optiland_backend)
+
         with pytest.raises(backend.BackendAccessError, match="The OpticStudio backend is only available on Windows"):
             backend.get_oss()
 
@@ -142,11 +190,11 @@ class TestGetModels:
         assert backend.get_optic() is optiland_backend.optic
 
     def test_get_optic_no_optiland_backend(self, optiland_backend, mocker: MockerFixture):
-        mocker.patch.object(optiland_backend, "optic", new=None)
+        mocker.patch("visisipy.optiland.backend.OptilandBackend.get_instance", return_value=None)
 
         with pytest.raises(
             backend.BackendAccessError,
-            match=re.escape("No optic object initialized. Please initialize the backend first."),
+            match="The Optiland backend has not been initialized",
         ):
             backend.get_optic()
 
@@ -180,22 +228,24 @@ class TestUpdateSettings:
 
 
 class TestGetSetting:
-    def test_get_setting(self, mocker: MockerFixture):
-        mocker.patch("visisipy.backend.BaseBackend.settings", {"test_setting": "value"}, create=True)
+    def test_get_setting(self, optiland_backend: OptilandBackend, mocker: MockerFixture):
+        mocker.patch("visisipy.backend._BACKEND", optiland_backend)
+        mocker.patch("visisipy.backend._BACKEND._settings", {"fields": "value"}, create=True)
 
-        assert backend.BaseBackend.get_setting("test_setting") == "value"
+        assert optiland_backend.get_setting("fields") == "value"
 
-    def test_get_undefined_setting_raises_keyerror(self, mocker: MockerFixture):
-        mocker.patch("visisipy.backend.BaseBackend.settings", {}, create=True)
+    def test_get_undefined_setting_raises_keyerror(self, optiland_backend: OptilandBackend, mocker: MockerFixture):
+        mocker.patch("visisipy.backend._BACKEND", optiland_backend)
+        mocker.patch("visisipy.backend._BACKEND._settings", {}, create=True)
 
-        with pytest.raises(KeyError, match="Setting 'undefined_setting' has not been set"):
-            backend.BaseBackend.get_setting("undefined_setting")
+        with pytest.raises(KeyError, match="Setting 'fields' has not been set"):
+            optiland_backend.get_setting("fields")
 
 
 @pytest.mark.filterwarnings("ignore:Only a single instance of ZOS can exist at any time:UserWarning")
 class TestSaveModel:
     @pytest.mark.filterwarnings("ignore:The OpticStudio backend has already been initialized:UserWarning")
-    def test_save_model(self, configure_backend: type[backend.BaseBackend], tmp_path: Path, mocker: MockerFixture):
+    def test_save_model(self, configure_backend: backend.BaseBackend, tmp_path: Path, mocker: MockerFixture):
         mocker.patch("visisipy.backend._BACKEND", new=configure_backend)
 
         suffix = ".zmx" if configure_backend.type == "opticstudio" else ".json"
@@ -203,7 +253,7 @@ class TestSaveModel:
         file = (tmp_path / "model_file").with_suffix(suffix)
 
         model = visisipy.EyeModel()
-        configure_backend.initialize()
+        # configure_backend.initialize()
         configure_backend.build_model(model)
 
         visisipy.save_model(file)
@@ -219,26 +269,26 @@ class TestSaveModel:
             visisipy.save_model()
 
 
-@pytest.mark.filterwarnings("ignore:The backend is already set to (OpticStudio|Optiland|Mock)Backend:UserWarning")
+@pytest.mark.filterwarnings(r"ignore:The backend is already set to [a-zA-Z]+Backend:UserWarning")
 class TestLoadModel:
-    def test_load_optiland_model(self, optiland_backend: type[OptilandBackend], datadir: Path):
+    def test_load_optiland_model(self, optiland_backend: OptilandBackend, datadir: Path):
         file = datadir / "test_load_models" / "navarro_eye.json"
 
         visisipy.load_model(file, apply_settings=False)
 
         assert optiland_backend.model is None
-        assert optiland_backend.get_optic().object_surface.comment == "Test load file"
+        assert optiland_backend.optic.object_surface.comment == "Test load file"
 
     @pytest.mark.filterwarnings("ignore:Only a single instance of ZOS can exist at any time:UserWarning")
     @pytest.mark.windows_only
     @pytest.mark.needs_opticstudio
-    def test_load_opticstudio_model(self, opticstudio_backend: type[OpticStudioBackend], datadir: Path):
+    def test_load_opticstudio_model(self, opticstudio_backend: OpticStudioBackend, datadir: Path):
         file = datadir / "test_load_models" / "navarro_eye.zmx"
 
         opticstudio_backend.load_model(file, apply_settings=False)
 
         assert opticstudio_backend.model is None
-        assert opticstudio_backend.get_oss().LDE.GetSurfaceAt(0).Comment == "Test load file"
+        assert opticstudio_backend.oss.LDE.GetSurfaceAt(0).Comment == "Test load file"
 
     @pytest.mark.filterwarnings(
         "ignore:The OpticStudio backend has already been initialized:UserWarning",
@@ -248,9 +298,9 @@ class TestLoadModel:
         "initial_backend",
         [
             None,
-            MockBackend,
-            OptilandBackend,
-            pytest.param(OpticStudioBackend, marks=[pytest.mark.windows_only, pytest.mark.needs_opticstudio]),
+            "mock",
+            "optiland",
+            pytest.param("opticstudio", marks=[pytest.mark.windows_only, pytest.mark.needs_opticstudio]),
         ],
     )
     @pytest.mark.parametrize(
@@ -265,18 +315,27 @@ class TestLoadModel:
     def test_load_select_backend(
         self,
         filename: str,
-        initial_backend: type[backend.BaseBackend] | None,
+        initial_backend: Literal["mock", "optiland", "opticstudio"],
         expected_backend: str,
         datadir: Path,
         mocker: MockerFixture,
+        request: pytest.FixtureRequest,
     ):
+        match initial_backend:
+            case "mock":
+                initial_backend = MockBackend()
+            case "optiland":
+                initial_backend = request.getfixturevalue("optiland_backend")
+            case "opticstudio":
+                initial_backend = request.getfixturevalue("opticstudio_backend")
+
         mocker.patch("visisipy.backend._BACKEND", new=initial_backend)
 
         file = datadir / "test_load_models" / filename
 
         visisipy.load_model(file)
 
-        assert backend.get_backend().__name__ == expected_backend
+        assert backend.get_backend().__class__.__name__ == expected_backend
 
     def test_load_unknown_extension_raises_valueerror(self, tmp_path: Path):
         file = (tmp_path / "model_file").with_suffix(".unknown")

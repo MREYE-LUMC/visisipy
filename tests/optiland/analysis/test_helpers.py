@@ -19,14 +19,14 @@ def get_optic_wavelengths(optic: Optic) -> list[float]:
 
 
 class TestSetWavelength:
-    def test_set_wavelength_none(self, optiland_backend: type[OptilandBackend]):
-        optic = optiland_backend.get_optic()
+    def test_set_wavelength_none(self, optiland_backend: OptilandBackend):
+        optic = optiland_backend.optic
         default_wavelength = optic.wavelengths.wavelengths[0].value
 
         assert set_wavelength(optiland_backend, wavelength=None) == default_wavelength
 
-    def test_set_wavelength_existing(self, optiland_backend: type[OptilandBackend]):
-        optic = optiland_backend.get_optic()
+    def test_set_wavelength_existing(self, optiland_backend: OptilandBackend):
+        optic = optiland_backend.optic
         assert get_optic_wavelengths(optic) == [0.543]
         extra_wavelength_1 = 0.430
         extra_wavelength_2 = 0.320
@@ -36,8 +36,8 @@ class TestSetWavelength:
         assert set_wavelength(optiland_backend, wavelength=extra_wavelength_1) == extra_wavelength_1
         assert get_optic_wavelengths(optic) == [0.543, extra_wavelength_1, extra_wavelength_2]
 
-    def test_set_wavelength_new(self, optiland_backend: type[OptilandBackend]):
-        optic = optiland_backend.get_optic()
+    def test_set_wavelength_new(self, optiland_backend: OptilandBackend):
+        optic = optiland_backend.optic
         assert get_optic_wavelengths(optic) == [0.543]
         new_wavelength = 0.430
 
@@ -52,14 +52,14 @@ def get_optic_fields(optic: Optic) -> list[tuple[float, float]]:
 
 
 class TestSetField:
-    def test_set_field_none(self, optiland_backend: type[OptilandBackend]):
-        optic = optiland_backend.get_optic()
+    def test_set_field_none(self, optiland_backend: OptilandBackend):
+        optic = optiland_backend.optic
         default_field = optic.fields.get_field_coords()[0]
 
         assert set_field(optiland_backend, field_coordinate=None) == default_field
 
-    def test_set_field_existing(self, optiland_backend: type[OptilandBackend]):
-        optic = optiland_backend.get_optic()
+    def test_set_field_existing(self, optiland_backend: OptilandBackend):
+        optic = optiland_backend.optic
         assert get_optic_fields(optic) == [(0.0, 0.0)]
         extra_field_1 = (10.0, 0.0)
         extra_field_1_normalized = (1.0, 0.0)
@@ -70,8 +70,8 @@ class TestSetField:
         assert set_field(optiland_backend, field_coordinate=extra_field_1) == extra_field_1_normalized
         assert get_optic_fields(optic) == [(0.0, 0.0), extra_field_1, extra_field_2]
 
-    def test_set_field_new(self, optiland_backend: type[OptilandBackend]):
-        optic = optiland_backend.get_optic()
+    def test_set_field_new(self, optiland_backend: OptilandBackend):
+        optic = optiland_backend.optic
         assert get_optic_fields(optic) == [(0.0, 0.0)]
         new_field = (10.0, 0.0)
         new_field_normalized = (1.0, 0.0)
@@ -97,9 +97,9 @@ class TestSetField:
         new_type: FieldType,
         field: tuple[float, float] | None,
         normalized_field: tuple[float, float],
-        optiland_backend: type[OptilandBackend],
+        optiland_backend: OptilandBackend,
     ):
-        optic = optiland_backend.get_optic()
+        optic = optiland_backend.optic
         optic.set_field_type(old_type)
         assert optiland_backend.get_field_type() == old_type
 

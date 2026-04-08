@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import platform
 from collections.abc import Generator
+from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Literal
 
 import pytest
@@ -109,7 +110,7 @@ def skip_windows_only(request):
 @pytest.fixture
 def opticstudio_backend(
     opticstudio_connection_mode, request, opticstudio_available
-) -> Generator[type[OpticStudioBackend], Any, None]:
+) -> Generator[OpticStudioBackend, Any, None]:
     if not opticstudio_available:
         pytest.skip("OpticStudio is not available.")
 
@@ -118,21 +119,23 @@ def opticstudio_backend(
 
     from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS, OpticStudioBackend  # noqa: PLC0415
 
-    OpticStudioBackend.model = None
-    OpticStudioBackend.oss = None
-
     settings = OPTICSTUDIO_DEFAULT_SETTINGS.copy()
     settings["mode"] = opticstudio_connection_mode
-    OpticStudioBackend.initialize(**settings)
+
+    if instance := OpticStudioBackend.get_instance():
+        instance.connect()
+        instance.update_settings(**settings)
+    else:
+        instance = OpticStudioBackend(**settings)
 
     if opticstudio_connection_mode == "extension":
         # Disable UI updates using command line option, making the tests run faster
-        OpticStudioBackend.zos.Application.ShowChangesInUI = request.config.getoption("--os-update-ui")
+        instance.zos.Application.ShowChangesInUI = request.config.getoption("--os-update-ui")
 
-    yield OpticStudioBackend
+    yield instance
 
-    if OpticStudioBackend.zos is not None and OpticStudioBackend.oss is not None:
-        OpticStudioBackend.disconnect()
+    with suppress(Exception):
+        instance.clear_model()
 
 
 @pytest.fixture(scope="session")
@@ -160,20 +163,20 @@ def optiland_backend_settings(optiland_computation_backend) -> OptilandSettings:
 
 
 @pytest.fixture
-def optiland_backend(optiland_backend_settings) -> Generator[type[OptilandBackend], Any, None]:
+def optiland_backend(optiland_backend_settings) -> Generator[OptilandBackend, Any, None]:
     """Fixture to initialize the Optiland backend for testing."""
     from visisipy.optiland.backend import OptilandBackend  # noqa: PLC0415
 
-    OptilandBackend.model = None
-    OptilandBackend.optic = None
+    if instance := OptilandBackend.get_instance():
+        instance.update_settings(**optiland_backend_settings)
+    else:
+        instance = OptilandBackend(**optiland_backend_settings)
 
-    OptilandBackend.initialize(**optiland_backend_settings)
-
-    yield OptilandBackend
+    yield instance
 
     # Reset settings to defaults
-    OptilandBackend.update_settings(**optiland_backend_settings)
-    OptilandBackend.clear_model()
+    instance.update_settings(**optiland_backend_settings)
+    instance.clear_model()
 
 
 @pytest.fixture(

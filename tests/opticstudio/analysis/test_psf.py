@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from contextlib import nullcontext as does_not_raise
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pytest
@@ -9,6 +10,10 @@ import pytest
 from tests.helpers import build_args
 from visisipy import EyeModel
 from visisipy.opticstudio.analysis.psf import _get_huygens_psf_extent, _opticstudio_batch_raytrace
+
+if TYPE_CHECKING:
+    from visisipy.opticstudio.analysis import OpticStudioAnalysisRegistry
+    from visisipy.opticstudio.backend import OpticStudioBackend
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -26,8 +31,8 @@ class TestFFTPSFAnalysis:
     )
     def test_fft_psf(
         self,
-        opticstudio_backend,
-        opticstudio_analysis,
+        opticstudio_backend: OpticStudioBackend,
+        opticstudio_analysis: OpticStudioAnalysisRegistry,
         field_coordinate,
         wavelength,
         field_type,
@@ -60,8 +65,8 @@ class TestHuygensPSFAnalysis:
             ),
         ],
     )
-    def test_batch_raytrace(self, opticstudio_backend, px, py, expectation):
-        oss = opticstudio_backend.get_oss()
+    def test_batch_raytrace(self, opticstudio_backend: OpticStudioBackend, px, py, expectation):
+        oss = opticstudio_backend.oss
         oss.new()
 
         assert oss.Tools.CurrentTool is None
@@ -81,16 +86,16 @@ class TestHuygensPSFAnalysis:
             assert len(raytrace_results) == len(px)
             assert all(result.x == 0 and result.y == 0 for result in raytrace_results)
 
-    def test_batch_raytrace_closes_current_tool(self, opticstudio_backend):
-        oss = opticstudio_backend.get_oss()
+    def test_batch_raytrace_closes_current_tool(self, opticstudio_backend: OpticStudioBackend):
+        oss = opticstudio_backend.oss
         oss.Tools.OpenLocalOptimization()
 
         _opticstudio_batch_raytrace(oss, wavelength_number=1, h_x=0, h_y=0, p_x=[0], p_y=[0])
 
         assert oss.Tools.CurrentTool is None
 
-    def test_get_huygens_psf_extent(self, opticstudio_backend):
-        oss = opticstudio_backend.get_oss()
+    def test_get_huygens_psf_extent(self, opticstudio_backend: OpticStudioBackend):
+        oss = opticstudio_backend.oss
 
         oss.new()
 
@@ -119,8 +124,8 @@ class TestHuygensPSFAnalysis:
     )
     def test_fft_psf(
         self,
-        opticstudio_backend,
-        opticstudio_analysis,
+        opticstudio_backend: OpticStudioBackend,
+        opticstudio_analysis: OpticStudioAnalysisRegistry,
         field_coordinate,
         wavelength,
         field_type,
@@ -156,8 +161,8 @@ class TestStrehlRatioAnalysis:
     )
     def test_strehl_ratio(
         self,
-        opticstudio_backend,
-        opticstudio_analysis,
+        opticstudio_backend: OpticStudioBackend,
+        opticstudio_analysis: OpticStudioAnalysisRegistry,
         field_coordinate,
         wavelength,
         field_type,
@@ -197,7 +202,13 @@ class TestStrehlRatioAnalysis:
             ),
         ],
     )
-    def test_psf_type(self, opticstudio_backend, opticstudio_analysis, psf_type, expectation):
+    def test_psf_type(
+        self,
+        opticstudio_backend: OpticStudioBackend,
+        opticstudio_analysis: OpticStudioAnalysisRegistry,
+        psf_type,
+        expectation,
+    ):
         opticstudio_backend.build_model(EyeModel(), object_distance=float("inf"))
 
         with expectation:

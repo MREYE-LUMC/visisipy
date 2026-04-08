@@ -128,12 +128,12 @@ class OpticStudioSurface(BaseSurface):
         self._surface = None
         self._is_built = False
 
-    comment: str = OpticStudioSurfaceProperty("Comment")
-    radius: float = OpticStudioSurfaceProperty("Radius")
-    thickness: float = OpticStudioSurfaceProperty("Thickness")
-    semi_diameter: float = OpticStudioSurfaceProperty("SemiDiameter")
-    conic: float = OpticStudioSurfaceProperty("Conic")
-    is_stop: bool = OpticStudioSurfaceProperty("IsStop")
+    comment: OpticStudioSurfaceProperty[str] = OpticStudioSurfaceProperty("Comment")
+    radius: OpticStudioSurfaceProperty[float] = OpticStudioSurfaceProperty("Radius")
+    thickness: OpticStudioSurfaceProperty[float] = OpticStudioSurfaceProperty("Thickness")
+    semi_diameter: OpticStudioSurfaceProperty[float] = OpticStudioSurfaceProperty("SemiDiameter")
+    conic: OpticStudioSurfaceProperty[float] = OpticStudioSurfaceProperty("Conic")
+    is_stop: OpticStudioSurfaceProperty[bool] = OpticStudioSurfaceProperty("IsStop")
 
     def _get_material(self) -> MaterialModel | str | None:
         if not self._is_built:
@@ -326,8 +326,8 @@ class OpticStudioBiconicSurface(OpticStudioSurface):
         self._surface = None
         self._is_built = False
 
-    radius_x: float = OpticStudioSurfaceDataProperty("XRadius")
-    conic_x: float = OpticStudioSurfaceDataProperty("XConic")
+    radius_x: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("XRadius")
+    conic_x: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("XConic")
 
     def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
@@ -408,8 +408,8 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
             dict.fromkeys(range(1, number_of_terms + 1), 0)
         )
 
-    number_of_terms: int = OpticStudioSurfaceDataProperty("NumberOfTerms")
-    norm_radius: float = OpticStudioSurfaceDataProperty("NormRadius")
+    number_of_terms: OpticStudioSurfaceDataProperty[int] = OpticStudioSurfaceDataProperty("NumberOfTerms")
+    norm_radius: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("NormRadius")
 
     def _validate_coefficient(self, n: int):
         if n < 1:
@@ -519,9 +519,9 @@ class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
         self._zernike_decenter_x = zernike_decenter_x
         self._zernike_decenter_y = zernike_decenter_y
 
-    extrapolate: int = OpticStudioSurfaceDataProperty("Extrapolate")
-    zernike_decenter_x: float = OpticStudioSurfaceDataProperty("ZernikeDecenter_X")
-    zernike_decenter_y: float = OpticStudioSurfaceDataProperty("ZernikeDecenter_Y")
+    extrapolate: OpticStudioSurfaceDataProperty[int] = OpticStudioSurfaceDataProperty("Extrapolate")
+    zernike_decenter_x: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("ZernikeDecenter_X")
+    zernike_decenter_y: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("ZernikeDecenter_Y")
 
     def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
@@ -590,8 +590,8 @@ class OpticStudioZernikeStandardPhaseSurface(BaseOpticStudioZernikeSurface):
         self._extrapolate = extrapolate
         self._diffract_order = diffract_order
 
-    extrapolate: int = OpticStudioSurfaceDataProperty("Extrapolate")
-    diffract_order: float = OpticStudioSurfaceDataProperty("DiffractOrder")
+    extrapolate: OpticStudioSurfaceDataProperty[int] = OpticStudioSurfaceDataProperty("Extrapolate")
+    diffract_order: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("DiffractOrder")
 
     def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.

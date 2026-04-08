@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 __all__ = ("_AUTOMATIC_BACKEND", "analysis")
 
 
-_AUTOMATIC_BACKEND = cast("type[BaseBackend]", object())
+_AUTOMATIC_BACKEND = cast("BaseBackend", object())
 """Default sentinel value for the backend parameter in analysis functions.
 
 The `backend` parameter in analysis functions is not optional, but does not need to be specified if the default
@@ -59,16 +59,14 @@ def _validate_analysis_signature(function: Callable[..., Any | tuple[Any, Any]])
         )
 
     if "backend" not in parameter_names:
-        raise ValueError(
-            "The analysis function must have a keyword-only 'backend' parameter of type 'type[BaseBackend]'."
-        )
+        raise ValueError("The analysis function must have a keyword-only 'backend' parameter of type 'BaseBackend'.")
 
     if signature.parameters["backend"].kind.name != "KEYWORD_ONLY":
         raise ValueError("The 'backend' parameter of an analysis function must be keyword-only.")
 
-    if signature.parameters["backend"].annotation != "type[BaseBackend]":
+    if signature.parameters["backend"].annotation != "BaseBackend":
         raise ValueError(
-            f"The 'backend' parameter of an analysis function must have type 'type[BaseBackend]', "
+            f"The 'backend' parameter of an analysis function must have type 'BaseBackend', "
             f"got '{signature.parameters['backend'].annotation}'"
         )
 
@@ -85,7 +83,7 @@ def _validate_analysis_signature(function: Callable[..., Any | tuple[Any, Any]])
         )
 
 
-def _build_model(model: EyeModel, backend: type[BaseBackend]) -> None:
+def _build_model(model: EyeModel, backend: BaseBackend) -> None:
     """Build the model in OpticStudio if it is not already built.
 
     Parameters
@@ -114,7 +112,7 @@ def analysis(function: Callable[..., T1 | tuple[T1, T2]]) -> Callable:
         built in the backend will be used.
     - `return_raw_result: bool` must be a keyword-only parameter. If `True`, the function will return a tuple with the
         result and the raw result returned by the backend.
-    - `backend: type[BaseBackend]` must be a keyword-only parameter. If not specified by the user, the currently configured
+    - `backend: BaseBackend` must be a keyword-only parameter. If not specified by the user, the currently configured
         backend will be used.
 
     Parameters
@@ -134,7 +132,7 @@ def analysis(function: Callable[..., T1 | tuple[T1, T2]]) -> Callable:
         model: EyeModel | None = None,
         *args: Any,
         return_raw_result: bool = False,
-        backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+        backend: BaseBackend = _AUTOMATIC_BACKEND,
         **kwargs: Any,
     ) -> T1 | tuple[T1, T2]:
         if backend is None or backend is _AUTOMATIC_BACKEND:

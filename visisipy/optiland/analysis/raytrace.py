@@ -8,7 +8,7 @@ import pandas as pd
 from optiland.backend import to_numpy
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Sequence
 
     from optiland.optic import Optic
 
@@ -43,9 +43,9 @@ def _trace_single_ray(
 
 
 def raytrace(
-    backend: type[OptilandBackend],
-    coordinates: Iterable[FieldCoordinate] | None = None,
-    wavelengths: Iterable[float] | None = None,
+    backend: OptilandBackend,
+    coordinates: Sequence[FieldCoordinate] | None = None,
+    wavelengths: Sequence[float] | None = None,
     field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
 ) -> tuple[pd.DataFrame, None]:
@@ -65,15 +65,15 @@ def raytrace(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         The Optiland backend to use for the ray trace.
-    coordinates : Iterable[tuple[float, float]], optional
-        An iterable of tuples representing the coordinates for the ray trace.
+    coordinates : Sequence[FieldCoordinate], optional
+        A sequence of tuples representing the coordinates for the ray trace.
         If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.
         If `field_type` is "object_height", the coordinates should be the object heights along the
         (X, Y) axes in mm. Defaults to `None`, which uses the fields defined in the backend.
-    wavelengths : Iterable[float], optional
-        An iterable of wavelengths to be used in the ray trace. Defaults to `None`, which uses the wavelengths
+    wavelengths : Sequence[float], optional
+        A sequence of wavelengths to be used in the ray trace. Defaults to `None`, which uses the wavelengths
         defined in the backend.
     field_type : Literal["angle", "object_height"], optional
         The type of field to be used in the ray trace. Can be either "angle" or "object_height". Defaults to
@@ -94,6 +94,7 @@ def raytrace(
     if abs(pupil[0]) > 1 or abs(pupil[1]) > 1:
         raise ValueError("Pupil coordinates must be between -1 and 1.")
 
+    # TODO: migrate to helpers
     if coordinates is not None:
         backend.set_fields(coordinates, field_type)
 
@@ -102,11 +103,11 @@ def raytrace(
 
     raytrace_results = []
 
-    normalized_fields = backend.get_optic().fields.get_field_coords()
+    normalized_fields = backend.optic.fields.get_field_coords()
 
     for _, wavelength in backend.iter_wavelengths():
         for (_, field), normalized_field in zip(backend.iter_fields(), normalized_fields, strict=False):
-            result = _trace_single_ray(backend.get_optic(), normalized_field, pupil, wavelength)
+            result = _trace_single_ray(backend.optic, normalized_field, pupil, wavelength)
             result.insert(0, "field", [(float(field[0]), float(field[1]))] * len(result))
             raytrace_results.append(result)
 

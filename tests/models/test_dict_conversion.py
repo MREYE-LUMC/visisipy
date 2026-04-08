@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 
 import pytest
 
@@ -398,7 +399,9 @@ class TestEyeModelDict:
 
         with pytest.raises(
             ValueError,
-            match="JSON data is missing required 'visisipy_version' key. Ensure the data was created with EyeModel.to_json().",
+            match=re.escape(
+                "JSON data is missing required 'visisipy_version' key. Ensure the data was created with EyeModel.to_json()."
+            ),
         ):
             EyeModel.from_json(json_data)
 
@@ -421,5 +424,5 @@ class TestEyeModelDict:
         model = EyeModel()
         path = tmp_path / "eye_model.txt"
 
-        with pytest.raises(ValueError, match="Output filename must have a .json extension."):
+        with pytest.raises(ValueError, match=re.escape("Output filename must have a .json extension.")):
             model.save_json(path)

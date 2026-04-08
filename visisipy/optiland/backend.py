@@ -5,8 +5,7 @@ from __future__ import annotations
 from importlib import import_module
 from os import PathLike
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
-from warnings import warn
+from typing import TYPE_CHECKING, Any, Literal
 
 import optiland.backend
 from optiland.fields.field_types.angle import AngleField
@@ -20,7 +19,6 @@ from visisipy.backend import (
     BackendSettings,
     BaseBackend,
     Unpack,
-    _classproperty,
 )
 from visisipy.optiland.analysis import OptilandAnalysisRegistry
 from visisipy.optiland.models import OptilandEye
@@ -28,6 +26,8 @@ from visisipy.optiland.models import OptilandEye
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterable, Sequence
     from os import PathLike
+
+    from optiland._types import ApertureType as OptilandApertureType
 
     from visisipy import EyeModel
     from visisipy.types import ApertureType, FieldType, OptilandRayAimingType
@@ -93,7 +93,7 @@ OPTILAND_DEFAULT_SETTINGS: OptilandSettings = {
 }
 """Default settings for the Optiland backend."""
 
-OPTILAND_APERTURES: dict[ApertureType, str] = {
+OPTILAND_APERTURES: dict[ApertureType, OptilandApertureType] = {
     "float_by_stop_size": "float_by_stop_size",
     "entrance_pupil_diameter": "EPD",
     "image_f_number": "imageFNO",
@@ -104,34 +104,7 @@ OPTILAND_APERTURES: dict[ApertureType, str] = {
 class OptilandBackend(BaseBackend[OptilandSettings]):
     """Optiland backend."""
 
-    type = "optiland"
-
-    optic: Optic | None = None
-    model: OptilandEye | None = None
-    settings: OptilandSettings = OptilandSettings(**OPTILAND_DEFAULT_SETTINGS)
-    _settings_type = OptilandSettings
-
-    _analysis: OptilandAnalysisRegistry | None = None
-
-    @_classproperty
-    def analysis(cls) -> OptilandAnalysisRegistry:  # noqa: N805
-        """Provides access to the `OptilandAnalysisRegistry` instance.
-
-        This property provides access to the `OptilandAnalysisRegistry` instance for performing various analyses on the optical
-        system.
-
-        Returns
-        -------
-        OpticStudioAnalysisRegistry
-            The `OptilandAnalysisRegistry` instance.
-        """
-        if cls._analysis is None:
-            cls._analysis = OptilandAnalysisRegistry(cls)
-
-        return cls._analysis
-
-    @classmethod
-    def initialize(cls, **settings: Unpack[OptilandSettings]) -> None:
+    def __init__(self, **settings: Unpack[OptilandSettings]):
         """Initialize the Optiland backend.
 
         This method initializes the Optiland backend with the given settings and creates a new model.
@@ -141,53 +114,75 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         settings : OptilandSettings | None, optional
             The settings to be used for the Optiland backend. If None, the default settings are used.
         """
+        self._model = None
+        self._settings = OptilandSettings(**OPTILAND_DEFAULT_SETTINGS)
+        self._analysis = OptilandAnalysisRegistry(self)
+
         if len(settings) > 0:
-            cls.validate_settings(settings)
-            cls.settings.update(settings)
+            self.validate_settings(settings)
+            self.settings.update(settings)
 
-        cls.new_model()
+        self.new_model()
+        super().__init__()
 
-    @classmethod
-    def _apply_settings(cls) -> None:
-        cls.set_aperture()
-        cls.set_fields(
-            field_type=cls.get_setting("field_type"),
-            coordinates=cls.get_setting("fields"),
+    type = "optiland"
+    _settings_type = OptilandSettings
+
+    @property
+    def optic(self) -> Optic:
+        if self._optic is None:
+            raise BackendAccessError("The Optiland backend has not been initialized.")
+
+        return self._optic
+
+    @property
+    def model(self) -> OptilandEye | None:
+        return self._model
+
+    @model.setter
+    def model(self, value: OptilandEye | None) -> None:
+        self._model = value
+
+    @property
+    def settings(self) -> OptilandSettings:
+        return self._settings
+
+    @property
+    def analysis(self) -> OptilandAnalysisRegistry:
+        return self._analysis
+
+    def _apply_settings(self) -> None:
+        self.set_aperture()
+        self.set_fields(
+            field_type=self.get_setting("field_type"),
+            coordinates=self.get_setting("fields"),
         )
-        cls.set_wavelengths(cls.get_setting("wavelengths"))
-        cls.set_computation_backend(
-            cls.get_setting("computation_backend"),
-            torch_device=cls.get_setting("torch_device"),
-            torch_precision=cls.get_setting("torch_precision"),
-            torch_use_grad_mode=cls.get_setting("torch_use_grad_mode"),
+        self.set_wavelengths(self.get_setting("wavelengths"))
+        self.set_computation_backend(
+            self.get_setting("computation_backend"),
+            torch_device=self.get_setting("torch_device"),
+            torch_precision=self.get_setting("torch_precision"),
+            torch_use_grad_mode=self.get_setting("torch_use_grad_mode"),
         )
-        cls.set_ray_aiming(
-            ray_aiming=cls.get_setting("ray_aiming"),
-            ray_aiming_max_iterations=cls.get_setting("ray_aiming_max_iterations"),
-            ray_aiming_tolerance=cls.get_setting("ray_aiming_tolerance"),
+        self.set_ray_aiming(
+            ray_aiming=self.get_setting("ray_aiming"),
+            ray_aiming_max_iterations=self.get_setting("ray_aiming_max_iterations"),
+            ray_aiming_tolerance=self.get_setting("ray_aiming_tolerance"),
         )
 
-    @classmethod
-    def update_settings(cls, **settings: Unpack[OptilandSettings]) -> None:
+    def update_settings(self, **settings: Unpack[OptilandSettings]) -> None:
         """Apply the provided settings to the Optiland backend.
 
         This method applies the provided settings to the Optiland backend.
         """
         if len(settings) > 0:
-            cls.validate_settings(settings)
-            cls.settings.update(settings)
+            self.validate_settings(settings)
+            self.settings.update(settings)
 
-        if cls.optic is None:
-            warn(
-                "The Optiland backend settings can only be applied after initialization. "
-                "Settings will be applied when the backend is initialized."
-            )
-        else:
-            cls._apply_settings()
+        self._apply_settings()
 
-    @classmethod
     def new_model(
-        cls,
+        self,
         *,
         save_old_model: bool = False,
         save_filename: PathLike | str | None = None,
@@ -197,15 +192,14 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         This method initializes a new, empty optical system.
         """
         if save_old_model:
-            cls.save_model(save_filename)
+            self.save_model(save_filename)
 
-        cls.optic = Optic()
+        self._optic = Optic()
 
-        cls.update_settings()
+        self.update_settings()
 
-    @classmethod
     def build_model(
-        cls,
+        self,
         model: EyeModel,
         *,
         start_from_index: int = 0,
@@ -237,12 +231,12 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         OptilandEye
             The built optical system model.
         """
-        if not replace_existing and cls.model is not None:
-            cls.new_model()
+        if not replace_existing and self.model is not None:
+            self.new_model()
 
         optiland_eye = OptilandEye(model)
         optiland_eye.build(
-            cls.get_optic(),
+            self.optic,
             start_from_index=start_from_index,
             replace_existing=replace_existing,
             object_distance=object_distance,
@@ -250,23 +244,21 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         )
 
         # Update the aperture settings based on the model's pupil size if the aperture type is 'float_by_stop_size'.
-        if cls.get_setting("aperture_type") == "float_by_stop_size":
-            cls.update_settings(aperture_value=model.geometry.pupil.semi_diameter * 2)
+        if self.get_setting("aperture_type") == "float_by_stop_size":
+            self.update_settings(aperture_value=model.geometry.pupil.semi_diameter * 2)
 
-        cls.model = optiland_eye
+        self.model = optiland_eye
         return optiland_eye
 
-    @classmethod
-    def clear_model(cls) -> None:
+    def clear_model(self) -> None:
         """Clear the current optical system model.
 
         This method initializes a new optical system, discarding any existing model.
         """
-        cls.model = None
-        cls.new_model()
+        self.model = None
+        self.new_model()
 
-    @classmethod
-    def save_model(cls, path: str | PathLike | None = None) -> None:
+    def save_model(self, path: str | PathLike | None = None) -> None:
         """Save the current optical system model.
 
         This method saves the current optical system model to the specified path. If no path is provided,
@@ -289,10 +281,9 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if not str(path).endswith(".json"):
             raise ValueError("filename must end in .json")
 
-        save_optiland_file(cls.optic, path)
+        save_optiland_file(self.optic, path)
 
-    @classmethod
-    def load_model(cls, filename: str | PathLike, *, apply_settings: bool = False) -> None:
+    def load_model(self, filename: str | PathLike, *, apply_settings: bool = False) -> None:
         filename = Path(filename)
 
         if not filename.exists():
@@ -302,34 +293,14 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             msg = f"File has extension {filename.suffix}, but only .json is supported."
             raise ValueError(msg)
 
-        cls.model = None
+        self.model = None
         optic = load_optiland_file(str(filename))
-        cls.optic = optic
+        self._optic = optic
 
         if apply_settings:
-            cls._apply_settings()
+            self._apply_settings()
 
-    @classmethod
-    def get_optic(cls) -> Optic:
-        """Get the optic object.
-
-        Returns
-        -------
-        Optic
-            The optic object.
-
-        Raises
-        ------
-        BackendAccessError
-            If the optic object is not initialized.
-        """
-        if cls.optic is None:
-            raise BackendAccessError("No optic object initialized. Please initialize the backend first.")
-
-        return cast("Optic", cls.optic)
-
-    @classmethod
-    def get_aperture(cls) -> tuple[ApertureType, float]:
+    def get_aperture(self) -> tuple[ApertureType, float]:
         """Get the current aperture type and value.
 
         Returns
@@ -342,8 +313,8 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         ValueError
             If the aperture type in the optical system is not recognized.
         """
-        optiland_aperture_type = cls.get_optic().aperture.ap_type
-        aperture_value: float = cls.get_optic().aperture.value
+        optiland_aperture_type = self.optic.aperture.ap_type
+        aperture_value: float = self.optic.aperture.value
 
         aperture_type = next(
             (k for k, v in OPTILAND_APERTURES.items() if v == optiland_aperture_type),
@@ -357,10 +328,9 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
         return aperture_type, aperture_value
 
-    @classmethod
-    def set_aperture(cls):
-        aperture_type = cls.get_setting("aperture_type")
-        aperture_value = cls.get_setting("aperture_value")
+    def set_aperture(self):
+        aperture_type = self.get_setting("aperture_type")
+        aperture_value = self.get_setting("aperture_value")
 
         if aperture_type not in OPTILAND_APERTURES:
             raise ValueError(
@@ -370,14 +340,13 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if OPTILAND_APERTURES[aperture_type] is NotImplemented:
             raise NotImplementedError(f"Aperture type '{aperture_type}' is not implemented in Optiland.")
 
-        cls.get_optic().set_aperture(
+        self.optic.set_aperture(
             aperture_type=OPTILAND_APERTURES[aperture_type],
             value=aperture_value,
         )
 
-    @classmethod
     def set_ray_aiming(
-        cls, ray_aiming: OptilandRayAimingType, ray_aiming_max_iterations: int, ray_aiming_tolerance: float
+        self, ray_aiming: OptilandRayAimingType, ray_aiming_max_iterations: int, ray_aiming_tolerance: float
     ) -> None:
         """Set the ray aiming method for the optic.
 
@@ -407,12 +376,9 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if ray_aiming_tolerance <= 0:
             raise ValueError("ray_aiming_tolerance must be a positive float.")
 
-        cls.get_optic().set_ray_aiming(
-            mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance
-        )
+        self.optic.set_ray_aiming(mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance)
 
-    @classmethod
-    def get_fields(cls) -> list[tuple[float, float]]:
+    def get_fields(self) -> list[tuple[float, float]]:
         """Get the fields in the optical system.
 
         Returns
@@ -420,10 +386,9 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         list[tuple[float, float]]
             List of field coordinates.
         """
-        return [(f.x, f.y) for f in cls.get_optic().fields.fields]
+        return [(f.x, f.y) for f in self.optic.fields.fields]
 
-    @classmethod
-    def get_field_type(cls) -> FieldType:
+    def get_field_type(self) -> FieldType:
         """Get the current field type.
 
         Returns
@@ -436,7 +401,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         ValueError
             If the field type in the optical system is not recognized.
         """
-        optiland_field_type = cls.get_optic().field_definition
+        optiland_field_type = self.optic.field_definition
 
         if isinstance(optiland_field_type, AngleField):
             return "angle"
@@ -445,8 +410,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
         raise ValueError("Unsupported field type in the optical system.")
 
-    @classmethod
-    def set_field_type(cls, field_type: FieldType):
+    def set_field_type(self, field_type: FieldType):
         """Set the field type for the optical system.
 
         Parameters
@@ -462,11 +426,10 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if field_type not in {"angle", "object_height"}:
             raise ValueError("field_type must be either 'angle' or 'object_height'.")
 
-        cls.get_optic().set_field_type(field_type)
+        self.optic.set_field_type(field_type)
 
-    @classmethod
     def set_fields(
-        cls,
+        self,
         coordinates: Iterable[tuple[float, float]],
         field_type: FieldType = "angle",
     ):
@@ -483,15 +446,14 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             Defaults to "angle".
         """
         # Remove all fields
-        cls.get_optic().fields.fields.clear()
+        self.optic.fields.fields.clear()
 
-        cls.set_field_type(field_type)
+        self.set_field_type(field_type)
 
         for field in coordinates:
-            cls.get_optic().add_field(y=field[1], x=field[0])
+            self.optic.add_field(y=field[1], x=field[0])
 
-    @classmethod
-    def add_field(cls, coordinate: tuple[float, float]) -> int:
+    def add_field(self, coordinate: tuple[float, float]) -> int:
         """Add a single field to the optical system.
 
         Parameters
@@ -504,11 +466,10 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         int
             The index of the newly added field.
         """
-        cls.get_optic().add_field(y=coordinate[1], x=coordinate[0])
-        return len(cls.get_optic().fields.fields) - 1
+        self.optic.add_field(y=coordinate[1], x=coordinate[0])
+        return len(self.optic.fields.fields) - 1
 
-    @classmethod
-    def get_wavelengths(cls) -> list[float]:
+    def get_wavelengths(self) -> list[float]:
         """Get the wavelengths in the optical system.
 
         Returns
@@ -516,10 +477,9 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         list[float]
             List of wavelengths.
         """
-        return [w.value for w in cls.get_optic().wavelengths.wavelengths]
+        return [w.value for w in self.optic.wavelengths.wavelengths]
 
-    @classmethod
-    def set_wavelengths(cls, wavelengths: Sequence[float]):
+    def set_wavelengths(self, wavelengths: Sequence[float]):
         """Set the wavelengths for the optical system.
 
         This method removes any existing wavelengths and adds the new ones provided.
@@ -539,13 +499,12 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             raise ValueError("At least one wavelength must be provided.")
 
         # Remove all wavelengths
-        cls.get_optic().wavelengths.wavelengths.clear()
+        self.optic.wavelengths.wavelengths.clear()
 
         for wavelength in wavelengths:
-            cls.get_optic().add_wavelength(wavelength)
+            self.optic.add_wavelength(wavelength)
 
-    @classmethod
-    def add_wavelength(cls, wavelength: float) -> int:
+    def add_wavelength(self, wavelength: float) -> int:
         """Add a single wavelength to the optical system.
 
         Parameters
@@ -558,11 +517,10 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         int
             The index of the newly added wavelength.
         """
-        cls.get_optic().add_wavelength(wavelength)
-        return len(cls.get_optic().wavelengths.wavelengths) - 1
+        self.optic.add_wavelength(wavelength)
+        return len(self.optic.wavelengths.wavelengths) - 1
 
-    @classmethod
-    def iter_fields(cls) -> Generator[tuple[int, tuple[float, float]], Any, None]:
+    def iter_fields(self) -> Generator[tuple[int, tuple[float, float]], Any, None]:
         """Iterate over the fields in the optical system.
 
         Yields
@@ -572,11 +530,10 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         tuple[float, float]
             Field X and Y coordinates.
         """
-        for i, f in enumerate(cls.get_optic().fields.fields):
+        for i, f in enumerate(self.optic.fields.fields):
             yield i, (f.x, f.y)
 
-    @classmethod
-    def iter_wavelengths(cls) -> Generator[tuple[int, float], Any, None]:
+    def iter_wavelengths(self) -> Generator[tuple[int, float], Any, None]:
         """Iterate over the wavelengths in the optical system.
 
         Yields
@@ -586,11 +543,11 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         float
             Wavelength value.
         """
-        for i, w in enumerate(cls.get_optic().wavelengths.wavelengths):
+        for i, w in enumerate(self.optic.wavelengths.wavelengths):
             yield i, w.value
 
-    @classmethod
-    def _torch_set_default_device(cls, device: TorchDevice) -> None:
+    @staticmethod
+    def _torch_set_default_device(device: TorchDevice) -> None:
         """Set the default device for the torch backend.
 
         Parameters
@@ -602,9 +559,8 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
         torch.set_default_device(device)
 
-    @classmethod
     def set_computation_backend(
-        cls,
+        self,
         backend: ComputationBackend,
         *,
         torch_device: TorchDevice = "cpu",
@@ -646,7 +602,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if backend == "torch":
             if optiland.backend.get_device() != torch_device:
                 optiland.backend.set_device(torch_device)
-                cls._torch_set_default_device(torch_device)
+                self._torch_set_default_device(torch_device)
             if optiland.backend.get_precision() != torch_precision:
                 optiland.backend.set_precision(torch_precision)
             if torch_use_grad_mode and not optiland.backend.grad_mode.requires_grad:
@@ -654,8 +610,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             elif not torch_use_grad_mode and optiland.backend.grad_mode.requires_grad:
                 optiland.backend.grad_mode.disable()
 
-    @classmethod
-    def update_pupil(cls, new_value: float) -> None:
+    def update_pupil(self, new_value: float) -> None:
         """Update the pupil size in the optical system.
 
         Parameters
@@ -663,9 +618,9 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         new_value : float
             The new pupil size to be set.
         """
-        aperture_type = cls.get_optic().aperture.ap_type
+        aperture_type = self.optic.aperture.ap_type
 
-        cls.get_optic().set_aperture(
+        self.optic.set_aperture(
             aperture_type=aperture_type,
             value=new_value,
         )

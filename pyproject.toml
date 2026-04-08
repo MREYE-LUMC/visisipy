@@ -20,7 +20,7 @@ dependencies = [
     "matplotlib",
     "numba>=0.60.0",
     "numpy<2.4.0",
-    "optiland>=0.5.8",
+    "optiland>=0.5.8, <0.6.0",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.13'",
     "zospy>=2.1.2; sys_platform == 'win32'",
@@ -101,6 +101,8 @@ markers = [
     "xfail_if_torch_backend: test is expected to fail if Optiland's computation backend is set to 'torch'",
 ]
 filterwarnings = [
+    "ignore:(Field coordinate|Wavelength) .+ not found. Adding it to the system:UserWarning",
+    "ignore:Changing field type from angle to object_height:UserWarning",
     "ignore:invalid value encountered in \\w+:RuntimeWarning",
     "ignore:Conversion of an array with ndim > 0 to a scalar is deprecated:DeprecationWarning",
     "error:The default model for AbbeMaterial will change:FutureWarning"

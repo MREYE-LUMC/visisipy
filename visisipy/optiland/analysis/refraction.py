@@ -22,7 +22,7 @@ __all__ = ("refraction",)
 
 
 def refraction(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     sampling: SampleSize | str | int = 64,
@@ -38,7 +38,7 @@ def refraction(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         Reference to the OptilandBackend backend.
     field_coordinate : tuple[float, float], optional
         The field coordinate for the Zernike calculation. When `None`, the first field in Optiland is used.
@@ -72,7 +72,7 @@ def refraction(
             )
             warn(message, UserWarning, stacklevel=2)
 
-        old_aperture = backend.get_optic().aperture
+        old_aperture = backend.optic.aperture
         backend.update_pupil(pupil_diameter)
 
     zernike_coefficients, zernike_opd = zernike_standard_coefficients(
@@ -84,7 +84,7 @@ def refraction(
         unit="waves",
     )
 
-    exit_pupil_semi_diameter = float(backend.get_optic().paraxial.XPD() / 2)
+    exit_pupil_semi_diameter = float(backend.optic.paraxial.XPD() / 2)
 
     if old_aperture is not None:
         backend.update_pupil(old_aperture.value)

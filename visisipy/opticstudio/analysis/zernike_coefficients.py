@@ -35,7 +35,7 @@ def _build_zernike_result(
 
 
 def zernike_standard_coefficients(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -47,7 +47,7 @@ def zernike_standard_coefficients(
 
     Parameters
     ----------
-    backend : type[OpticStudioBackend]
+    backend : OpticStudioBackend
         Reference to the OpticStudio backend.
     field_coordinate : tuple[float, float] | None, optional
         The field coordinate for the Zernike calculation. When `None`, the first field in OpticStudio is used.
@@ -96,7 +96,7 @@ def zernike_standard_coefficients(
         sx=0.0,
         sy=0.0,
         sr=1.0,
-    ).run(backend.get_oss())
+    ).run(backend.oss)
 
     return _build_zernike_result(
         zernike_result.data, maximum_term, wavelength=wavelength, unit=unit

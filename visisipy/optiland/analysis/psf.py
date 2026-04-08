@@ -56,7 +56,7 @@ def _effective_pupil_sampling(pupil_sampling: int | SampleSize) -> int:
 
 
 def fft_psf(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -66,7 +66,7 @@ def fft_psf(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         Reference to the Optiland backend.
     field_coordinate : tuple[float, float], optional
         The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
@@ -94,7 +94,7 @@ def fft_psf(
     num_rays = _effective_pupil_sampling(sampling)
 
     psf = FFTPSF(
-        optic=backend.get_optic(),
+        optic=backend.optic,
         field=normalized_field,
         wavelength=wavelength,
         num_rays=num_rays,
@@ -115,7 +115,7 @@ def fft_psf(
 
 
 def huygens_psf(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -126,7 +126,7 @@ def huygens_psf(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         Reference to the Optiland backend.
     field_coordinate : tuple[float, float], optional
         The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
@@ -157,7 +157,7 @@ def huygens_psf(
     wavelength = set_wavelength(backend, wavelength)
 
     psf = HuygensPSF(
-        optic=backend.get_optic(),
+        optic=backend.optic,
         field=normalized_field,
         wavelength=wavelength,
         num_rays=int(pupil_sampling),
@@ -175,7 +175,7 @@ def huygens_psf(
 
 
 def strehl_ratio(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -188,7 +188,7 @@ def strehl_ratio(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         Reference to the Optiland backend.
     field_coordinate : FieldCoordinate | None
         The field coordinate at which the Strehl ratio is calculated. If `None`, the first field coordinate in

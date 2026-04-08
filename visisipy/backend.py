@@ -33,11 +33,11 @@ from pathlib import Path
 from types import MethodType
 from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
 from warnings import warn
+from weakref import WeakValueDictionary
 
-from visisipy.types import TypedDict, Unpack, ZernikeUnit
+from visisipy.types import Self, TypedDict, Unpack, ZernikeUnit
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
     from os import PathLike
 
     from optiland.optic import Optic
@@ -67,7 +67,9 @@ __all__ = (
 )
 
 
-_BACKEND: type[BaseBackend] | None = None
+_BACKEND: BaseBackend | None = None
+
+BackendType = Literal["opticstudio", "optiland"]
 _DEFAULT_BACKEND: BackendType = "opticstudio" if platform.system() == "Windows" else "optiland"
 
 
@@ -176,8 +178,8 @@ class BaseAnalysisRegistry(ABC):
     @abstractmethod
     def raytrace(
         self,
-        coordinates: Iterable[FieldCoordinate] | None = None,
-        wavelengths: Iterable[float] | None = None,
+        coordinates: Sequence[FieldCoordinate] | None = None,
+        wavelengths: Sequence[float] | None = None,
         field_type: FieldType = "angle",
         pupil: tuple[float, float] = (0, 0),
     ) -> tuple[DataFrame, Any]: ...
@@ -255,22 +257,61 @@ class BaseBackend(ABC, Generic[_Settings]):
     Backends should implement this interface to provide a unified interface for optical simulations.
     """
 
-    type: ClassVar[BackendType]
+    _instances: WeakValueDictionary[type[Self], Self] = WeakValueDictionary()
 
-    model: BaseEye | None
-    settings: _Settings
+    def __init__(self) -> None:
+        self._register(self)
+
+    @classmethod
+    def _register(cls, instance: Self) -> None:
+        """Register an instance of the backend.
+
+        This method is intended to be called by backend subclasses after initializing the backend instance,
+        to ensure that the instance is properly registered and can be retrieved later using `get_instance()`.
+
+        Parameters
+        ----------
+        instance : BaseBackend
+            The instance of the backend to register.
+        """
+        if cls not in cls._instances:
+            cls._instances[cls] = instance
+
+    @classmethod
+    def get_instance(cls) -> Self | None:
+        """Get the current instance of the backend.
+
+        Returns
+        -------
+        BaseBackend | None
+            The current instance of the backend, or None if it has not been initialized yet.
+        """
+        if cls not in cls._instances:
+            return None
+
+        return cls._instances[cls]
+
+    type: ClassVar[BackendType]
     _settings_type: type[_Settings]
 
-    analysis: ClassVar[BaseAnalysisRegistry]
-
-    @classmethod
+    @property
     @abstractmethod
-    def update_settings(cls, **settings: Unpack[BackendSettings]) -> None: ...
+    def model(self) -> BaseEye | None: ...
 
-    @classmethod
+    @property
+    @abstractmethod
+    def settings(self) -> _Settings: ...
+
+    @property
+    @abstractmethod
+    def analysis(self) -> BaseAnalysisRegistry: ...
+
+    @abstractmethod
+    def update_settings(self, **settings: Unpack[BackendSettings]) -> None: ...
+
     @abstractmethod
     def build_model(
-        cls,
+        self,
         model: EyeModel,
         *,
         start_from_index: int = 0,
@@ -279,20 +320,16 @@ class BaseBackend(ABC, Generic[_Settings]):
         **kwargs,
     ) -> BaseEye: ...
 
-    @classmethod
     @abstractmethod
-    def clear_model(cls) -> None: ...
+    def clear_model(self) -> None: ...
 
-    @classmethod
     @abstractmethod
-    def save_model(cls, filename: str | PathLike | None = None) -> None: ...
+    def save_model(self, filename: str | PathLike | None = None) -> None: ...
 
-    @classmethod
     @abstractmethod
-    def load_model(cls, filename: str | PathLike, *, apply_settings: bool = False) -> None: ...
+    def load_model(self, filename: str | PathLike, *, apply_settings: bool = False) -> None: ...
 
-    @classmethod
-    def validate_settings(cls, name: str | _Settings | Sequence[str]) -> None:
+    def validate_settings(self, name: str | _Settings | Sequence[str]) -> None:
         """Check if the backend has the specified setting.
 
         Parameters
@@ -307,10 +344,7 @@ class BaseBackend(ABC, Generic[_Settings]):
         TypeError
             If the name parameter is not a string, a settings dictionary, or a sequence of strings.
         """
-        if cls is BaseBackend:
-            return
-
-        allowed_keys = get_annotations(cls._settings_type).keys()
+        allowed_keys = get_annotations(self._settings_type).keys()
 
         if isinstance(name, str):
             if name not in allowed_keys:
@@ -328,8 +362,7 @@ class BaseBackend(ABC, Generic[_Settings]):
         else:
             raise TypeError("name must be a string, dictionary, or a sequence of strings.")
 
-    @classmethod
-    def get_setting(cls, name: str) -> Any:
+    def get_setting(self, name: str) -> Any:
         """Get a value from the backend settings.
 
         This method is mainly intended for internal use, to prevent the type checker from warning
@@ -350,26 +383,44 @@ class BaseBackend(ABC, Generic[_Settings]):
         KeyError
             If the setting does not exist.
         """
-        cls.validate_settings(name)
+        self.validate_settings(name)
 
-        if name not in cls.settings:
+        if name not in self.settings:
             raise KeyError(f"Setting '{name}' has not been set.")
 
-        return cls.settings[name]
+        return self.settings[name]
 
-    @classmethod
-    def save_settings(cls, filename: str | PathLike) -> None:
+    def save_settings(self, filename: str | PathLike) -> None:
         if not str(filename).endswith(".json"):
             raise ValueError("Settings file must have a '.json' extension.")
 
-        Path(filename).write_text(json.dumps(cls.settings, indent=4, sort_keys=True), encoding="utf-8")
+        Path(filename).write_text(json.dumps(self.settings, indent=4, sort_keys=True), encoding="utf-8")
 
 
 class BackendAccessError(RuntimeError):
     """Error raised when trying to access unavailable or non-initialized backend features."""
 
 
-BackendType = Literal["opticstudio", "optiland"]
+_BT = TypeVar("_BT", bound=BaseBackend)
+
+
+def _get_or_initialize_backend(backend_type: type[_BT], settings: BackendSettings) -> _BT:
+    """Get the current instance of the specified backend, or initialize it if it has not been initialized yet.
+
+    Returns
+    -------
+    BaseBackend
+        The current or new instance of the specified backend.
+    """
+    if instance := backend_type.get_instance():
+        try:
+            instance.update_settings(**settings)
+        except BackendAccessError:
+            return backend_type(**settings)  # type: ignore
+        else:
+            return instance
+
+    return backend_type(**settings)  # type: ignore
 
 
 @overload
@@ -408,25 +459,23 @@ def set_backend(
 
     if _BACKEND is not None:
         warn(
-            f"The backend is already set to {_BACKEND.__name__}. "
+            f"The backend is already set to {_BACKEND.__class__.__name__}. "
             f"Reconfiguring the backend is not recommended and may cause issues."
         )
 
     if backend == "opticstudio":
         from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
-        _BACKEND = OpticStudioBackend
-        _BACKEND.initialize(**settings)
+        _BACKEND = _get_or_initialize_backend(OpticStudioBackend, settings)  # type: ignore
     elif backend == "optiland":
         from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
-        _BACKEND = OptilandBackend
-        _BACKEND.initialize(**settings)
+        _BACKEND = _get_or_initialize_backend(OptilandBackend, settings)  # type: ignore
     else:
         raise ValueError(f"Unknown backend: {backend}")
 
 
-def get_backend() -> type[BaseBackend]:
+def get_backend() -> BaseBackend:
     """Get the current backend.
 
     The backend is set to the default backend if it has not been set yet.
@@ -439,7 +488,7 @@ def get_backend() -> type[BaseBackend]:
     if _BACKEND is None:
         set_backend(_DEFAULT_BACKEND)
 
-    return cast("type[BaseBackend]", _BACKEND)
+    return cast("BaseBackend", _BACKEND)
 
 
 def get_oss() -> OpticStudioSystem:
@@ -460,7 +509,10 @@ def get_oss() -> OpticStudioSystem:
 
     from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
 
-    return OpticStudioBackend.get_oss()
+    if instance := OpticStudioBackend.get_instance():
+        return instance.oss
+
+    raise BackendAccessError("The OpticStudio backend has not been initialized.")
 
 
 def get_optic() -> Optic:
@@ -470,20 +522,28 @@ def get_optic() -> Optic:
     -------
     Optic
         The Optic instance if the Optiland backend is currently initialized.
+
+    Raises
+    ------
+    BackendAccessError
+        If the OptilandBackend is not currently initialized.
     """
     from visisipy.optiland import OptilandBackend  # noqa: PLC0415
 
-    return OptilandBackend.get_optic()
+    if instance := OptilandBackend.get_instance():
+        return instance.optic
+
+    raise BackendAccessError("The Optiland backend has not been initialized.")
 
 
-def update_settings(backend: type[BaseBackend] | None = None, **settings: Unpack[BackendSettings]):
+def update_settings(backend: BaseBackend | None = None, **settings: Unpack[BackendSettings]):
     """Update settings on the current backend.
 
     Optionally, the backend can be manually specified. By default, the current backend is used.
 
     Parameters
     ----------
-    backend : type[BaseBackend] | None
+    backend : BaseBackend | None
         The backend to update. If `None`, the current backend is used.
     **settings : Unpack[BackendSettings]
         The settings to update. The keys and values should match the backend's configuration schema.
