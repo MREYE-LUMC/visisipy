@@ -110,14 +110,12 @@ class OptilandEye(BaseEye):
             If the retina is not located at the image position after building the eye model.
         """
         # Create an object surface if it does not exist
-        if optic.surface_group.num_surfaces != 0 and object_distance != float("inf"):
+        if optic.surfaces.num_surfaces != 0 and object_distance != float("inf"):
             raise ValueError("Cannot set a custom object distance if the optical system is not empty.")
 
-        if start_from_index == 0 and optic.surface_group.num_surfaces == 0:
-            optic.surface_group.add_surface(
-                index=start_from_index, replace_existing=replace_existing, thickness=object_distance
-            )
-        elif start_from_index > optic.surface_group.num_surfaces - 1:
+        if start_from_index == 0 and optic.surfaces.num_surfaces == 0:
+            optic.surfaces.add(index=start_from_index, replace_existing=replace_existing, thickness=object_distance)
+        elif start_from_index > optic.surfaces.num_surfaces - 1:
             message = "'start_from_index' can be at most the index of the last surface in the system."
             raise ValueError(message)
 
@@ -134,7 +132,7 @@ class OptilandEye(BaseEye):
         self.retina.build(optic, position=lens_back_index + 1, replace_existing=replace_existing)
 
         # Sanity checks
-        if optic.surface_group.stop_index != pupil_index:
+        if optic.surfaces.stop_index != pupil_index:
             message = "The pupil is not located at the stop position."
             raise ValueError(message)
 

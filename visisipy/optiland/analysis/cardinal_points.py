@@ -76,7 +76,7 @@ def cardinal_points(
         is greater than or equal to `surface_2`.
     """
     if (surface_1 is not None and surface_1 not in {0, 1}) or (
-        surface_2 is not None and surface_2 != backend.optic.surface_group.num_surfaces - 1
+        surface_2 is not None and surface_2 != backend.optic.surfaces.num_surfaces - 1
     ):
         raise ValueError("Optiland only supports calculating cardinal points for the entire system.")
 

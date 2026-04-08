@@ -30,8 +30,8 @@ class TestSetWavelength:
         assert get_optic_wavelengths(optic) == [0.543]
         extra_wavelength_1 = 0.430
         extra_wavelength_2 = 0.320
-        optic.add_wavelength(extra_wavelength_1)
-        optic.add_wavelength(extra_wavelength_2)
+        optic.wavelengths.add(extra_wavelength_1)
+        optic.wavelengths.add(extra_wavelength_2)
 
         assert set_wavelength(optiland_backend, wavelength=extra_wavelength_1) == extra_wavelength_1
         assert get_optic_wavelengths(optic) == [0.543, extra_wavelength_1, extra_wavelength_2]
@@ -64,8 +64,8 @@ class TestSetField:
         extra_field_1 = (10.0, 0.0)
         extra_field_1_normalized = (1.0, 0.0)
         extra_field_2 = (0.0, 10.0)
-        optic.add_field(x=extra_field_1[0], y=extra_field_1[1])
-        optic.add_field(x=extra_field_2[0], y=extra_field_2[1])
+        optic.fields.add(x=extra_field_1[0], y=extra_field_1[1])
+        optic.fields.add(x=extra_field_2[0], y=extra_field_2[1])
 
         assert set_field(optiland_backend, field_coordinate=extra_field_1) == extra_field_1_normalized
         assert get_optic_fields(optic) == [(0.0, 0.0), extra_field_1, extra_field_2]
@@ -100,7 +100,7 @@ class TestSetField:
         optiland_backend: OptilandBackend,
     ):
         optic = optiland_backend.optic
-        optic.set_field_type(old_type)
+        optic.fields.set_type(old_type)
         assert optiland_backend.get_field_type() == old_type
 
         with pytest.warns(UserWarning, match=re.escape(f"Changing field type from {old_type} to {new_type}.")):

@@ -41,13 +41,13 @@ def simple_system(optic: Optic) -> Optic:
     Optic
         An Optic with an object and image surface.
     """
-    optic.add_surface(
+    optic.surfaces.add(
         index=0,
         thickness=float("inf"),
         comment="Object",
     )
 
-    optic.add_surface(
+    optic.surfaces.add(
         index=1,
         radius=float("inf"),
         thickness=0,
@@ -67,7 +67,7 @@ def surface(simple_system: Optic) -> optiland.surfaces.Surface:
     optiland.surfaces.Surface
         A surface built in the simple system.
     """
-    simple_system.add_surface(
+    simple_system.surfaces.add(
         index=1,
         radius=1.0,
         thickness=2.0,
@@ -77,7 +77,7 @@ def surface(simple_system: Optic) -> optiland.surfaces.Surface:
         comment="Test surface",
     )
 
-    return simple_system.surface_group.surfaces[1]
+    return simple_system.surfaces[1]
 
 
 class TestBuiltOnlyProperty:
@@ -148,7 +148,7 @@ def build_surface(optic: Optic, surface: BaseOptilandSurface) -> int:
     int
         The index of the built surface.
     """
-    optic.add_surface(
+    optic.surfaces.add(
         index=0,
         thickness=float("inf"),
         comment="Object",
@@ -156,7 +156,7 @@ def build_surface(optic: Optic, surface: BaseOptilandSurface) -> int:
 
     index = surface.build(optic, position=1)
 
-    optic.add_surface(
+    optic.surfaces.add(
         index=2,
         radius=float("inf"),
         thickness=0,
@@ -440,13 +440,13 @@ class TestNoSurface:
     def test_build(self, optic):
         surface = OptilandNoSurface()
 
-        n_surfaces = optic.surface_group.num_surfaces
+        n_surfaces = optic.surfaces.num_surfaces
 
         return_index = surface.build(optic, position=1)
 
         assert return_index == 0
         assert surface.surface is None
-        assert n_surfaces == optic.surface_group.num_surfaces
+        assert n_surfaces == optic.surfaces.num_surfaces
 
 
 class TestMakeSurface:

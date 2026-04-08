@@ -56,7 +56,7 @@ class TestHuygensPSFAnalysis:
             ((5.5, 5.5), 0.550, "angle", 64, 64),
         ],
     )
-    def test_fft_psf(
+    def test_huygens_psf(
         self,
         optiland_backend,
         optiland_analysis,
