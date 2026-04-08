@@ -259,10 +259,21 @@ class BaseBackend(ABC, Generic[_Settings]):
 
     _instances: WeakValueDictionary[type[Self], Self] = WeakValueDictionary()
 
-    def __new__(cls, *args, **kwargs) -> Self:  # noqa: ARG004
-        """Store the first instance of each backend subclass to allow retrieving existing instances later."""
-        instance = super().__new__(cls)
+    def __init__(self) -> None:
+        self._register(self)
 
+    @classmethod
+    def _register(cls, instance: Self) -> None:
+        """Register an instance of the backend.
+
+        This method is intended to be called by backend subclasses after initializing the backend instance,
+        to ensure that the instance is properly registered and can be retrieved later using `get_instance()`.
+
+        Parameters
+        ----------
+        instance : BaseBackend
+            The instance of the backend to register.
+        """
         if cls not in cls._instances:
             cls._instances[cls] = instance
 
