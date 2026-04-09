@@ -162,11 +162,11 @@ class BaseOptilandSurface(BaseSurface, ABC):
     @_built_only_property
     def thickness(self) -> float:
         """Thickness of the surface."""
-        if self._index == self._optic.surface_group.num_surfaces - 1:
+        if self._index == self._optic.surfaces.num_surfaces - 1:
             # Last surface in the system, return 0.0
             return 0.0
 
-        return self._optic.surface_group.get_thickness(self._index)[0]  # type: ignore
+        return self._optic.surfaces.get_thickness(self._index)[0]  # type: ignore
 
     @_built_only_property
     def semi_diameter(self) -> float | None:
@@ -288,12 +288,12 @@ class BaseOptilandSurface(BaseSurface, ABC):
         OptilandStandardSurfaceParameters : Parameters for standard surfaces in Optiland.
         OptilandBiconicSurfaceParameters : Parameters for biconic surfaces in Optiland.
         """
-        optic.add_surface(index=position, surface_type=self._TYPE, **kwargs)
+        optic.surfaces.add(index=position, surface_type=self._TYPE, **kwargs)
 
         if replace_existing:
-            optic.surface_group.surfaces.pop(position + 1)
+            optic.surfaces.remove(position + 1)
 
-        self._surface = optic.surface_group.surfaces[position]
+        self._surface = optic.surfaces[position]
 
         if kwargs["semi_diameter"] is not None:
             self.surface.set_semi_aperture(kwargs["semi_diameter"])  # type: ignore
@@ -358,12 +358,12 @@ class OptilandSurface(BaseOptilandSurface):
     @_built_only_property
     def radius(self) -> float:
         """Radius of the surface."""
-        return self._optic.surface_group.radii[self._index]  # type: ignore
+        return self._optic.surfaces.radii[self._index]  # type: ignore
 
     @_built_only_property
     def conic(self) -> float:
         """Conic constant of the surface."""
-        return self._optic.surface_group.conic[self._index]  # type: ignore
+        return self._optic.surfaces.conic[self._index]  # type: ignore
 
     def build(self, optic: Optic, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in Optiland.

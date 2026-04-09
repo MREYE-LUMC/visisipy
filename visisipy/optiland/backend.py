@@ -376,7 +376,9 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if ray_aiming_tolerance <= 0:
             raise ValueError("ray_aiming_tolerance must be a positive float.")
 
-        self.optic.set_ray_aiming(mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance)
+        self.optic.ray_tracer.set_aiming(
+            mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance
+        )
 
     def get_fields(self) -> list[tuple[float, float]]:
         """Get the fields in the optical system.
@@ -386,7 +388,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         list[tuple[float, float]]
             List of field coordinates.
         """
-        return [(f.x, f.y) for f in self.optic.fields.fields]
+        return [(f.x, f.y) for f in self.optic.fields]
 
     def get_field_type(self) -> FieldType:
         """Get the current field type.
@@ -401,7 +403,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         ValueError
             If the field type in the optical system is not recognized.
         """
-        optiland_field_type = self.optic.field_definition
+        optiland_field_type = self.optic.fields.field_definition
 
         if isinstance(optiland_field_type, AngleField):
             return "angle"
@@ -426,7 +428,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if field_type not in {"angle", "object_height"}:
             raise ValueError("field_type must be either 'angle' or 'object_height'.")
 
-        self.optic.set_field_type(field_type)
+        self.optic.fields.set_type(field_type)
 
     def set_fields(
         self,
@@ -451,7 +453,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         self.set_field_type(field_type)
 
         for field in coordinates:
-            self.optic.add_field(y=field[1], x=field[0])
+            self.optic.fields.add(y=field[1], x=field[0])
 
     def add_field(self, coordinate: tuple[float, float]) -> int:
         """Add a single field to the optical system.
@@ -466,8 +468,8 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         int
             The index of the newly added field.
         """
-        self.optic.add_field(y=coordinate[1], x=coordinate[0])
-        return len(self.optic.fields.fields) - 1
+        self.optic.fields.add(y=coordinate[1], x=coordinate[0])
+        return self.optic.fields.num_fields - 1
 
     def get_wavelengths(self) -> list[float]:
         """Get the wavelengths in the optical system.
@@ -477,7 +479,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         list[float]
             List of wavelengths.
         """
-        return [w.value for w in self.optic.wavelengths.wavelengths]
+        return [w.value for w in self.optic.wavelengths]
 
     def set_wavelengths(self, wavelengths: Sequence[float]):
         """Set the wavelengths for the optical system.
@@ -502,7 +504,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         self.optic.wavelengths.wavelengths.clear()
 
         for wavelength in wavelengths:
-            self.optic.add_wavelength(wavelength)
+            self.optic.wavelengths.add(wavelength)
 
     def add_wavelength(self, wavelength: float) -> int:
         """Add a single wavelength to the optical system.
@@ -517,8 +519,8 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         int
             The index of the newly added wavelength.
         """
-        self.optic.add_wavelength(wavelength)
-        return len(self.optic.wavelengths.wavelengths) - 1
+        self.optic.wavelengths.add(wavelength)
+        return self.optic.wavelengths.num_wavelengths - 1
 
     def iter_fields(self) -> Generator[tuple[int, tuple[float, float]], Any, None]:
         """Iterate over the fields in the optical system.
@@ -530,7 +532,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         tuple[float, float]
             Field X and Y coordinates.
         """
-        for i, f in enumerate(self.optic.fields.fields):
+        for i, f in enumerate(self.optic.fields):
             yield i, (f.x, f.y)
 
     def iter_wavelengths(self) -> Generator[tuple[int, float], Any, None]:
@@ -543,7 +545,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         float
             Wavelength value.
         """
-        for i, w in enumerate(self.optic.wavelengths.wavelengths):
+        for i, w in enumerate(self.optic.wavelengths):
             yield i, w.value
 
     @staticmethod

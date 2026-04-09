@@ -36,14 +36,14 @@ class TestOptilandBackend:
 
     def test_new_model(self, optiland_backend: OptilandBackend):
         # Change a setting and add a new surface
-        optiland_backend.optic.add_field(10, 10)
-        optiland_backend.optic.add_surface(index=0)
+        optiland_backend.optic.fields.add(x=10, y=10)
+        optiland_backend.optic.surfaces.add(index=0)
 
-        assert optiland_backend.optic.surface_group.num_surfaces == 1
+        assert optiland_backend.optic.surfaces.num_surfaces == 1
 
         optiland_backend.new_model(save_old_model=False)
 
-        assert optiland_backend.optic.surface_group.num_surfaces == 0
+        assert optiland_backend.optic.surfaces.num_surfaces == 0
         assert optiland_backend.optic.fields.num_fields == 1
 
     def test_build_model(self, optiland_backend: OptilandBackend, eye_model: EyeModel):
@@ -51,7 +51,7 @@ class TestOptilandBackend:
 
         assert optiland_backend.model is not None
         assert optiland_backend.model.eye_model == eye_model
-        assert optiland_backend.optic.surface_group.num_surfaces == 7
+        assert optiland_backend.optic.surfaces.num_surfaces == 7
 
     @pytest.mark.parametrize(
         "aperture_type", ["entrance_pupil_diameter", "float_by_stop_size", "image_f_number", "object_numeric_aperture"]
@@ -72,12 +72,12 @@ class TestOptilandBackend:
     def test_clear_model(self, optiland_backend: OptilandBackend, eye_model: EyeModel):
         optiland_backend.build_model(eye_model)
         assert optiland_backend.model is not None
-        assert optiland_backend.optic.surface_group.num_surfaces == 7
+        assert optiland_backend.optic.surfaces.num_surfaces == 7
 
         optiland_backend.clear_model()
 
         assert optiland_backend.model is None
-        assert optiland_backend.optic.surface_group.num_surfaces == 0
+        assert optiland_backend.optic.surfaces.num_surfaces == 0
 
     def test_save_model(self, optiland_backend: OptilandBackend, eye_model, tmp_path):
         optiland_backend.build_model(eye_model)
@@ -110,7 +110,7 @@ class TestOptilandBackend:
             optic: Optic = optiland_backend.optic
 
             assert optiland_backend.model is None
-            assert optic.surface_group.num_surfaces == 7
+            assert optic.surfaces.num_surfaces == 7
             assert optic.object_surface.comment == "Test load file"
             assert optic.aperture.ap_type == "EPD"
             assert optic.wavelengths.num_wavelengths == 4
@@ -123,7 +123,7 @@ class TestOptilandBackend:
         optic: Optic = optiland_backend.optic
 
         assert optiland_backend.model is None
-        assert optic.surface_group.num_surfaces == 7
+        assert optic.surfaces.num_surfaces == 7
         assert optic.aperture.ap_type == "float_by_stop_size"
         assert optic.wavelengths.num_wavelengths == 1
         assert optic.fields.num_fields == 1
@@ -160,17 +160,17 @@ class TestOptilandBackend:
             for coordinate, field in zip(coordinates, optiland_backend.optic.fields.fields, strict=False):
                 assert coordinate == (field.x, field.y)
 
-            assert isinstance(optiland_backend.optic.field_definition, OPTILAND_FIELD_TYPES[field_type])
+            assert isinstance(optiland_backend.optic.fields.field_definition, OPTILAND_FIELD_TYPES[field_type])
 
     def test_get_fields(self, optiland_backend: OptilandBackend):
         coordinates = [(10, 10), (20, 20)]
         field_type = "angle"
 
         optiland_backend.optic.fields.fields.clear()
-        optiland_backend.optic.set_field_type(field_type)
+        optiland_backend.optic.fields.set_type(field_type)
 
         for coordinate in coordinates:
-            optiland_backend.optic.add_field(coordinate[0], coordinate[1])
+            optiland_backend.optic.fields.add(coordinate[0], coordinate[1])
 
         assert optiland_backend.get_fields() == coordinates
 
@@ -183,7 +183,7 @@ class TestOptilandBackend:
 
     @pytest.mark.parametrize("field_type", ["angle", "object_height"])
     def test_get_field_type(self, field_type, optiland_backend: OptilandBackend):
-        optiland_backend.optic.set_field_type(field_type)
+        optiland_backend.optic.fields.set_type(field_type)
 
         assert optiland_backend.get_field_type() == field_type
 
@@ -200,12 +200,12 @@ class TestOptilandBackend:
         ],
     )
     def test_set_field_type(self, old_type, new_type, expectation, optiland_backend: OptilandBackend):
-        optiland_backend.optic.set_field_type(old_type)
+        optiland_backend.optic.fields.set_type(old_type)
 
         with expectation:
             optiland_backend.set_field_type(new_type)
 
-            assert isinstance(optiland_backend.optic.field_definition, OPTILAND_FIELD_TYPES[new_type])
+            assert isinstance(optiland_backend.optic.fields.field_definition, OPTILAND_FIELD_TYPES[new_type])
 
     @pytest.mark.parametrize(
         "wavelengths,expectation",
@@ -231,7 +231,7 @@ class TestOptilandBackend:
         optiland_backend.optic.wavelengths.wavelengths.clear()
 
         for wavelength in wavelengths:
-            optiland_backend.optic.add_wavelength(wavelength)
+            optiland_backend.optic.wavelengths.add(wavelength)
 
         assert optiland_backend.get_wavelengths() == wavelengths
 
@@ -281,7 +281,7 @@ class TestOptilandBackendSettings:
         optiland_backend.update_settings(field_type=field_type, fields=fields)
 
         self._assert_fields_equal(optiland_backend.optic.fields, fields)
-        assert isinstance(optiland_backend.optic.field_definition, OPTILAND_FIELD_TYPES[field_type])
+        assert isinstance(optiland_backend.optic.fields.field_definition, OPTILAND_FIELD_TYPES[field_type])
 
     @pytest.mark.parametrize(
         "wavelengths",
@@ -363,11 +363,11 @@ class TestOptilandBackendSettings:
         with expectation:
             optiland_backend.update_settings(**args)
 
-            assert optiland_backend.optic.ray_aiming_config["mode"] == ray_aiming_mode
+            assert optiland_backend.optic.ray_tracer.ray_aiming_config["mode"] == ray_aiming_mode
             if max_iterations is not None:
-                assert optiland_backend.optic.ray_aiming_config["max_iter"] == max_iterations
+                assert optiland_backend.optic.ray_tracer.ray_aiming_config["max_iter"] == max_iterations
             if tolerance is not None:
-                assert optiland_backend.optic.ray_aiming_config["tolerance"] == tolerance
+                assert optiland_backend.optic.ray_tracer.ray_aiming_config["tolerance"] == tolerance
 
     @pytest.mark.parametrize(
         "computation_backend,torch_device,torch_precision,torch_gradient_mode,expectation",
@@ -428,7 +428,7 @@ class TestOptilandBackendSettings:
             if torch_device is not None:
                 assert optiland.backend.get_device() == torch_device
             if torch_precision is not None:
-                assert str(optiland.backend.get_precision()) == f"torch.{torch_precision}"
+                assert str(optiland.backend._config.get_precision()) == f"torch.{torch_precision}"
             if torch_gradient_mode is not None:
                 assert optiland.backend.grad_mode.requires_grad == torch_gradient_mode
 

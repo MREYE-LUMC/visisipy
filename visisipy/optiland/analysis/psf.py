@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
 from optiland.backend import to_numpy
-from optiland.psf import FFTPSF, HuygensPSF
+from optiland.psf import FFTPSF, HuygensPSF, ScalarFFTPSF, ScalarHuygensPSF, VectorialFFTPSF, VectorialHuygensPSF
 
 from visisipy.optiland.analysis.helpers import set_field, set_wavelength
 from visisipy.types import SampleSize
 
 if TYPE_CHECKING:
+    from optiland.psf.base import BasePSF
+
     from visisipy.optiland import OptilandBackend
     from visisipy.types import FieldCoordinate, FieldType
 
@@ -61,7 +63,7 @@ def fft_psf(
     wavelength: float | None = None,
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 128,
-) -> tuple[pd.DataFrame, FFTPSF]:
+) -> tuple[pd.DataFrame, VectorialFFTPSF | ScalarFFTPSF]:
     """Calculate the FFT Point Spread Function (PSF) at the retina surface.
 
     Parameters
@@ -82,7 +84,7 @@ def fft_psf(
     -------
     DataFrame
         The PSF data as a pandas DataFrame.
-    FFTPSF
+    VectorialFFTPSF | ScalarFFTPSF
         The Optiland FFTPSF object.
     """
     if not isinstance(sampling, SampleSize):
@@ -103,8 +105,6 @@ def fft_psf(
 
     # psf._get_psf_units returns tuples of single-element or scalar arrays, depending on the computation backend.
     psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # noqa: SLF001
-    psf_extent_x = cast("float", psf_extent_x)
-    psf_extent_y = cast("float", psf_extent_y)
     index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
@@ -121,7 +121,7 @@ def huygens_psf(
     field_type: FieldType = "angle",
     pupil_sampling: SampleSize | str | int = 128,
     image_sampling: SampleSize | str | int = 128,
-) -> tuple[pd.DataFrame, HuygensPSF]:
+) -> tuple[pd.DataFrame, VectorialHuygensPSF | ScalarHuygensPSF]:
     """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
 
     Parameters
@@ -144,7 +144,7 @@ def huygens_psf(
     -------
     DataFrame
         The PSF data as a pandas DataFrame.
-    HuygensPSF
+    VectorialHuygensPSF | ScalarHuygensPSF
         The Optiland HuygensPSF object.
     """
     if not isinstance(pupil_sampling, SampleSize):
@@ -164,7 +164,7 @@ def huygens_psf(
         image_size=int(image_sampling),
     )
 
-    (psf_extent_x, *_), (psf_extent_y, *_) = psf._get_psf_units(psf.psf)  # noqa: SLF001
+    psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # noqa: SLF001
     index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
@@ -181,7 +181,7 @@ def strehl_ratio(
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 128,
     psf_type: Literal["fft", "huygens"] = "huygens",
-) -> tuple[float, FFTPSF | HuygensPSF]:
+) -> tuple[float, BasePSF]:
     """Calculate the Strehl ratio of the optical system.
 
     The Strehl ratio is calculated from the point spread function. Which PSF is used depends on the `psf_type` parameter.
@@ -208,7 +208,7 @@ def strehl_ratio(
     -------
     float
         The Strehl ratio of the optical system at the specified field coordinate and wavelength.
-    FFTPSF | HuygensPSF
+    BasePSF
         The PSF object used to calculate the Strehl ratio. The type of the object depends on the `psf_type` parameter.
     """
     if psf_type == "fft":

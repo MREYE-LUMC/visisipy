@@ -25,16 +25,16 @@ def _trace_single_ray(
     wavelength: float,
 ) -> pd.DataFrame:
     optic.trace_generic(*field, *pupil, wavelength=wavelength)
-    x = to_numpy(optic.surface_group.x)
-    y = to_numpy(optic.surface_group.y)
-    z = to_numpy(optic.surface_group.z)
-    surface_numbers = range(optic.surface_group.num_surfaces)
+    x = to_numpy(optic.surfaces.x)
+    y = to_numpy(optic.surfaces.y)
+    z = to_numpy(optic.surfaces.z)
+    surface_numbers = range(optic.surfaces.num_surfaces)
 
     return pd.DataFrame(
         {
             "wavelength": [wavelength] * len(x),
             "surface": surface_numbers,
-            "comment": [s.comment for s in optic.surface_group.surfaces],
+            "comment": [s.comment for s in optic.surfaces.surfaces],
             "x": x[:, 0],
             "y": y[:, 0],
             "z": z[:, 0],

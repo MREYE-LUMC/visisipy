@@ -20,17 +20,17 @@ def build_model(wavelength: float, n: float, abbe: float) -> Optic:
     """
     system = Optic()
 
-    system.set_field_type("angle")
-    system.add_field(x=0, y=20)
+    system.fields.set_type("angle")
+    system.fields.add(x=0, y=20)
     system.set_aperture("EPD", 1.0)
-    system.add_wavelength(wavelength)
+    system.wavelengths.add(wavelength)
 
     air = IdealMaterial(n=1)
     test_material = AbbeMaterial(n=n, abbe=abbe, model="polynomial")
 
-    system.add_surface(index=0, comment="object", thickness=float("inf"), material=air)
-    system.add_surface(index=1, comment="stop", is_stop=True, thickness=5.0, material=test_material)
-    system.add_surface(index=2, comment="image", thickness=0.0, material=test_material)
+    system.surfaces.add(index=0, comment="object", thickness=float("inf"), material=air)
+    system.surfaces.add(index=1, comment="stop", is_stop=True, thickness=5.0, material=test_material)
+    system.surfaces.add(index=2, comment="image", thickness=0.0, material=test_material)
 
     return system
 
@@ -64,7 +64,7 @@ def test_material_model_refractive_index(material_model, wavelength, expected_in
     system = build_model(wavelength, material_model.refractive_index, material_model.abbe_number)
 
     system.trace_generic(0, 1, 0, 0, wavelength=wavelength)
-    trace_z, trace_y = to_numpy(system.surface_group.z), to_numpy(system.surface_group.y)
+    trace_z, trace_y = to_numpy(system.surfaces.z), to_numpy(system.surfaces.y)
     sin_angle_out = trace_y[2] / np.sqrt(trace_z[2] ** 2 + trace_y[2] ** 2)  # Assuming the ray passes through (0, 0)
     refractive_index = np.sin(np.deg2rad(20)) / sin_angle_out
 
