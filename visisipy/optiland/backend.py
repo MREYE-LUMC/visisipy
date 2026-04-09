@@ -376,7 +376,9 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         if ray_aiming_tolerance <= 0:
             raise ValueError("ray_aiming_tolerance must be a positive float.")
 
-        self.optic.ray_tracer.set_aiming(mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance)
+        self.optic.ray_tracer.set_aiming(
+            mode=ray_aiming, max_iter=ray_aiming_max_iterations, tolerance=ray_aiming_tolerance
+        )
 
     def get_fields(self) -> list[tuple[float, float]]:
         """Get the fields in the optical system.

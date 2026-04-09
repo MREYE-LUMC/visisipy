@@ -277,26 +277,6 @@ class BaseBackend(ABC, Generic[_Settings]):
         if cls not in cls._instances:
             cls._instances[cls] = instance
 
-        return instance
-
-    def __init__(self) -> None:
-        self._register(self)
-
-    @classmethod
-    def _register(cls, instance: Self) -> None:
-        """Register an instance of the backend.
-
-        This method is intended to be called by backend subclasses after initializing the backend instance,
-        to ensure that the instance is properly registered and can be retrieved later using `get_instance()`.
-
-        Parameters
-        ----------
-        instance : BaseBackend
-            The instance of the backend to register.
-        """
-        if cls not in cls._instances:
-            cls._instances[cls] = instance
-
     @classmethod
     def get_instance(cls) -> Self | None:
         """Get the current instance of the backend.
