@@ -19,7 +19,7 @@ maintainers = [
 dependencies = [
     "matplotlib",
     "numba>=0.60.0",
-    "numpy<2.4.0",
+    "numpy<2.4.5",
     "optiland>=0.6.0,<0.7.0",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.13'",
