@@ -64,7 +64,7 @@ def _build_mtf_result(fft_mtf_result: DataFrame) -> MTFResult:
 
 
 def fft_mtf(
-    backend: type[OpticStudioBackend],
+    backend: OpticStudioBackend,
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
     wavelength: float | None = None,
@@ -75,7 +75,7 @@ def fft_mtf(
 
     Parameters
     ----------
-    backend : type[OpticStudioBackend]
+    backend : OpticStudioBackend
         Reference to the OpticStudio backend.
     field_coordinate : FieldCoordinate | Literal["all"]
         The field coordinate(s) at which the MTF is calculated. Can be a specific coordinate (e.g., (0, 0)) or
@@ -124,7 +124,7 @@ def fft_mtf(
         maximum_frequency=0 if maximum_frequency == "default" else maximum_frequency,
         use_polarization=False,
         use_dashes=False,
-    ).run(backend.get_oss())
+    ).run(backend.oss)
 
     if fft_mtf_result.data is None:
         raise RuntimeError("Failed to run FFT MTF analysis.")

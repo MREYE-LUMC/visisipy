@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from optiland.backend import to_numpy
-from optiland.mtf import ScalarFFTMTF, VectorialFFTMTF
+from optiland.mtf import FFTMTF, ScalarFFTMTF, VectorialFFTMTF
 from pandas import Series
 
 from visisipy.analysis.mtf import MTFResult, SingleMTFResult
@@ -14,41 +14,11 @@ from visisipy.optiland.analysis.psf import _effective_pupil_sampling
 from visisipy.types import FieldType, SampleSize
 
 if TYPE_CHECKING:
-    from optiland.optic import Optic
-
     from visisipy.optiland.backend import OptilandBackend
     from visisipy.types import FieldCoordinate
 
 
 FFT_PSF_MINIMUM_PUPIL_SAMPLING = 32
-
-
-def _calculate_mtf(
-    optic: Optic,
-    fields: list[FieldCoordinate] | Literal["all"],
-    wavelength: float,
-    num_rays: int,
-    grid_size: int,
-    max_freq: float | Literal["cutoff"],
-) -> ScalarFFTMTF | VectorialFFTMTF:
-    if optic.polarization_state is not None:
-        return VectorialFFTMTF(
-            optic=optic,
-            fields=fields,
-            wavelength=wavelength,
-            num_rays=num_rays,
-            grid_size=grid_size,
-            max_freq=max_freq,
-        )
-
-    return ScalarFFTMTF(
-        optic=optic,
-        fields=fields,
-        wavelength=wavelength,
-        num_rays=num_rays,
-        grid_size=grid_size,
-        max_freq=max_freq,
-    )
 
 
 def _build_mtf_result(
@@ -81,7 +51,7 @@ def _build_mtf_result(
 
 
 def fft_mtf(
-    backend: type[OptilandBackend],
+    backend: OptilandBackend,
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 64,
@@ -92,7 +62,7 @@ def fft_mtf(
 
     Parameters
     ----------
-    backend : type[OptilandBackend]
+    backend : OptilandBackend
         Reference to the Optiland backend.
     field_coordinate : FieldCoordinate | Literal["all"]
         The field coordinate(s) at which the MTF is calculated. Can be a specific coordinate (e.g., (0, 0)) or
@@ -128,8 +98,8 @@ def fft_mtf(
     else:
         normalized_field = [set_field(backend, field_coordinate=field_coordinate, field_type=field_type)]
 
-    mtf = _calculate_mtf(
-        optic=backend.get_optic(),
+    mtf: ScalarFFTMTF | VectorialFFTMTF = FFTMTF(
+        optic=backend.optic,
         fields=normalized_field,
         wavelength=wavelength,
         num_rays=_effective_pupil_sampling(sampling),

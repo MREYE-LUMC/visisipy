@@ -98,7 +98,7 @@ def fft_mtf(
     maximum_frequency: float | Literal["default"] = "default",
     *,
     return_raw_result: Literal[False] = False,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> MTFResult: ...
 
 
@@ -112,7 +112,7 @@ def fft_mtf(
     maximum_frequency: float | Literal["default"] = "default",
     *,
     return_raw_result: Literal[True] = True,
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[MTFResult, Any]: ...
 
 
@@ -126,7 +126,7 @@ def fft_mtf(
     maximum_frequency: float | Literal["default"] = "default",
     *,
     return_raw_result: bool = False,  # noqa: ARG001
-    backend: type[BaseBackend] = _AUTOMATIC_BACKEND,
+    backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[MTFResult, Any]:
     """Calculate the FFT Modulation Transfer Function (MTF).
 
@@ -150,7 +150,7 @@ def fft_mtf(
         maximum frequency is used by the backend. Defaults to "default".
     return_raw_result : bool, optional
         Return the raw analysis result from the backend. Defaults to `False`.
-    backend : type[BaseBackend]
+    backend : BaseBackend, optional
         The backend to be used for the analysis. If not provided, the default backend is used.
 
     Returns
