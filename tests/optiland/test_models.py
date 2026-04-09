@@ -92,7 +92,7 @@ class TestOptilandEye:
         optiland_eye.build(optic, start_from_index=1)
 
         assert optic.surfaces.surfaces[2].comment == "cornea front"
-        assert optic.surfaces.get_thickness(2) == eye_model.geometry.cornea_front.thickness
+        assert to_numpy(optic.surfaces.get_thickness(2)) == eye_model.geometry.cornea_front.thickness
 
     @pytest.mark.parametrize("n_surfaces,index", [(0, 1), (0, 3), (2, 2), (2, 3)])
     def test_build_start_from_index_invalid(
@@ -112,7 +112,7 @@ class TestOptilandEye:
         optiland_eye = OptilandEye(eye_model)
         optiland_eye.build(optic, object_distance=10)
 
-        assert optic.surfaces.get_thickness(0) == 10
+        assert to_numpy(optic.surfaces.get_thickness(0)) == 10
 
     def test_build_object_distance_nonempty_system(self, optic: Optic, eye_model: EyeModel, optiland_backend):
         optic.surfaces.add(index=0, comment="Object")

@@ -114,7 +114,7 @@ class OptilandEye(BaseEye):
             raise ValueError("Cannot set a custom object distance if the optical system is not empty.")
 
         if start_from_index == 0 and optic.surfaces.num_surfaces == 0:
-            optic.surfaces.add(index=start_from_index, replace_existing=replace_existing, thickness=object_distance)
+            optic.surfaces.add(index=start_from_index, thickness=object_distance)
         elif start_from_index > optic.surfaces.num_surfaces - 1:
             message = "'start_from_index' can be at most the index of the last surface in the system."
             raise ValueError(message)
