@@ -57,8 +57,8 @@ class SampleSize:
     sampling : int
         The sample size.
 
-    Example
-    -------
+    Examples
+    --------
     >>> sample_size = SampleSize(512)
     >>> print(int(sample_size))
     512

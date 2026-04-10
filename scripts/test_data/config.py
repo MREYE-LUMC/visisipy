@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 from analysis_tests import (
     BaseAnalysisTest,
+    FFTMTFTest,
     FFTPSFTest,
     HuygensPSFTest,
     OPDMapTest,
@@ -44,6 +45,9 @@ OPTILAND_BACKEND_SETTINGS = OptilandSettings(
 RAY_TRACE_COORDINATES = [(x, y) for x in np.linspace(-60, 60, 5) for y in np.linspace(-60, 60, 5)]
 
 TESTS: dict[str, BaseAnalysisTest] = {
+    "fft_mtf_0_0": FFTMTFTest(coordinate=(0, 0), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),
+    "fft_mtf_0_10": FFTMTFTest(coordinate=(0, 10), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),
+    "fft_mtf_10_0": FFTMTFTest(coordinate=(10, 0), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),
     "fft_psf_0_0": FFTPSFTest(coordinate=(0, 0), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),
     "fft_psf_0_10": FFTPSFTest(coordinate=(0, 10), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),
     "fft_psf_10_0": FFTPSFTest(coordinate=(10, 0), sampling=DEFAULT_SAMPLING, wavelength=DEFAULT_WAVELENGTH),

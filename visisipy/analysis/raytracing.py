@@ -16,6 +16,9 @@ if TYPE_CHECKING:
     from visisipy.types import FieldType
 
 
+__all__ = ("raytrace",)
+
+
 @overload
 def raytrace(
     model: EyeModel | None = None,
