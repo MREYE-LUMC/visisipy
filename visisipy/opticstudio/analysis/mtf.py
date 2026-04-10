@@ -32,7 +32,8 @@ def _parse_field_name(field_name: str) -> FieldCoordinate:
     values = FIELD_VALUE_REGEX.findall(field_name)
 
     if not values or len(values) > 2:  # noqa: PLR2004
-        raise ValueError(f"Could not parse field name: {field_name}")
+        msg = f"Could not parse field name: {field_name}"
+        raise ValueError(msg)
 
     values = [float(v.replace(",", ".")) for v in values]
 
@@ -44,7 +45,8 @@ def _parse_field_name(field_name: str) -> FieldCoordinate:
 
 def _build_mtf_result(fft_mtf_result: DataFrame) -> MTFResult:
     if fft_mtf_result.columns.nlevels != 2:  # noqa: PLR2004
-        raise ValueError("Expected a MultiIndex with 2 levels for the columns.")
+        msg = "Expected a MultiIndex with 2 levels for the columns."
+        raise ValueError(msg)
 
     field_names = fft_mtf_result.columns.get_level_values(0).unique()
 
@@ -68,7 +70,7 @@ def fft_mtf(
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
     wavelength: float | None = None,
-    sampling: SampleSize | str | int = 64,
+    sampling: SampleSize | str | int = 128,
     maximum_frequency: float | Literal["default"] = "default",
 ) -> tuple[MTFResult, DataFrame]:
     """Calculate the FFT Modulation Transfer Function (MTF).
@@ -127,6 +129,7 @@ def fft_mtf(
     ).run(backend.oss)
 
     if fft_mtf_result.data is None:
-        raise RuntimeError("Failed to run FFT MTF analysis.")
+        msg = "Failed to run FFT MTF analysis."
+        raise RuntimeError(msg)
 
     return _build_mtf_result(fft_mtf_result.data), fft_mtf_result.data

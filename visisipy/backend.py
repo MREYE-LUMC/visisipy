@@ -151,7 +151,7 @@ class BaseAnalysisRegistry(ABC):
         field_coordinate: FieldCoordinate | Literal["all"] = "all",
         field_type: FieldType = "angle",
         wavelength: float | None = None,
-        sampling: SampleSize | str | int = 64,
+        sampling: SampleSize | str | int = 128,
         maximum_frequency: float | Literal["default"] = "default",
     ) -> tuple[MTFResult, Any]: ...
 

@@ -18,9 +18,6 @@ if TYPE_CHECKING:
     from visisipy.types import FieldCoordinate
 
 
-FFT_PSF_MINIMUM_PUPIL_SAMPLING = 32
-
-
 def _build_mtf_result(
     mtf: ScalarFFTMTF | VectorialFFTMTF, fields: FieldCoordinate | list[FieldCoordinate] | Literal["all"]
 ) -> MTFResult:
@@ -54,8 +51,8 @@ def fft_mtf(
     backend: OptilandBackend,
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
-    sampling: SampleSize | str | int = 64,
     wavelength: float | None = None,
+    sampling: SampleSize | str | int = 128,
     maximum_frequency: float | Literal["default"] = "default",
 ) -> tuple[MTFResult, ScalarFFTMTF | VectorialFFTMTF]:
     """Calculate the FFT Modulation Transfer Function (MTF).
