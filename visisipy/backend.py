@@ -45,6 +45,7 @@ if TYPE_CHECKING:
     from zospy.zpcore import OpticStudioSystem
 
     from visisipy.analysis.cardinal_points import CardinalPointsResult
+    from visisipy.analysis.mtf import MTFResult
     from visisipy.models import BaseEye, EyeModel
     from visisipy.opticstudio.backend import OpticStudioSettings
     from visisipy.optiland.backend import OptilandSettings
@@ -143,6 +144,16 @@ class BaseAnalysisRegistry(ABC):
         surface_1: int | None = None,
         surface_2: int | None = None,
     ) -> tuple[CardinalPointsResult, Any]: ...
+
+    @abstractmethod
+    def fft_mtf(
+        self,
+        field_coordinate: FieldCoordinate | Literal["all"] = "all",
+        field_type: FieldType = "angle",
+        wavelength: float | None = None,
+        sampling: SampleSize | str | int = 128,
+        maximum_frequency: float | Literal["default"] = "default",
+    ) -> tuple[MTFResult, Any]: ...
 
     @abstractmethod
     def fft_psf(

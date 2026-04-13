@@ -13,6 +13,8 @@ if TYPE_CHECKING:
     from visisipy.backend import BaseBackend
     from visisipy.models import EyeModel
 
+__all__ = ("opd_map",)
+
 
 @overload
 def opd_map(
