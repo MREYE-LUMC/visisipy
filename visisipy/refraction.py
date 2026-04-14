@@ -37,9 +37,9 @@ class FourierPowerVectorRefraction:
     Methods
     -------
     to_polar_power_vectors() -> PolarPowerVectorRefraction
-        Converts the refraction to polar power vector form.
+        Convert the refraction to polar power vector form.
     to_sphero_cylindrical(cylinder_form: Literal["positive", "negative"] = "negative") -> SpheroCylindricalRefraction
-        Converts the refraction to sphero-cylindrical form.
+        Convert the refraction to sphero-cylindrical form.
     """
 
     M: float
@@ -47,7 +47,7 @@ class FourierPowerVectorRefraction:
     J45: float
 
     def to_polar_power_vectors(self) -> PolarPowerVectorRefraction:
-        """Converts the refraction to polar power vector form.
+        """Convert the refraction to polar power vector form.
 
         Returns
         -------
@@ -63,7 +63,7 @@ class FourierPowerVectorRefraction:
     def to_sphero_cylindrical(
         self, cylinder_form: Literal["positive", "negative"] = "negative"
     ) -> SpheroCylindricalRefraction:
-        """Converts the refraction to sphero-cylindrical form.
+        """Convert the refraction to sphero-cylindrical form.
 
         Parameters
         ----------
@@ -131,7 +131,7 @@ class SpheroCylindricalRefraction:
     has_negative_cylinder() -> bool
         Returns `True` if the cylinder is negative or `NaN`, `False` otherwise.
     convert_cylinder_form(to: Literal["positive", "negative"]) -> SpheroCylindricalRefraction
-        Converts from positive cylinder refraction to negative cylinder refraction and vice-versa.
+        Convert from positive cylinder refraction to negative cylinder refraction and vice-versa.
     """
 
     sphere: float
@@ -156,7 +156,7 @@ class SpheroCylindricalRefraction:
         )
 
     def convert_cylinder_form(self, to: Literal["positive", "negative"]) -> SpheroCylindricalRefraction:
-        """Converts from positive cylinder refraction to negative cylinder refraction and vice-versa.
+        """Convert from positive cylinder refraction to negative cylinder refraction and vice-versa.
 
         Parameters
         ----------
@@ -166,9 +166,8 @@ class SpheroCylindricalRefraction:
 
         Returns
         -------
-        SpheroCylindricalRefraction, optional
-            With inplace set to True, no return is given as the current class is updated. With inplace set to False, a
-            copy of the current SpheroCylindricalRefraction instance is returned, but in the specified cylinder format.
+        SpheroCylindricalRefraction
+            The refraction in sphero-cylindrical form, converted to the specified cylinder form.
 
         Raises
         ------

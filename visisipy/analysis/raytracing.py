@@ -56,7 +56,8 @@ def raytrace(
     return_raw_result: bool = False,  # noqa: ARG001
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[DataFrame, Any]:
-    """Performs a ray trace analysis using the given parameters.
+    """Perform a ray trace analysis using the given parameters.
+
     The analysis returns a Dataframe with the following columns:
 
     - field: The field coordinates for the ray trace.

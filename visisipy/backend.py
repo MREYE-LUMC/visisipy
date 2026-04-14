@@ -18,8 +18,8 @@ Functions:
 
 See Also
 --------
-visispy.opticstudio.backend : Backend for OpticStudio.
-visispy.optiland.backend : Backend for Optiland.
+visisipy.opticstudio.backend : Backend for OpticStudio.
+visisipy.optiland.backend : Backend for Optiland.
 """
 
 from __future__ import annotations
@@ -457,7 +457,8 @@ def set_backend(
     Parameters
     ----------
     backend : BackendType
-        The backend to use. Must be one of {'opticstudio', 'optiland'}. Defaults to 'opticstudio' on Windows and 'optiland' elsewhere.
+        The backend to use. Must be one of {'opticstudio', 'optiland'}. Defaults to 'opticstudio' on Windows and
+        'optiland' elsewhere.
     settings : BackendSettings, optional
         Dictionary with settings for the backend. Defaults to `None`.
 

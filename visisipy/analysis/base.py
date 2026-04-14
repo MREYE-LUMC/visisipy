@@ -84,7 +84,7 @@ def _validate_analysis_signature(function: Callable[..., Any | tuple[Any, Any]])
 
 
 def _build_model(model: EyeModel, backend: BaseBackend) -> None:
-    """Build the model in OpticStudio if it is not already built.
+    """Build the model in the backend if it is not already built.
 
     Parameters
     ----------

@@ -31,7 +31,7 @@ def refraction(
     *,
     use_higher_order_aberrations: bool = True,
 ) -> tuple[FourierPowerVectorRefraction, ZernikeOPD]:
-    """Calculates the ocular refraction.
+    """Calculate the ocular refraction.
 
     The ocular refraction is calculated from Zernike standard coefficients and represented in Fourier power
     vector form.

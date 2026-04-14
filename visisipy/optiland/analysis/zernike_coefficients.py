@@ -47,16 +47,16 @@ def zernike_standard_coefficients(
     backend : OptilandBackend
         Reference to the Optiland backend.
     field_coordinate : tuple[float, float] | None, optional
-        The field coordinate for the Zernike calculation. When `None`, the first field in OpticStudio is used.
+        The field coordinate for the Zernike calculation. When `None`, the first field in Optiland is used.
         Defaults to `None`.
     wavelength : float | None, optional
-        The wavelength for the Zernike calculation. When `None`, the first wavelength in OpticStudio is used.
+        The wavelength for the Zernike calculation. When `None`, the first wavelength in Optiland is used.
         Defaults to `None`.
     field_type : Literal["angle", "object_height"], optional
         The type of field to be used when setting the field coordinate. This parameter is only used when
         `field_coordinate` is specified. Defaults to "angle".
     sampling : SampleSize | str | int, optional
-        The sampling for the Zernike calculation. Defaults to 512.
+        The sampling for the Zernike calculation. Defaults to 64.
     maximum_term : int, optional
         The maximum term for the Zernike calculation. Defaults to 45.
     unit : ZernikeUnit, optional
@@ -64,8 +64,10 @@ def zernike_standard_coefficients(
 
     Returns
     -------
-    AttrDict
-        ZOSPy Zernike standard coefficients analysis output.
+    ZernikeCoefficients
+        Zernike standard coefficients in Noll notation.
+    ZernikeOPD
+        The raw Zernike OPD analysis output from Optiland.
     """
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)

@@ -145,7 +145,7 @@ class StandardSurface(Surface):
     Methods
     -------
     ellipsoid_radii(self) -> tuple[float, float, float]:
-        Calculates and returns the ellipsoid x, y and z radii (semi-axes) of the surface.
+        Calculate and return the ellipsoid x, y and z radii (semi-axes) of the surface.
     """
 
     radius: float = float("inf")
@@ -156,7 +156,7 @@ class StandardSurface(Surface):
 
     @property
     def ellipsoid_radii(self) -> _EllipsoidRadii:
-        """Calculates and returns the ellipsoid radii (semi-axes) of the surface.
+        """Calculate and return the ellipsoid radii (semi-axes) of the surface.
 
         This works only if the surface is an ellipsoid (asphericity > -1), otherwise a NotImplementedError is raised.
         A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.
@@ -238,7 +238,7 @@ class BiconicSurface(StandardSurface):
     Methods
     -------
     ellipsoid_radii(self) -> tuple[float, float, float]:
-        Calculates and returns the ellipsoid x, y and z radii of the surface.
+        Calculate and return the ellipsoid x, y and z radii of the surface.
     """
 
     radius_x: float = float("inf")
@@ -246,7 +246,7 @@ class BiconicSurface(StandardSurface):
 
     @property
     def ellipsoid_radii(self) -> _EllipsoidRadii:
-        """Calculates and returns the ellipsoid radii (semi-axes) of the surface.
+        """Calculate and return the ellipsoid radii (semi-axes) of the surface.
 
         This works only if the surface is an ellipsoid (asphericity > -1), otherwise a NotImplementedError is raised.
         A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.

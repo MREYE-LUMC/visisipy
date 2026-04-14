@@ -105,8 +105,8 @@ def opd_map(
 
     Parameters
     ----------
-    model : EyeModel | None
-        The eye model to use for the wavefront calculation. If `None`, the currently built model will be used.
+    backend : OptilandBackend
+        Reference to the Optiland backend.
     field_coordinate : FieldCoordinate | None
         The coordinate of the field for which the wavefront is calculated. If `None`, the current field coordinate will be used.
     wavelength : float | None

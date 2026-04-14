@@ -58,7 +58,7 @@ def _plot_surface(
     """Plot a conic surface.
 
     Creates a MatPlotLib `Path` for a conic segment, intersecting the horizontal axis in `position`.
-    The radius of curvature at the apex is specified as `radius`, the asfericity as `conic`.
+    The radius of curvature at the apex is specified as `radius`, the asphericity as `conic`.
     The segment is cut off at the x-coordinate specified by `cutoff`.
     The orientation of the surface is controlled with the sign of `radius`.
 

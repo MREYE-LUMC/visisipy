@@ -278,8 +278,8 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         Parameters
         ----------
-        path : str | PathLike | None, optional
-            The path where the model should be saved. If None, the model is saved in the current working directory.
+        filename : str | PathLike | None, optional
+            The path where the model should be saved. If `None`, the model is saved in the current working directory.
         """
         if filename is not None:
             self.oss.save_as(filename)

@@ -64,7 +64,7 @@ def zernike_standard_coefficients(
     return_raw_result: bool = False,  # noqa: ARG001
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[ZernikeCoefficients, Any]:
-    """Calculates the Zernike standard coefficients at the retina surface.
+    """Calculate the Zernike standard coefficients at the retina surface.
 
     Zernike standard coefficients are returned in the Noll notation.
 
@@ -164,7 +164,7 @@ def rms_hoa(
     return_raw_result: bool = True,  # noqa: ARG001
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[float, Any]:
-    """Calculates the root-mean-square (RMS) of higher-order aberrations (HOA) in the eye model.
+    """Calculate the root-mean-square (RMS) of higher-order aberrations (HOA) in the eye model.
 
     By default, the Zernike orders from 3 to 8 are used. The RMS is calculated following the definition in the ANSI
     Z80.28-2010 standard [1]_:

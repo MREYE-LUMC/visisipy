@@ -38,6 +38,7 @@ def raytrace(
     pupil: tuple[float, float] = (0, 0),
 ) -> tuple[pd.DataFrame, list[SingleRayTraceResult]]:
     """Perform a ray trace analysis using the given parameters.
+
     The ray trace is performed for each wavelength and field in the system, using the Single Ray Trace analysis
     in OpticStudio.
 
