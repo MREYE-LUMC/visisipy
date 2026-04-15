@@ -110,7 +110,7 @@ def opd_map(
     field_coordinate : FieldCoordinate | None
         The coordinate of the field for which the wavefront is calculated. If `None`, the current field coordinate will be used.
     wavelength : float | None
-        The wavelength (in nm) for which the wavefront is calculated. If `None`, the current wavelength will be used.
+        The wavelength (in um) for which the wavefront is calculated. If `None`, the current wavelength will be used.
     field_type : FieldType
         The type of field coordinate provided. Either 'angle' (degrees) or 'object_height' (mm). Defaults to 'angle'.
     sampling : SampleSize | str | int
