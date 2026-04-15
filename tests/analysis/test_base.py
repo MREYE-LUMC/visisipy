@@ -26,7 +26,6 @@ class MockBackend:
 @pytest.fixture
 def mock_backend(mocker: MockerFixture) -> MockBackend:
     """Mock the backend for testing."""
-
     backend = MockBackend()
 
     mocker.patch("visisipy.analysis.base.get_backend", return_value=backend)

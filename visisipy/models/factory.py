@@ -39,7 +39,6 @@ def _calculate_vitreous_thickness(geometry: EyeGeometry, parameters: GeometryPar
         If the axial length, cornea thickness, anterior chamber depth, or lens thickness parameters are
         not specified in the parameters or the geometry.
     """
-
     # Axial length may be undefined, so parameters.get will not work here.
     axial_length = parameters["axial_length"] if "axial_length" in parameters else geometry.axial_length
     cornea_thickness = parameters.get("cornea_thickness", geometry.cornea_thickness)

@@ -58,7 +58,6 @@ def fft_psf(
     ValueError
         If the FFT PSF analysis fails or returns no data.
     """
-
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
@@ -273,7 +272,6 @@ def huygens_psf(
     HuygensPSFData
         The Huygens PSF result from OpticStudio.
     """
-
     if not isinstance(pupil_sampling, SampleSize):
         pupil_sampling = SampleSize(pupil_sampling)
 

@@ -130,6 +130,13 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
     @property
     def optic(self) -> Optic:
+        """The active Optiland optic instance.
+
+        Raises
+        ------
+        BackendAccessError
+            If the backend has not been initialized with an optic.
+        """
         if self._optic is None:
             raise BackendAccessError("The Optiland backend has not been initialized.")
 
@@ -137,6 +144,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
     @property
     def model(self) -> OptilandEye | None:
+        """Currently loaded Optiland eye model."""
         return self._model
 
     @model.setter
@@ -145,10 +153,12 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
     @property
     def settings(self) -> OptilandSettings:
+        """Optiland backend settings."""
         return self._settings
 
     @property
     def analysis(self) -> OptilandAnalysisRegistry:
+        """Optiland analysis registry."""
         return self._analysis
 
     def _apply_settings(self) -> None:
@@ -207,7 +217,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         object_distance: float = float("inf"),
         **kwargs,
     ) -> OptilandEye:
-        """Builds an optical system based on the provided eye model.
+        """Build an optical system based on the provided eye model.
 
         This method creates an OptilandEye instance from the provided eye model and builds the optical system.
         If `replace_existing` is True, any existing model is updated instead of building a completely new system.
@@ -284,6 +294,15 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         save_optiland_file(self.optic, path)
 
     def load_model(self, filename: str | PathLike, *, apply_settings: bool = False) -> None:
+        """Load an Optiland model from a JSON file.
+
+        Raises
+        ------
+        FileNotFoundError
+            If ``filename`` does not exist.
+        ValueError
+            If ``filename`` does not have a ``.json`` extension.
+        """
         filename = Path(filename)
 
         if not filename.exists():
@@ -329,6 +348,15 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         return aperture_type, aperture_value
 
     def set_aperture(self):
+        """Set the optic aperture from the current backend settings.
+
+        Raises
+        ------
+        ValueError
+            If the configured aperture type is unknown.
+        NotImplementedError
+            If the configured aperture type is not available in Optiland.
+        """
         aperture_type = self.get_setting("aperture_type")
         aperture_value = self.get_setting("aperture_value")
 
@@ -366,7 +394,6 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
             If ray_aiming_max_iterations is not a positive integer.
             If ray_aiming_tolerance is not a positive float.
         """
-
         if ray_aiming not in {"paraxial", "robust", "iterative"}:
             raise ValueError("ray_aiming must be one of 'paraxial', 'robust', or 'iterative'.")
 

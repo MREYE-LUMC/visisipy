@@ -61,7 +61,7 @@ def refraction(
     return_raw_result: bool = False,  # noqa: ARG001
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[FourierPowerVectorRefraction, Any]:
-    """Calculates the ocular refraction.
+    """Calculate the ocular refraction.
 
     The ocular refraction is calculated from Zernike standard coefficients and represented in Fourier power vector form.
 
@@ -93,8 +93,8 @@ def refraction(
 
     Returns
     -------
-     FourierPowerVectorRefraction
-          The ocular refraction in Fourier power vector form.
+    FourierPowerVectorRefraction
+        The ocular refraction in Fourier power vector form.
     Any
         The raw analysis result from the backend.
 
@@ -123,13 +123,19 @@ def zernike_data_to_refraction(
 
     Parameters
     ----------
-    zernike_coefficients
-    exit_pupil_semi_diameter
-    wavelength
-    use_higher_order_aberrations
+    zernike_coefficients : ZernikeCoefficients
+        The Zernike standard coefficients, in waves.
+    exit_pupil_semi_diameter : float
+        The semi-diameter of the exit pupil in mm.
+    wavelength : float
+        The wavelength in μm.
+    use_higher_order_aberrations : bool, optional
+        If `True`, higher-order aberrations are included in the calculation. Defaults to `True`.
 
     Returns
     -------
+    FourierPowerVectorRefraction
+        The ocular refraction in Fourier power vector form.
     """
     z4 = zernike_coefficients[4] * wavelength * 4 * np.sqrt(3)
     z11 = zernike_coefficients[11] * wavelength * 12 * np.sqrt(5)

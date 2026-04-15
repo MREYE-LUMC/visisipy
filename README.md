@@ -14,7 +14,7 @@ It provides an easy-to-use interface to define and build eye models, and to perf
 ## Goals
 
 1. Provide a uniform interface to define, build and analyze various types of eye models, using abstractions that are relevant in a clinical context.
-2. Provide a collection of ready-to-use eye models, such as the Navarro model[^navarro], that can be customized at need.
+2. Provide a collection of ready-to-use eye models, such as the Navarro model[^navarro], that can be customized as needed.
 3. Provide an accessible interface to clinically relevant analyses on these models, such as off-axis refraction calculations.
 4. Modular design with support for multiple backends, both open-source and commercial.
 

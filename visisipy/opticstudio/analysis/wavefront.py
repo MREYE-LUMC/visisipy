@@ -31,7 +31,6 @@ def _pad_index(index: NDArray) -> NDArray:
     NDArray
         The padded index.
     """
-
     step = index[1] - index[0]
     new_index = index[0] - step
 

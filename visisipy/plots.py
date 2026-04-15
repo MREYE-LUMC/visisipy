@@ -58,7 +58,7 @@ def _plot_surface(
     """Plot a conic surface.
 
     Creates a MatPlotLib `Path` for a conic segment, intersecting the horizontal axis in `position`.
-    The radius of curvature at the apex is specified as `radius`, the asfericity as `conic`.
+    The radius of curvature at the apex is specified as `radius`, the asphericity as `conic`.
     The segment is cut off at the x-coordinate specified by `cutoff`.
     The orientation of the surface is controlled with the sign of `radius`.
 
@@ -380,7 +380,6 @@ def _ellipse(x, rx, ry) -> float:
     float
         y-coordinate of the ellipse at the given x-coordinate.
     """
-
     # Make sure the upper half is calculated
     ry = abs(ry)
 
@@ -402,7 +401,6 @@ def _parabola(x, rx) -> float:
     float
         y-coordinate of the parabola at the given x-coordinate.
     """
-
     return 2 * np.sqrt(rx * x)
 
 
@@ -423,7 +421,6 @@ def _hyperbola(x, rx, ry) -> float:
     float
         y-coordinate of the hyperbola at the given x-coordinate.
     """
-
     # Make sure the upper half is calculated
     ry = abs(ry)
 
@@ -431,7 +428,7 @@ def _hyperbola(x, rx, ry) -> float:
 
 
 def _lens_surface_function(radius, conic, position) -> Callable[[float], float]:
-    """Function for the upper segment of a lens surface. Used to find intersections between lens surfaces.
+    """Calculate the upper segment of a lens surface. Used to find intersections between lens surfaces.
 
     Parameters
     ----------
@@ -843,7 +840,6 @@ def _backend_translation(geometry: EyeGeometry, backend_type: BackendType | None
     float
         Translation in mm to apply to the eye plot. Positive values translate the eye to the right, negative values to the left.
     """
-
     if backend_type is None:
         backend_type = get_backend().type
 
@@ -938,6 +934,8 @@ def plot_eye(
         cutoff is located at the pupil.
     backend : BackendType | None
         Type of the backend to determine the reference surface for the plot. If None, uses the current backend.
+    kwargs
+        Additional keyword arguments are passed to the `PathPatch` constructor, allowing customization of the plot.
 
     Returns
     -------

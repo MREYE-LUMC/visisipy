@@ -51,6 +51,8 @@ class BaseOpticStudioEye(BaseEye):
             Index at which the first  surface of the eye is located.
         replace_existing : bool
             If `True`, replaces existing surfaces instead of inserting new ones. Defaults to `False`.
+        object_distance : float, optional
+            Distance from the object surface (or the surface before the eye model) to the eye model. Defaults to infinity.
 
         Raises
         ------
@@ -76,6 +78,7 @@ class BaseOpticStudioEye(BaseEye):
         Parameters
         ----------
         oss : zospy.zpcore.OpticStudioSystem
+            OpticStudioSystem in which the surfaces are linked.
 
         Returns
         -------
@@ -236,6 +239,8 @@ class OpticStudioEye(BaseOpticStudioEye):
 
 
 class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
+    """Reverse eye model in OpticStudio."""
+
     def __init__(self, eye_model: EyeModel):
         self._eye_model = eye_model
 
@@ -285,10 +290,12 @@ class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
 
     @property
     def eye_model(self) -> EyeModel:
+        """Source eye model used to construct this OpticStudio model."""
         return self._eye_model
 
     @property
     def cornea_front(self) -> OpticStudioSurface:
+        """Anterior corneal surface."""
         return self._cornea_front
 
     @cornea_front.setter
@@ -297,6 +304,7 @@ class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
 
     @property
     def cornea_back(self) -> OpticStudioSurface:
+        """Posterior corneal surface."""
         return self._cornea_back
 
     @cornea_back.setter
@@ -305,6 +313,7 @@ class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
 
     @property
     def aqueous(self) -> OpticStudioSurface:
+        """Aqueous surface segment."""
         return self._aqueous
 
     @aqueous.setter
@@ -313,6 +322,7 @@ class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
 
     @property
     def iris(self) -> OpticStudioSurface:
+        """Iris stop surface."""
         return self._iris
 
     @iris.setter
@@ -321,6 +331,7 @@ class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
 
     @property
     def lens_front(self) -> OpticStudioSurface:
+        """Anterior lens surface."""
         return self._lens_front
 
     @lens_front.setter
@@ -329,6 +340,7 @@ class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
 
     @property
     def lens_back(self) -> OpticStudioSurface:
+        """Posterior lens surface."""
         return self._lens_back
 
     @lens_back.setter
@@ -337,6 +349,7 @@ class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
 
     @property
     def retina(self) -> OpticStudioSurface:
+        """Retinal surface."""
         return self._retina
 
     @retina.setter
@@ -350,6 +363,13 @@ class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
         start_from_index: int = 0,
         replace_existing: bool = False,
     ):
+        """Build the reverse eye model surfaces in sequence in OpticStudio.
+
+        Raises
+        ------
+        ValueError
+            If post-build consistency checks on retina object/image placement fail.
+        """
         self.retina.build(oss, position=start_from_index, replace_existing=True)
         self.lens_back.build(oss, position=start_from_index + 1, replace_existing=replace_existing)
         self.lens_front.build(oss, position=start_from_index + 2, replace_existing=replace_existing)

@@ -59,7 +59,7 @@ def zernike_standard_coefficients(
         The type of field to be used when setting the field coordinate. This parameter is only used when
         `field_coordinate` is specified. Defaults to "angle".
     sampling : SampleSize | str | int, optional
-        The sampling for the Zernike calculation. Defaults to 512.
+        The sampling for the Zernike calculation. Defaults to 64.
     maximum_term : int, optional
         The maximum term for the Zernike calculation. Defaults to 45.
     unit : ZernikeUnit, optional
@@ -68,7 +68,9 @@ def zernike_standard_coefficients(
     Returns
     -------
     ZernikeCoefficients
-        ZOSPy Zernike standard coefficients analysis output.
+        Zernike standard coefficients.
+    ZernikeStandardCoefficientsResult
+        The raw Zernike standard coefficients analysis output from ZOSPy.
     """
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)

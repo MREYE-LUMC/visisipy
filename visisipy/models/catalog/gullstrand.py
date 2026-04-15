@@ -54,6 +54,10 @@ class GullstrandLeGrandGeometry(
         ----------
         accommodation : {'accommodated', 'unaccommodated'}
             The accommodation state of the eye. Must be either 'accommodated' or 'unaccommodated'.
+        surfaces
+            Additional surfaces to override the default Gullstrand-LeGrand surfaces. The keys must correspond to the
+            surface names in `EyeModelSurfaces`. For example, to override the cornea front surface, use
+            `cornea_front=StandardSurface(...)`.
 
         Raises
         ------

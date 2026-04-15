@@ -25,7 +25,7 @@ class OptilandEye(BaseEye):
         Parameters
         ----------
         eye_model : EyeModel
-            Eye model specification frin which the Optiland eye model is created.
+            Eye model specification from which the Optiland eye model is created.
         """
         self._eye_model = eye_model
 

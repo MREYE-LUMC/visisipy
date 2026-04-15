@@ -1,3 +1,5 @@
+"""OPD map analysis for Optiland."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -105,12 +107,12 @@ def opd_map(
 
     Parameters
     ----------
-    model : EyeModel | None
-        The eye model to use for the wavefront calculation. If `None`, the currently built model will be used.
+    backend : OptilandBackend
+        Reference to the Optiland backend.
     field_coordinate : FieldCoordinate | None
         The coordinate of the field for which the wavefront is calculated. If `None`, the current field coordinate will be used.
     wavelength : float | None
-        The wavelength (in nm) for which the wavefront is calculated. If `None`, the current wavelength will be used.
+        The wavelength for which the wavefront is calculated, in μm. If `None`, the current wavelength will be used.
     field_type : FieldType
         The type of field coordinate provided. Either 'angle' (degrees) or 'object_height' (mm). Defaults to 'angle'.
     sampling : SampleSize | str | int

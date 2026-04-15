@@ -18,8 +18,8 @@ Functions:
 
 See Also
 --------
-visispy.opticstudio.backend : Backend for OpticStudio.
-visispy.optiland.backend : Backend for Optiland.
+visisipy.opticstudio.backend : Backend for OpticStudio.
+visisipy.optiland.backend : Backend for Optiland.
 """
 
 from __future__ import annotations
@@ -236,10 +236,12 @@ class BackendSettings(TypedDict, total=False):
     """The field type to use in the optical system. Must be one of 'angle' or 'object_height'."""
 
     fields: Sequence[FieldCoordinate]
-    """List of field coordinates to use in the optical system."""
+    """List of field coordinates to use in the optical system. The field unit depends on the field type.
+    For angle fields, the unit is degrees. For object height fields, the unit is millimeters.
+    """
 
     wavelengths: Sequence[float]
-    """List of wavelengths to use in the optical system."""
+    """List of wavelengths to use in the optical system, in microns."""
 
     aperture_type: ApertureType
     """The aperture type to use in the optical system. Must be one of 'float_by_stop_size', 'entrance_pupil_diameter',
@@ -307,18 +309,22 @@ class BaseBackend(ABC, Generic[_Settings]):
 
     @property
     @abstractmethod
-    def model(self) -> BaseEye | None: ...
+    def model(self) -> BaseEye | None:
+        """The currently loaded backend-specific eye model."""
 
     @property
     @abstractmethod
-    def settings(self) -> _Settings: ...
+    def settings(self) -> _Settings:
+        """Backend settings."""
 
     @property
     @abstractmethod
-    def analysis(self) -> BaseAnalysisRegistry: ...
+    def analysis(self) -> BaseAnalysisRegistry:
+        """The analysis registry exposed by the backend."""
 
     @abstractmethod
-    def update_settings(self, **settings: Unpack[BackendSettings]) -> None: ...
+    def update_settings(self, **settings: Unpack[BackendSettings]) -> None:
+        """Apply backend settings to the active backend instance."""
 
     @abstractmethod
     def build_model(
@@ -329,16 +335,20 @@ class BaseBackend(ABC, Generic[_Settings]):
         replace_existing: bool = False,
         object_distance: float = float("inf"),
         **kwargs,
-    ) -> BaseEye: ...
+    ) -> BaseEye:
+        """Build an eye model in the backend and return the backend-specific model."""
 
     @abstractmethod
-    def clear_model(self) -> None: ...
+    def clear_model(self) -> None:
+        """Clear the currently loaded model from the backend."""
 
     @abstractmethod
-    def save_model(self, filename: str | PathLike | None = None) -> None: ...
+    def save_model(self, filename: str | PathLike | None = None) -> None:
+        """Save the current backend model to a file."""
 
     @abstractmethod
-    def load_model(self, filename: str | PathLike, *, apply_settings: bool = False) -> None: ...
+    def load_model(self, filename: str | PathLike, *, apply_settings: bool = False) -> None:
+        """Load a backend model from a file."""
 
     def validate_settings(self, name: str | _Settings | Sequence[str]) -> None:
         """Check if the backend has the specified setting.
@@ -402,6 +412,13 @@ class BaseBackend(ABC, Generic[_Settings]):
         return self.settings[name]
 
     def save_settings(self, filename: str | PathLike) -> None:
+        """Save backend settings to a JSON file.
+
+        Raises
+        ------
+        ValueError
+            If ``filename`` does not end with ``.json``.
+        """
         if not str(filename).endswith(".json"):
             raise ValueError("Settings file must have a '.json' extension.")
 
@@ -457,7 +474,8 @@ def set_backend(
     Parameters
     ----------
     backend : BackendType
-        The backend to use. Must be one of {'opticstudio', 'optiland'}. Defaults to 'opticstudio' on Windows and 'optiland' elsewhere.
+        The backend to use. Must be one of {'opticstudio', 'optiland'}. Defaults to 'opticstudio' on Windows and
+        'optiland' elsewhere.
     settings : BackendSettings, optional
         Dictionary with settings for the backend. Defaults to `None`.
 

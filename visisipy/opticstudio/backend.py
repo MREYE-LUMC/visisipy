@@ -218,7 +218,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         object_distance: float = float("inf"),
         **kwargs,
     ) -> OpticStudioEye:
-        """Builds an optical system based on the provided eye model.
+        """Build an optical system based on the provided eye model.
 
         This method creates an OpticStudioEye instance from the provided eye model and builds the optical system.
         If `replace_existing` is True, any existing model is updated instead of building a completely new system.
@@ -278,8 +278,8 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         Parameters
         ----------
-        path : str | PathLike | None, optional
-            The path where the model should be saved. If None, the model is saved in the current working directory.
+        filename : str | PathLike | None, optional
+            The path where the model should be saved. If `None`, the model is saved in the current working directory.
         """
         if filename is not None:
             self.oss.save_as(filename)
@@ -389,6 +389,13 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
                 self.oss.SystemData.Aperture.ApertureValue = self.get_setting("aperture_value")
 
     def set_aperture(self):
+        """Set the aperture type and value in the OpticStudio system data.
+
+        Raises
+        ------
+        ValueError
+            If the configured aperture type is not supported.
+        """
         if self.get_setting("aperture_type") == "float_by_stop_size":
             self.oss.SystemData.Aperture.ApertureType = zp.constants.SystemData.ZemaxApertureType.FloatByStopSize
             self._set_aperture_value()
@@ -519,7 +526,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         return new_field.FieldNumber
 
     def get_field_number(self, coordinate: tuple[float, float]) -> int | None:
-        """Returns the field number for the given field coordinate.
+        """Get the field number for the given field coordinate.
 
         If the field coordinate is not found, `None` is returned.
 
@@ -549,7 +556,6 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         list[float]
             The wavelengths in the optical system.
         """
-
         return [
             self.oss.SystemData.Wavelengths.GetWavelength(i + 1).Wavelength
             for i in range(self.oss.SystemData.Wavelengths.NumberOfWavelengths)
@@ -602,7 +608,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
         return new_wavelength.WavelengthNumber
 
     def get_wavelength_number(self, wavelength: float) -> int | None:
-        """Returns the wavelength number for the given wavelength.
+        """Get the wavelength number for the given wavelength.
 
         If the wavelength is not found, `None` is returned.
 
@@ -624,6 +630,13 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
     @staticmethod
     def set_ray_aiming(oss: OpticStudioSystem, ray_aiming: OpticStudioRayAimingType) -> None:
+        """Set the OpticStudio ray aiming mode.
+
+        Raises
+        ------
+        ValueError
+            If ``ray_aiming`` is not one of the supported modes.
+        """
         if ray_aiming == "off":
             oss.SystemData.RayAiming.RayAiming = zp.constants.SystemData.RayAimingMethod.Off
         elif ray_aiming == "paraxial":

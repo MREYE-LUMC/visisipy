@@ -69,7 +69,7 @@ Contributions will only be accepted if they follow these guidelines.
 
 ## Writing documentation
 
-The documentation is built using [Sphinx], the [PyData Sphinx Theme] and [MyST-NB].
+The documentation is built using [Sphinx], the [PyData Sphinx Theme] and [MyST-NB],
 and is located in the `docs` directory.
 To build the documentation, run:
 
