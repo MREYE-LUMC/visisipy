@@ -65,7 +65,7 @@ def zernike_standard_coefficients(
     Returns
     -------
     ZernikeCoefficients
-        Zernike standard coefficients in Noll notation.
+        Zernike standard coefficients.
     ZernikeOPD
         The raw Zernike OPD analysis output from Optiland.
     """

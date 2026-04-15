@@ -68,7 +68,7 @@ def zernike_standard_coefficients(
     Returns
     -------
     ZernikeCoefficients
-        Zernike standard coefficients in Noll notation.
+        Zernike standard coefficients.
     ZernikeStandardCoefficientsResult
         The raw Zernike standard coefficients analysis output from ZOSPy.
     """
