@@ -124,7 +124,7 @@ def zernike_data_to_refraction(
     Parameters
     ----------
     zernike_coefficients : ZernikeCoefficients
-        The Zernike standard coefficients in Noll notation, in waves.
+        The Zernike standard coefficients, in waves.
     exit_pupil_semi_diameter : float
         The semi-diameter of the exit pupil in mm.
     wavelength : float
