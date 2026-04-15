@@ -64,7 +64,7 @@ def refraction(
     FourierPowerVectorRefraction
         The ocular refraction in Fourier power vector form.
     ZernikeStandardCoefficientsResult
-        The raw OpticStudio/ZOSPy result returned by the Zernike standard coefficients analysis.
+        The raw ZOSPy result returned by the Zernike standard coefficients analysis.
     """
     # Get the wavelength from OpticStudio if not specified
     wavelength = set_wavelength(backend, wavelength)
