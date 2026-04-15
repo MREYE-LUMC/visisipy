@@ -62,6 +62,8 @@ def refraction(
     -------
     FourierPowerVectorRefraction
         The ocular refraction in Fourier power vector form.
+    ZernikeOPD
+        The Zernike OPD result from Optiland used to calculate the refraction.
     """
     old_aperture = None
     if pupil_diameter is not None:

@@ -164,12 +164,13 @@ def rms_hoa(
     return_raw_result: bool = True,  # noqa: ARG001
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[float, Any]:
-    """Calculate the root-mean-square (RMS) of higher-order aberrations (HOA) in the eye model.
+    r"""
+    Calculate the root-mean-square (RMS) of higher-order aberrations (HOA) in the eye model.
 
     By default, the Zernike orders from 3 to 8 are used. The RMS is calculated following the definition in the ANSI
     Z80.28-2010 standard [1]_:
 
-    .. math:: RMS_{WFE} = \\sqrt{ \\sum_{n>1, all\\ m} (C_{n}^{m})^2 }
+    .. math:: RMS_{WFE} = \sqrt{ \sum_{n>1, all\ m} (C_{n}^{m})^2 }
 
     .. [1]: VC ANSI Z80.28-2010—Ophthalmics—Methods of Reporting Optical Aberrations of Eyes. (n.d.).
             https://webstore.ansi.org/standards/ansi/vcansiz80282010
@@ -214,6 +215,7 @@ def rms_hoa(
         If `min_order` or `max_order` is less than 0.
         If `max_order` is less than or equal to `min_order`.
         If `maximum_term` is less than the largest term of `max_order`.
+
     """
     if min_order < 0 or max_order < 0:
         raise ValueError("min_order and max_order must be greater than or equal to 0")

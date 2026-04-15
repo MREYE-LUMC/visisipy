@@ -174,7 +174,6 @@ class SpheroCylindricalRefraction:
         ValueError
             When the parameter "to" is not set to 'positive' or 'negative'.
         """
-
         if to not in {"negative", "positive"}:
             raise ValueError('"to" should be either "negative" or "positive"')
 

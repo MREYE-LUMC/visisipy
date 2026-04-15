@@ -120,6 +120,8 @@ class OptilandZernikeSurfaceParameters(OptilandStandardSurfaceParameters):
 
 
 class BaseOptilandSurface(BaseSurface, ABC):
+    """Base class for Optiland surfaces."""
+
     def __init__(self):
         """Initialize the base Optiland surface."""
         self._surface: optiland.surfaces.Surface | None = None
@@ -262,7 +264,7 @@ class BaseOptilandSurface(BaseSurface, ABC):
     def _create_surface(
         self, optic: Optic, *, position: int, replace_existing: bool = False, **kwargs
     ) -> optiland.surfaces.Surface:
-        """Helper method to create a surface in Optiland.
+        """Create a surface in Optiland.
 
         This method adds a surface to the provided `Optic` object at the specified `position`, and handles
         all common surface creation logic. Surface parameters are passed as keyword arguments.

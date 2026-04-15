@@ -98,6 +98,10 @@ class BennettRabbettsGeometry(
         ----------
         accommodation : float
             Accommodation in diopters. Available values are 0, 2.5, 5, 7.5, and 10 D.
+        surfaces
+            Additional surfaces to override the default Bennett-Rabbetts surfaces. The keys must correspond to the
+            surface names in `BennettRabbettsSurfaces`. For example, to override the cornea back surface,
+            use `cornea_back=StandardSurface(...)`.
 
         Raises
         ------

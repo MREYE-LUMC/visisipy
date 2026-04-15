@@ -276,7 +276,8 @@ class BaseSurface(ABC):
 
     @property
     @abstractmethod
-    def surface(self) -> Any: ...
+    def surface(self) -> Any:
+        """Backend-native surface object."""
 
     @abstractmethod
     def build(self, *args, position: int, replace_existing: bool = False) -> int:
@@ -294,9 +295,17 @@ class NoSurface(BaseSurface):
 
     @property
     def surface(self) -> None:
+        """Return ``None`` for this placeholder surface."""
         return None
 
     def build(self, *args, position: int, **kwargs) -> int:  # noqa: ARG002, PLR6301
+        """Advance the build index without adding a physical surface.
+
+        Returns
+        -------
+        int
+            The previous surface position.
+        """
         return position - 1
 
 
@@ -331,11 +340,16 @@ class BaseEye(ABC):
             If `True`, the existing model in the backend will be overwritten.
         object_distance : float
             Distance between the cornea front and the surface preceding the eye model.
+        args
+            Additional positional arguments to be passed to the backend when building the model.
+        kwargs
+            Additional keyword arguments to be passed to the backend when building the model.
         """
 
     @property
     @abstractmethod
-    def eye_model(self) -> EyeModel: ...
+    def eye_model(self) -> EyeModel:
+        """Eye-model specification from which this backend-specific eye was built."""
 
     @property
     def surfaces(self) -> dict[str, BaseSurface]:

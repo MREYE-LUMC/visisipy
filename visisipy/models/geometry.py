@@ -116,13 +116,14 @@ class _EllipsoidRadii(NamedTuple):
 
 @dataclass
 class StandardSurface(Surface):
-    """Standard conic surface.
+    r"""
+    Standard conic surface.
 
     Represents surfaces as conic sections (spheres, ellipsoids, paraboloids, hyperboloids), defined in terms of their
     radius of curvature and asphericity. For the asphericity, the following definition is used:
 
     .. math::
-        k = - \varepsilon^2 = - \\left( 1 - \frac{b^2}{a^2} \right)
+        k = - \varepsilon^2 = - \left( 1 - \frac{b^2}{a^2} \right)
 
     with :math:`k` the asphericity, :math:`\varepsilon` the eccentricity, :math:`a` the ellipsoid axis parallel to
     the optical axis and :math:`b` the ellipsoid axis perpendicular to the optical axis. This is the definition used
@@ -146,6 +147,7 @@ class StandardSurface(Surface):
     -------
     ellipsoid_radii(self) -> tuple[float, float, float]:
         Calculate and return the ellipsoid x, y and z radii (semi-axes) of the surface.
+
     """
 
     radius: float = float("inf")
@@ -477,7 +479,7 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         lens_back: _LensBack | None = None,
         retina: _Retina | None = None,
     ) -> None:
-        """Initializes an instance of the EyeGeometry class.
+        """Initialize an instance of the EyeGeometry class.
 
         This creates an instance of the EyeGeometry class with the specified surfaces. If a surface is not provided,
         the default values of `StandardSurface` and `Stop` will be used. This class is mainly intended as a base
@@ -499,7 +501,6 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         retina : StandardSurface, optional
             The retina of the eye. If not provided, a default Surface instance will be used.
         """
-
         self.cornea_front = cornea_front or StandardSurface()
         self.cornea_back = cornea_back or StandardSurface()
         self.pupil = pupil or Stop()
@@ -628,6 +629,7 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         return self.lens_back.thickness
 
     def reverse(self):
+        """Return a reversed geometry representation."""
         raise NotImplementedError
 
     def to_dict(self) -> dict[str, Any]:
@@ -702,7 +704,7 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         return f"{name}({', '.join(f'{k}={v!r}' for k, v in surfaces.items())})"
 
     def __key(self):
-        """Helper method to generate a tuple of the eye geometry's attributes for hashing and equality checks.
+        """Generate a tuple of the eye geometry's attributes for hashing and equality checks.
 
         Returns
         -------

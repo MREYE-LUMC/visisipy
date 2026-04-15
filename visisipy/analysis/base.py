@@ -45,7 +45,6 @@ def _validate_analysis_signature(function: Callable[..., Any | tuple[Any, Any]])
     ValueError
         If the signature of the analysis function is invalid.
     """
-
     signature = inspect.signature(function)
     parameter_names = list(signature.parameters)
 
@@ -90,6 +89,8 @@ def _build_model(model: EyeModel, backend: BaseBackend) -> None:
     ----------
     model : Any
         The model to build.
+    backend : BaseBackend
+        The backend in which to build the model.
     """
     if backend.model is None or backend.model.eye_model is not model:
         backend.build_model(model)
@@ -124,7 +125,7 @@ def analysis(function: Callable[..., T1 | tuple[T1, T2]]) -> Callable:
     -------
     Callable
         The analysis function.
-    """
+    """  # noqa: D401
     _validate_analysis_signature(function)
 
     @wraps(function)

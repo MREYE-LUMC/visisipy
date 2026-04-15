@@ -8,14 +8,15 @@ description = "Accessible vision simulations in Python."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE.txt"]
-keywords = ["simulation", "optics", "ophthalmology", "vision science", "OpticStudio"]
-authors = [
-    { name = "Corné Haasjes" },
-    { name = "Jan-Willem Beenakker" },
+keywords = [
+    "simulation",
+    "optics",
+    "ophthalmology",
+    "vision science",
+    "OpticStudio",
 ]
-maintainers = [
-    { name = "MReye research group", email = "zospy@mreye.nl" }
-]
+authors = [{ name = "Corné Haasjes" }, { name = "Jan-Willem Beenakker" }]
+maintainers = [{ name = "MReye research group", email = "zospy@mreye.nl" }]
 dependencies = [
     "matplotlib",
     "numba>=0.60.0",
@@ -106,17 +107,12 @@ filterwarnings = [
     "ignore:Changing field type from angle to object_height:UserWarning",
     "ignore:invalid value encountered in \\w+:RuntimeWarning",
     "ignore:Conversion of an array with ndim > 0 to a scalar is deprecated:DeprecationWarning",
-    "error:The default model for AbbeMaterial will change:FutureWarning"
+    "error:The default model for AbbeMaterial will change:FutureWarning",
 ]
 
 [tool.coverage.report]
-omit = [
-    "tests/*",
-]
-exclude_also = [
-    "if TYPE_CHECKING:",
-    "raise NotImplementedError"
-]
+omit = ["tests/*"]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
 
 [tool.ruff]
 extend = "ruff_defaults.toml"
@@ -125,20 +121,31 @@ line-length = 120
 [tool.ruff.lint]
 preview = true
 extend-select = [
+    "D", # Pydocstyle
     "DOC102", # Extraneous docstring parameters
 ]
 extend-ignore = [
     "B028",
+    "D105",   # Missing docstring in magic method
     "TRY003", # Avoid specifying long messages outside the exception class
-    "EM101", # Exception must not use a string literal, assign to variable first
-    "EM102", # Exception must not use an f-string literal, assign to variable first
+    "EM101",  # Exception must not use a string literal, assign to variable first
+    "EM102",  # Exception must not use an f-string literal, assign to variable first
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"docs/*" = ["DOC201", "I002", "INP001", "T20"]
+"docs/*" = ["D", "DOC201", "I002", "INP001", "T20"]
 "examples/*" = ["I002", "INP001", "T20"]
-"scripts/*" = ["S101"]
-"tests/*" = ["ARG001", "ARG002", "DOC201", "DOC402", "DOC501", "FBT001", "PLC2701"]
+"scripts/*" = ["D", "S101"]
+"tests/*" = [
+    "D",
+    "ARG001",
+    "ARG002",
+    "DOC201",
+    "DOC402",
+    "DOC501",
+    "FBT001",
+    "PLC2701",
+]
 "tests/opticstudio/*" = ["SLF001"]
 "tests/optiland/*" = ["SLF001"]
 
@@ -149,8 +156,8 @@ parametrize-names-type = "csv"
 required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.pydocstyle]
+convention = "numpy"
 property-decorators = ["visisipy.optiland.surfaces._built_only_property"]
-
 
 [tool.pydocstringformatter]
 style = "numpydoc"
