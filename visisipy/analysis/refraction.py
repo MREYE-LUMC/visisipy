@@ -93,8 +93,8 @@ def refraction(
 
     Returns
     -------
-     FourierPowerVectorRefraction
-          The ocular refraction in Fourier power vector form.
+    FourierPowerVectorRefraction
+        The ocular refraction in Fourier power vector form.
     Any
         The raw analysis result from the backend.
 

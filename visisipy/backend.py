@@ -236,10 +236,12 @@ class BackendSettings(TypedDict, total=False):
     """The field type to use in the optical system. Must be one of 'angle' or 'object_height'."""
 
     fields: Sequence[FieldCoordinate]
-    """List of field coordinates to use in the optical system."""
+    """List of field coordinates to use in the optical system. The field unit depends on the field type.
+    For angle fields, the unit is degrees. For object height fields, the unit is millimeters.
+    """
 
     wavelengths: Sequence[float]
-    """List of wavelengths to use in the optical system."""
+    """List of wavelengths to use in the optical system, in microns."""
 
     aperture_type: ApertureType
     """The aperture type to use in the optical system. Must be one of 'float_by_stop_size', 'entrance_pupil_diameter',

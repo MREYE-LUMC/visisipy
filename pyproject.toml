@@ -124,6 +124,9 @@ line-length = 120
 
 [tool.ruff.lint]
 preview = true
+extend-select = [
+    "DOC102", # Extraneous docstring parameters
+]
 extend-ignore = [
     "B028",
     "TRY003", # Avoid specifying long messages outside the exception class

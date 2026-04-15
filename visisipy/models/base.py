@@ -354,7 +354,7 @@ class BaseEye(ABC):
             Name of the attribute to update
         value : Any
             New value of the surface attribute
-        surfaces : list[str]
+        surface_names : list[str]
             List of surfaces to be updated. If not specified, all surfaces are updated.
         """
         surfaces = [self.surfaces[s] for s in surface_names] if surface_names is not None else self.surfaces.values()

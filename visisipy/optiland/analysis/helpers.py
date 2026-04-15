@@ -21,7 +21,7 @@ def set_wavelength(
     backend : OptilandBackend
         Reference to the Optiland backend.
     wavelength : float | None, optional
-        The wavelength (in um) to set. If `None`, the first wavelength in the system will be used. Defaults to `None`.
+        The wavelength to set, in μm. If `None`, the first wavelength in the system will be used. Defaults to `None`.
 
     Returns
     -------
