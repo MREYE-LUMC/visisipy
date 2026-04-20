@@ -10,9 +10,9 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo/full-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo/full-light.png">
-    <img alt="Visisipy logo" src=".github/assets/logo/full-light.png" width="600">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/MREYE-LUMC/visisipy/main/.github/assets/logo/full-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/MREYE-LUMC/visisipy/main/.github/assets/logo/full-light.png">
+    <img alt="Visisipy logo" src="https://raw.githubusercontent.com/MREYE-LUMC/visisipy/main/.github/assets/logo/full-light.png" width="600">
   </picture>
 </p>
 
