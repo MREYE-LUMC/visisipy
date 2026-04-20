@@ -8,6 +8,14 @@
 [![Documentation Status](https://readthedocs.org/projects/visisipy/badge/?version=latest)](https://visisipy.readthedocs.io/en/latest/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15423159.svg)](https://doi.org/10.5281/zenodo.15423159)
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/MREYE-LUMC/visisipy/main/.github/assets/logo/full-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/MREYE-LUMC/visisipy/main/.github/assets/logo/full-light.png">
+    <img alt="Visisipy logo" src="https://raw.githubusercontent.com/MREYE-LUMC/visisipy/main/.github/assets/logo/full-light.png" width="600">
+  </picture>
+</p>
+
 Visisipy (pronounced `/ˌvɪsəˈsɪpi/`, like Mississippi but with a V) is a Python library for optical simulations of the eye.
 It provides an easy-to-use interface to define and build eye models, and to perform common ophthalmic analyses on these models.
 
