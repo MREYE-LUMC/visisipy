@@ -55,7 +55,8 @@ html_theme_options = {
         },
     ],
     "logo": {
-        "text": "Visisipy",
+        "image_light": "_static/icon/light.png",
+        "image_dark": "_static/icon/dark.png",
     },
     "show_toc_level": 1,
     "use_edit_page_button": True,
@@ -65,6 +66,8 @@ html_theme_options = {
         "examples/**/**": ["page-toc", "download-notebook"],
     },
 }
+
+html_favicon = "_static/icon/favicon.png"
 
 if os.getenv("READTHEDOCS") == "True":
     git_branch = os.getenv("READTHEDOCS_GIT_IDENTIFIER", "main")
