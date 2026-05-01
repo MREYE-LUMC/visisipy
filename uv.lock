@@ -3050,7 +3050,7 @@ dev = [
 requires-dist = [
     { name = "matplotlib" },
     { name = "numba", specifier = ">=0.60.0" },
-    { name = "numpy", specifier = "<2.4.0" },
+    { name = "numpy" },
     { name = "optiland", specifier = ">=0.6.0,<0.7.0" },
     { name = "scipy" },
     { name = "torch", marker = "extra == 'torch'" },
