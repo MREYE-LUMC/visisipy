@@ -105,8 +105,9 @@ def raytrace(
     raytrace_results = []
 
     for wavelength in wavelengths:
+        set_wavelength(backend, wavelength)
+
         for field in coordinates:
-            set_wavelength(backend, wavelength)
             normalized_field = set_field(backend, field, field_type)
 
             result = _trace_single_ray(backend.optic, normalized_field, pupil, wavelength)

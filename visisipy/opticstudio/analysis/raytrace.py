@@ -97,8 +97,9 @@ def raytrace(
     raytrace_results = []
 
     for wavelength in wavelengths:
+        wavelength_number = set_wavelength(backend, wavelength)
+
         for field in coordinates:
-            wavelength_number = set_wavelength(backend, wavelength)
             field_number = set_field(backend, field, field_type)
 
             raytrace_result = zp.analyses.raysandspots.SingleRayTrace(
