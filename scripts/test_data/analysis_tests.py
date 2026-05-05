@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class BaseAnalysisTest(ABC):
     @abstractmethod
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+    def run(self, model: EyeModel, backend: BaseBackend) -> pd.DataFrame:
         """Run the analysis to generate test data.
 
         This method must return a DataFrame with the results of the analysis.
@@ -34,7 +34,7 @@ class FFTMTFTest(BaseAnalysisTest):
         self.sampling = sampling
         self.wavelength = wavelength
 
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+    def run(self, model: EyeModel, backend: BaseBackend) -> pd.DataFrame:
         backend.update_settings(fields=[self.coordinate])
 
         result = visisipy.analysis.fft_mtf(
@@ -68,7 +68,7 @@ class FFTPSFTest(BaseAnalysisTest):
         self.sampling = sampling
         self.wavelength = wavelength
 
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+    def run(self, model: EyeModel, backend: BaseBackend) -> pd.DataFrame:
         backend.update_settings(fields=[self.coordinate])
 
         return visisipy.analysis.fft_psf(
@@ -94,7 +94,7 @@ class HuygensPSFTest(BaseAnalysisTest):
         self.image_sampling = image_sampling
         self.wavelength = wavelength
 
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+    def run(self, model: EyeModel, backend: BaseBackend) -> pd.DataFrame:
         backend.update_settings(fields=[self.coordinate])
 
         return visisipy.analysis.huygens_psf(
@@ -121,7 +121,7 @@ class RayTraceTest(BaseAnalysisTest):
         self.sampling = sampling
         self.wavelength = wavelength
 
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+    def run(self, model: EyeModel, backend: BaseBackend) -> pd.DataFrame:
         return visisipy.analysis.raytrace(
             model=model,
             coordinates=self.coordinates,
@@ -144,7 +144,7 @@ class RefractionTest(BaseAnalysisTest):
         self.sampling = sampling
         self.wavelength = wavelength
 
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+    def run(self, model: EyeModel, backend: BaseBackend) -> pd.DataFrame:
         result: list[tuple[float, float, float, float, float]] = []
 
         for coord in self.coordinates:
@@ -178,7 +178,7 @@ class OPDMapTest(BaseAnalysisTest):
         self.wavelength = wavelength
         self.remove_tilt = remove_tilt
 
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+    def run(self, model: EyeModel, backend: BaseBackend) -> pd.DataFrame:
         backend.update_settings(fields=[self.coordinate])
 
         return visisipy.analysis.opd_map(
@@ -207,7 +207,7 @@ class ZernikeStandardCoefficientsTest(BaseAnalysisTest):
         self.wavelength = wavelength
         self.maximum_term = maximum_term
 
-    def run(self, model: EyeModel, backend: type[BaseBackend]) -> pd.DataFrame:
+    def run(self, model: EyeModel, backend: BaseBackend) -> pd.DataFrame:
         backend.update_settings(fields=[self.coordinate])
 
         result = visisipy.analysis.zernike_standard_coefficients(

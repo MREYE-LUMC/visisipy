@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
 
-    from visisipy.backend import BackendSettings, BaseBackend
+    from visisipy.backend import BackendSettings, BackendType, BaseBackend
 
 
 def model() -> EyeModel:
@@ -63,32 +63,32 @@ def model() -> EyeModel:
     return EyeModel(geometry=geometry, materials=materials)
 
 
-def initialize_backends() -> list[type[BaseBackend]]:
+def initialize_backends() -> list[BaseBackend]:
     """Initialize the backends with the default settings for generating the test data.
 
     Returns
     -------
-    list[type[BaseBackend]]
+    list[BaseBackend]
         The initialized backends.
     """
-    OpticStudioBackend.initialize(**OPTICSTUDIO_BACKEND_SETTINGS)
-    OptilandBackend.initialize(**OPTILAND_BACKEND_SETTINGS)
+    opticstudio_backend = OpticStudioBackend(**OPTICSTUDIO_BACKEND_SETTINGS)
+    optiland_backend = OptilandBackend(**OPTILAND_BACKEND_SETTINGS)
 
-    return [OpticStudioBackend, OptilandBackend]
+    return [opticstudio_backend, optiland_backend]
 
 
-_BACKEND_SETTINGS: dict[type[BaseBackend], BackendSettings] = {
-    OpticStudioBackend: OPTICSTUDIO_BACKEND_SETTINGS,
-    OptilandBackend: OPTILAND_BACKEND_SETTINGS,
+_BACKEND_SETTINGS: dict[BackendType, BackendSettings] = {
+    "opticstudio": OPTICSTUDIO_BACKEND_SETTINGS,
+    "optiland": OPTILAND_BACKEND_SETTINGS,
 }
 
 
-def reset_backend_settings(backend: type[BaseBackend]) -> None:
+def reset_backend_settings(backend: BaseBackend) -> None:
     """Reset the backend settings to the default values for generating the test data.
 
     Parameters
     ----------
-    backend : type[BaseBackend]
+    backend : BaseBackend
         The backend for which to reset the settings.
 
     Raises
@@ -96,10 +96,10 @@ def reset_backend_settings(backend: type[BaseBackend]) -> None:
     ValueError
         If an unknown backend type is encountered.
     """
-    if backend not in _BACKEND_SETTINGS:
+    if backend.type not in _BACKEND_SETTINGS:
         raise ValueError(f"Unknown backend type: {backend}")
 
-    settings = _BACKEND_SETTINGS[backend]
+    settings = _BACKEND_SETTINGS[backend.type]
     backend.update_settings(**settings)
 
 
@@ -129,20 +129,20 @@ def get_file_name(test_name: str, backend_name: str, **extra_settings: str) -> P
     return TEST_DATA_DIR / f"{file_name}.csv"
 
 
-_MODEL_SUFFIXES: dict[type[BaseBackend], str] = {
-    OpticStudioBackend: ".zmx",
-    OptilandBackend: ".json",
+_MODEL_SUFFIXES: dict[BackendType, str] = {
+    "opticstudio": ".zmx",
+    "optiland": ".json",
 }
 
 
-def build_and_save_model(model: EyeModel, path: Path, backends: Iterable[type[BaseBackend]]) -> None:
+def build_and_save_model(model: EyeModel, path: Path, backends: Iterable[BaseBackend]) -> None:
     for backend in backends:
         suffix: str
 
-        if backend not in _MODEL_SUFFIXES:
-            raise ValueError(f"Unknown backend type: {backend}")
+        if backend.type not in _MODEL_SUFFIXES:
+            raise ValueError(f"Unknown backend type: {backend.type}")
 
-        suffix = _MODEL_SUFFIXES[backend]
+        suffix = _MODEL_SUFFIXES[backend.type]
 
         reset_backend_settings(backend)
 

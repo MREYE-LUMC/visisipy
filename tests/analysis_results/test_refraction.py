@@ -24,9 +24,7 @@ def get_result(df: DataFrame, field_coordinate: tuple[float, float]) -> Series:
 
 @pytest.mark.test_data("refraction")
 @pytest.mark.parametrize("field", [(x, y) for x in range(-10, 11, 5) for y in range(-10, 11, 5)])
-def test_refraction(
-    field, result_test_model: EyeModel, configure_backend: type[BaseBackend], expected_result: DataFrame
-):
+def test_refraction(field, result_test_model: EyeModel, configure_backend: BaseBackend, expected_result: DataFrame):
     result = visisipy.analysis.refraction(
         model=result_test_model,
         field_coordinate=field,

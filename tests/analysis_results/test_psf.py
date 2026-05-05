@@ -25,7 +25,7 @@ _PSF_INDEX_TYPES = {"header_type": float, "index_type": float}
         pytest.param((10, 0), marks=pytest.mark.test_data("fft_psf_10_0", **_PSF_INDEX_TYPES)),
     ],
 )
-def test_fft_psf(field, result_test_model: EyeModel, configure_backend: type[BaseBackend], expected_result: DataFrame):
+def test_fft_psf(field, result_test_model: EyeModel, configure_backend: BaseBackend, expected_result: DataFrame):
     configure_backend.update_settings(fields=[field])
 
     result = visisipy.analysis.fft_psf(
@@ -47,9 +47,7 @@ def test_fft_psf(field, result_test_model: EyeModel, configure_backend: type[Bas
         pytest.param((10, 0), marks=pytest.mark.test_data("huygens_psf_10_0", **_PSF_INDEX_TYPES)),
     ],
 )
-def test_huygens_psf(
-    field, result_test_model: EyeModel, configure_backend: type[BaseBackend], expected_result: DataFrame
-):
+def test_huygens_psf(field, result_test_model: EyeModel, configure_backend: BaseBackend, expected_result: DataFrame):
     configure_backend.update_settings(fields=[field])
 
     result = visisipy.analysis.huygens_psf(

@@ -26,7 +26,7 @@ _OPD_MAP_INDEX_TYPES = {"header_type": float, "index_type": float}
         pytest.param((10, 5), marks=pytest.mark.test_data("opd_map_10_5", **_OPD_MAP_INDEX_TYPES)),
     ],
 )
-def test_opd_map(field, result_test_model: EyeModel, configure_backend: type[BaseBackend], expected_result: DataFrame):
+def test_opd_map(field, result_test_model: EyeModel, configure_backend: BaseBackend, expected_result: DataFrame):
     configure_backend.update_settings(fields=[field])
 
     result = visisipy.analysis.opd_map(

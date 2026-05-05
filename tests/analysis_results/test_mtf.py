@@ -22,7 +22,7 @@ if TYPE_CHECKING:
         pytest.param((10, 0), marks=pytest.mark.test_data("fft_mtf_10_0")),
     ],
 )
-def test_fft_mtf(field, result_test_model: EyeModel, configure_backend: type[BaseBackend], expected_result: DataFrame):
+def test_fft_mtf(field, result_test_model: EyeModel, configure_backend: BaseBackend, expected_result: DataFrame):
     configure_backend.update_settings(fields=[field])
 
     result = visisipy.analysis.fft_mtf(
