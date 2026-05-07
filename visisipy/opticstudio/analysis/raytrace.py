@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 import pandas as pd
 import zospy as zp
 
+from visisipy.opticstudio.analysis.helpers import set_field, set_wavelength
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -85,17 +87,21 @@ def raytrace(
     if abs(pupil[0]) > 1 or abs(pupil[1]) > 1:
         raise ValueError("Pupil coordinates must be between -1 and 1.")
 
-    if coordinates is not None:
-        backend.set_fields(coordinates, field_type=field_type)
+    if coordinates is None:
+        coordinates = backend.get_fields()
 
-    if wavelengths is not None:
-        backend.set_wavelengths(wavelengths)
+    if wavelengths is None:
+        wavelengths = backend.get_wavelengths()
 
     real_ray_traces = []
     raytrace_results = []
 
-    for wavelength_number, wavelength in backend.iter_wavelengths():
-        for field_number, field in backend.iter_fields():
+    for wavelength in wavelengths:
+        wavelength_number = set_wavelength(backend, wavelength)
+
+        for field in coordinates:
+            field_number = set_field(backend, field, field_type)
+
             raytrace_result = zp.analyses.raysandspots.SingleRayTrace(
                 px=pupil[0],
                 py=pupil[1],
@@ -106,11 +112,9 @@ def raytrace(
             real_ray_trace = raytrace_result.data.real_ray_trace_data
 
             if real_ray_trace is None:
-                raise ValueError(
-                    f"Failed to perform ray trace for field ({field.X}, {field.Y}) and wavelength {wavelength}."
-                )
+                raise ValueError(f"Failed to perform ray trace for field {field} and wavelength {wavelength}.")
 
-            real_ray_trace.insert(0, "Field", [(field.X, field.Y)] * len(real_ray_trace))
+            real_ray_trace.insert(0, "Field", [field] * len(real_ray_trace))
             real_ray_trace.insert(0, "Wavelength", wavelength)
 
             real_ray_traces.append(real_ray_trace)

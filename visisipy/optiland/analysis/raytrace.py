@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 import pandas as pd
 from optiland.backend import to_numpy
 
+from visisipy.optiland.analysis.helpers import set_field, set_wavelength
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
@@ -94,19 +96,20 @@ def raytrace(
     if abs(pupil[0]) > 1 or abs(pupil[1]) > 1:
         raise ValueError("Pupil coordinates must be between -1 and 1.")
 
-    # TODO: migrate to helpers
-    if coordinates is not None:
-        backend.set_fields(coordinates, field_type)
+    if coordinates is None:
+        coordinates = backend.get_fields()
 
-    if wavelengths is not None:
-        backend.set_wavelengths(wavelengths)
+    if wavelengths is None:
+        wavelengths = backend.get_wavelengths()
 
     raytrace_results = []
 
-    normalized_fields = backend.optic.fields.get_field_coords()
+    for wavelength in wavelengths:
+        set_wavelength(backend, wavelength)
 
-    for _, wavelength in backend.iter_wavelengths():
-        for (_, field), normalized_field in zip(backend.iter_fields(), normalized_fields, strict=False):
+        for field in coordinates:
+            normalized_field = set_field(backend, field, field_type)
+
             result = _trace_single_ray(backend.optic, normalized_field, pupil, wavelength)
             result.insert(0, "field", [(float(field[0]), float(field[1]))] * len(result))
             raytrace_results.append(result)
