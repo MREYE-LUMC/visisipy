@@ -261,7 +261,7 @@ class TestSaveModel:
         assert file.exists()
 
     def test_save_no_model_raises_backendaccesserror(
-        self, configure_backend: type[backend.BaseBackend], mocker: MockerFixture
+        self, configure_backend: backend.BaseBackend, mocker: MockerFixture
     ):
         mocker.patch("visisipy.backend._BACKEND", new=configure_backend)
 

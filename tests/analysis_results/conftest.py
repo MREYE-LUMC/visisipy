@@ -31,7 +31,7 @@ def result_test_model() -> EyeModel:
 
 
 @pytest.fixture
-def expected_result(request: pytest.FixtureRequest, configure_backend: type[BaseBackend]) -> DataFrame:
+def expected_result(request: pytest.FixtureRequest, configure_backend: BaseBackend) -> DataFrame:
     """Expected results for the analysis tests."""
     test_data_marker = request.node.get_closest_marker("test_data")
 

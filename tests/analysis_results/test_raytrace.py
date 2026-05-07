@@ -27,7 +27,7 @@ RAY_TRACE_COORDINATES = [(x, y) for x in np.linspace(-60, 60, 5) for y in np.lin
         pytest.param((1, -1), marks=pytest.mark.test_data("ray_trace_pupil_1_-1")),
     ],
 )
-def test_raytrace(pupil, result_test_model: EyeModel, configure_backend: type[BaseBackend], expected_result: DataFrame):
+def test_raytrace(pupil, result_test_model: EyeModel, configure_backend: BaseBackend, expected_result: DataFrame):
     result = visisipy.analysis.raytrace(
         model=result_test_model,
         coordinates=RAY_TRACE_COORDINATES,
