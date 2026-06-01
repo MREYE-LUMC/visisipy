@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import platform
-from collections.abc import Generator
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Literal
 

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from importlib import import_module
-from os import PathLike
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
