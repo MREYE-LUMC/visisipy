@@ -23,8 +23,8 @@ Visisipy (VISion Simulations In PYthon) is a Python library for optical simulati
 - **Configuration**: `ruff_defaults.toml` with project-specific overrides in `pyproject.toml`
 - **Line length**: 120 characters
 - **Commands**:
-  - Format code: `uvx hatch fmt`
-  - Check formatting: `uvx hatch fmt --check`
+  - Format code: `uvx hatch check --fix`
+  - Check formatting: `uvx hatch check`
   - Format docstrings: `uvx hatch run format-docstrings`
 
 ### Import Conventions
@@ -163,10 +163,10 @@ uvx hatch test tests/test_specific.py --no-opticstudio
 uv sync
 
 # Format code
-uvx hatch fmt
+uvx hatch check --fix
 
 # Check formatting
-uvx hatch fmt --check
+uvx hatch check fmt
 
 # Format docstrings
 uvx hatch run format-docstrings

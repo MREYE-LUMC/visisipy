@@ -295,7 +295,7 @@ class NoSurface(BaseSurface):
 
     @property
     def surface(self) -> None:
-        """Return ``None`` for this placeholder surface."""
+        """Surface is always `None` for this surface type."""
         return None
 
     def build(self, *args, position: int, **kwargs) -> int:  # noqa: ARG002, PLR6301

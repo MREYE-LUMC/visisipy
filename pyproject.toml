@@ -74,9 +74,19 @@ dependency-groups = ["docs"]
 build = "sphinx-build -M {args:html} docs docs/_build"
 preview = "sphinx-autobuild docs docs/_build/html --open-browser --ignore docs/api {args}"
 
-[tool.hatch.envs.hatch-static-analysis]
+[tool.hatch.envs.hatch-check-code]
 config-path = "ruff_defaults.toml"
-dependencies = ["ruff==0.15.15"]
+dependencies = ["ruff==0.15.20"]
+
+[tool.hatch.envs.hatch-check-fmt]
+config-path = "ruff_defaults.toml"
+dependencies = ["ruff==0.15.20"]
+
+# Disable type checking
+[tool.hatch.envs.hatch-check-types.scripts]
+check = ""
+summarize = ""
+cover = ""
 
 [tool.hatch.envs.hatch-test]
 features = ["torch"]
