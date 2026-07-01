@@ -15,7 +15,7 @@ jobs:
         id: setup-uv
         uses: astral-sh/setup-uv@v8.1.0
       - name: Format and lint
-        run: uvx hatch fmt --check
+        run: uvx hatch check
       - name: Lint docstrings
         if: always() # Run even if previous step fails
         run: uvx pydocstringformatter --exit-code scripts tests visisipy

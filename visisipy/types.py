@@ -113,7 +113,7 @@ class SampleSize:
 
     @property
     def sampling(self) -> int:
-        """Get the sample size."""
+        """Sample size as an integer."""
         return self.__sampling
 
     def __int__(self):

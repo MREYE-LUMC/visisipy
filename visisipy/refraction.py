@@ -140,12 +140,12 @@ class SpheroCylindricalRefraction:
 
     @property
     def has_positive_cylinder(self) -> bool:
-        """Returns `True` if the cylinder is positive or `NaN`, `False` otherwise."""
+        """Whether the cylinder is positive or `NaN`."""
         return np.isnan(self.cylinder) or self.cylinder >= 0
 
     @property
     def has_negative_cylinder(self) -> bool:
-        """Returns `True` if the cylinder is negative or `NaN`, `False` otherwise."""
+        """Whether the cylinder is negative or `NaN`."""
         return np.isnan(self.cylinder) or self.cylinder < 0
 
     def _convert_cylinder_form(self) -> SpheroCylindricalRefraction:

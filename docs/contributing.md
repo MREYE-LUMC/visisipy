@@ -54,7 +54,7 @@ Visisipy uses `ruff` to format code and check for common issues.
 To format your code, run:
 
 ```bash
-hatch fmt
+hatch check --fix
 ```
 
 Before opening a Pull Request, please ensure that you have fixed all issues reported by `ruff`.
