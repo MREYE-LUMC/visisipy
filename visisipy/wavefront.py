@@ -23,7 +23,6 @@ def _validate_coefficient(key: int | tuple[int, int]) -> int:
         return key
 
     if _is_int_tuple(key):
-        _validate_nm(*key)
         return ZernikeCoefficients.to_noll(*key)
 
     msg = f"The coefficient must be an integer or a tuple of two integers, got {key} of type {type(key).__name__}."

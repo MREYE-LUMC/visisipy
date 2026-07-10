@@ -5,7 +5,7 @@ from __future__ import annotations
 import platform
 from importlib.metadata import version
 
-from visisipy import analysis, models, optiland, plots, refraction, wavefront
+from visisipy import analysis, models, optiland, plots, refraction, synteyes, wavefront
 from visisipy._zospy_loader import install_zospy_loader
 from visisipy.backend import get_backend, get_optic, get_oss, load_model, save_model, set_backend, update_settings
 from visisipy.models import (
@@ -35,6 +35,7 @@ __all__ = [
     "refraction",
     "save_model",
     "set_backend",
+    "synteyes",
     "update_settings",
     "wavefront",
 ]
