@@ -6,6 +6,6 @@ Nadine van Dam et al. to generate statistically realistic cohorts of eye models.
 
 from __future__ import annotations
 
-from visisipy.synteyes.synteyes import generate_synteyes
+from visisipy.synteyes.synteyes import SyntEye, SyntEye3D, generate_synteyes
 
-__all__ = ("generate_synteyes",)
+__all__ = ("SyntEye", "SyntEye3D", "generate_synteyes")

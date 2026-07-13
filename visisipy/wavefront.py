@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -71,7 +72,9 @@ class ZernikeCoefficients(defaultdict[int, float]):
         """
         normalized_terms = {}
 
-        if terms is not None:
+        # dataclasses `asdict` calls the constructor with a callable, so we need to handle that case
+        # to support serialization and deserialization of the class.
+        if terms is not None and not isinstance(terms, Callable):
             for key, value in terms.items():
                 noll_index = _validate_coefficient(key)
 

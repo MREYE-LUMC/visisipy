@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import importlib.resources
+import json
+from collections import UserList
 from dataclasses import asdict, dataclass
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
 from scipy import stats
@@ -13,6 +16,8 @@ from scipy import stats
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
+    from os import PathLike
+
     from numpy.typing import NDArray
 
 __all__ = (
@@ -366,59 +371,6 @@ def convert_to_single_orig_synteyes(
 
     synteyes_array = np.append(eigencornea[:6], zernikes)
 
-    # synteyes = {"CCT": synteyes_array[96]}
-    # synteyes["ACD"] = synteyes_array[0]
-    # synteyes["LT"] = synteyes_array[1]
-    # synteyes["AxialLength"] = synteyes_array[2]
-    # synteyes["VD"] = synteyes_array[2] - synteyes_array[0] - synteyes_array[1] - synteyes_array[96] - 0.2
-    # synteyes["RT"] = 0.2
-    # synteyes["Rla"] = synteyes_array[3]
-    # synteyes["Rlp"] = synteyes_array[4]
-    # synteyes["Qla"] = -3.1316
-    # synteyes["Qlp"] = -1
-    # synteyes["Pupil"] = 5
-    # synteyes["nc"] = 1.376
-    # synteyes["na"] = 1.336
-    # synteyes["nv"] = 1.336
-    # synteyes["num5"] = synteyes_array[5]
-    # synteyes["nl"] = (
-    #     1000
-    #     * (synteyes["nv"] * (synteyes["LT"] - synteyes["Rla"]) + synteyes["na"] * (synteyes["LT"] + synteyes["Rlp"]))
-    #     + synteyes["num5"] * synteyes["Rla"] * synteyes["Rlp"]
-    #     - np.sqrt(
-    #         -4
-    #         * 10**6
-    #         * synteyes["na"]
-    #         * synteyes["nv"]
-    #         * synteyes["LT"]
-    #         * (synteyes["LT"] - synteyes["Rla"] + synteyes["Rlp"])
-    #         + (
-    #             1000 * synteyes["nv"] * (-1 * synteyes["LT"] + synteyes["Rla"])
-    #             + 1000 * synteyes["na"] * (-1 * synteyes["LT"] - 1 * synteyes["Rlp"])
-    #             - synteyes["num5"] * synteyes["Rla"] * synteyes["Rlp"]
-    #         )
-    #         ** 2
-    #     )
-    # ) / (2000 * (synteyes["LT"] - synteyes["Rla"] + synteyes["Rlp"]))
-
-    # ind_lens = zernike_index(6)
-    # lens_za_array = np.tile(lens_za, (1, 1))
-    # for idx in range(lens_za_array.shape[1]):
-    #     lens_n = int(ind_lens[idx, 0])
-    #     lens_m = int(ind_lens[idx, 1])
-    #     synteyes[f"LensAntZ({lens_n},{lens_m})"] = [lens_za_array[:, idx][0]]
-    # ind_cor = zernike_index(8)
-    # cor_za = np.reshape(synteyes_array[range(6, 51, 1)], (1, len(range(6, 51, 1))))
-    # for idx in range(cor_za.shape[1]):
-    #     cor_n = int(ind_cor[idx, 0])
-    #     cor_m = int(ind_cor[idx, 1])
-    #     synteyes[f"CorAntZ({cor_n},{cor_m})"] = [cor_za[:, idx][0]]
-    # cor_zp = np.reshape(synteyes_array[range(51, 96, 1)], (1, len(range(51, 96, 1))))
-    # for idx in range(cor_zp.shape[1]):
-    #     cor_n = int(ind_cor[idx, 0])
-    #     cor_m = int(ind_cor[idx, 1])
-    #     synteyes[f"CorPostZ({cor_n},{cor_m})"] = [cor_zp[:, idx][0]]
-
     biometry = _convert_biometry(synteyes_array)
     cornea = _convert_cornea(synteyes_array)
     lens = _convert_lens(synteyes_array, lens_za)
@@ -521,7 +473,90 @@ def nearest_psd(matrix: NDArray) -> NDArray:
     return eigvec @ np.diag(np.maximum(eigval, 1e-6)) @ eigvec.T
 
 
-def generate_synteyes(n: int) -> list[SyntEye3D]:
+S = TypeVar("S", SyntEye, SyntEye3D, SyntEye | SyntEye3D)
+
+
+class SyntEyes(UserList[S]):
+    """A list of SyntEye or SyntEye3D instances."""
+
+    def __init__(self, initlist: list[S] | None = None) -> None:
+        """Initialize the SyntEyes list.
+
+        Parameters
+        ----------
+        initlist : list[S] | None, optional
+            Initial list of SyntEye or SyntEye3D instances. If None, an empty list is created.
+        """
+        super().__init__(initlist if initlist is not None else [])
+
+    def save_json(self, filename: PathLike | str) -> None:
+        """Save the SyntEyes list to a JSON file.
+
+        Parameters
+        ----------
+        filename : PathLike | str
+            The path to the JSON file where the data will be saved.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the directory of the specified filename does not exist.
+        """
+        filename = Path(filename).resolve()
+
+        if not filename.parent.exists():
+            raise FileNotFoundError(f"Directory does not exist: {filename.parent}")
+
+        filename.write_text(json.dumps([eye.to_dict() for eye in self], indent=4))
+
+    @classmethod
+    def load_json(cls, filename: PathLike | str) -> SyntEyes:
+        """Load SyntEyes data from a JSON file.
+
+        Parameters
+        ----------
+        filename : PathLike | str
+            The path to the JSON file from which to load the data.
+
+        Returns
+        -------
+        SyntEyes
+            A SyntEyes instance containing the loaded data.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the specified JSON file does not exist.
+        """
+        filename = Path(filename).resolve()
+
+        if not filename.exists():
+            raise FileNotFoundError(f"File does not exist: {filename}")
+
+        data = json.loads(filename.read_text(encoding="utf-8"))
+
+        result: SyntEyes[SyntEye3D | SyntEye] = cls()
+
+        for item in data:
+            item["cornea"]["anterior_zernikes"] = ZernikeCoefficients({
+                int(k): v for k, v in item["cornea"]["anterior_zernikes"].items()
+            })
+            item["cornea"]["posterior_zernikes"] = ZernikeCoefficients({
+                int(k): v for k, v in item["cornea"]["posterior_zernikes"].items()
+            })
+            item["lens"]["anterior_zernikes"] = ZernikeCoefficients({
+                int(k): v for k, v in item["lens"]["anterior_zernikes"].items()
+            })
+
+            if "retina" in item:
+                result.append(SyntEye3D(**item))
+            else:
+                result.append(SyntEye(**item))
+
+        return result
+
+
+def generate_synteyes(n: int) -> SyntEyes[SyntEye3D]:
     """Generate `n` 3D SyntEyes eye models.
 
     Parameters
@@ -531,7 +566,7 @@ def generate_synteyes(n: int) -> list[SyntEye3D]:
 
     Returns
     -------
-    list[SyntEye3D]
+    SyntEyes
         List of generated 3D SyntEyes eye models.
 
     Raises
@@ -561,7 +596,7 @@ def generate_synteyes(n: int) -> list[SyntEye3D]:
         axial_lengths, retina_thicknesses, model_data.mu_retina_radii, model_data.cov_retina_radii
     )
 
-    synteyes_3d = []
+    synteyes_3d = SyntEyes[SyntEye3D]()
 
     for eigencornea, retina in zip(eigencorneas, retinas, strict=True):
         synteye = convert_to_single_orig_synteyes(
