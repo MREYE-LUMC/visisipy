@@ -10,7 +10,7 @@ from typing import Any, Generic, NamedTuple, cast
 
 import numpy as np
 
-from visisipy.models.helpers import _collect_subclasses
+from visisipy.models.helpers import _collect_subclasses, curvature_to_radii
 from visisipy.types import TypedDict
 from visisipy.wavefront import ZernikeCoefficients
 
@@ -274,16 +274,14 @@ class BiconicSurface(StandardSurface):
             )
 
         # Z radii may differ in the sagittal and tangential planes. If they are not equal, the surface is not an ellipsoid.
-        z_radius_x = self.radius_x / (self.asphericity_x + 1)
-        z_radius_y = self.radius / (self.asphericity + 1)
+        x_radius, z_radius_x = curvature_to_radii(self.radius_x, self.asphericity_x)
+        y_radius, z_radius_y = curvature_to_radii(self.radius, self.asphericity)
 
-        if z_radius_x != z_radius_y:
+        if not np.isclose(z_radius_x, z_radius_y):
             raise NotImplementedError(
                 "Half axes are only defined for ellipsoids. This biconic surface is not an ellipsoid."
             )
 
-        x_radius = self.radius_x / np.sqrt(self.asphericity_x + 1)
-        y_radius = self.radius / np.sqrt(self.asphericity + 1)
         z_radius = abs(z_radius_y)
 
         return _EllipsoidRadii(

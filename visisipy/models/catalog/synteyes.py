@@ -14,6 +14,7 @@ from visisipy.models.geometry import (
     Stop,
     ZernikeStandardSagSurface,
 )
+from visisipy.models.helpers import radii_to_curvature
 from visisipy.models.materials import EyeMaterials, MaterialModel
 from visisipy.synteyes.synteyes import SyntEye3D, generate_synteyes
 
@@ -32,7 +33,7 @@ class SyntEyesGeometry(
 ):
     """Geometric parameters of an eye model generated with SyntEyes.
 
-    This schematic eye is based on the Navarro model as described in [1]_.
+    This schematic eye is generated with the SyntEyes method [1]_ with the SyntEyes 3D extension [2]_.
     Sizes are specified in mm.
 
     Attributes
@@ -52,26 +53,9 @@ class SyntEyesGeometry(
 
     References
     ----------
-    .. [1] Escudero-Sanz, I., & Navarro, R. (1999). Off-axis aberrations of a wide-angle schematic eye model.
-        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
-
-    Examples
-    --------
-    Use the default Navarro geometry:
-
-    >>> from visisipy import NavarroGeometry
-    >>> geometry = NavarroGeometry()
-
-    Create a Navarro geometry with a custom retina:
-
-    >>> geometry = NavarroGeometry(
-    ...     retina=StandardSurface(radius=-12.5, asphericity=0.5)
-    ... )
-
-    Create a default Navarro geometry and change only the lens back radius:
-
-    >>> geometry = NavarroGeometry()
-    >>> geometry.lens_back.radius = -5.8
+    .. [1] Rozema, J. et al. (2016). SyntEyes: A Higher-Order Statistical Eye Model for Healthy Eyes.
+        IOVS, 57(2):683-91. https://doi.org/10.1167/iovs.15-18067
+    .. [2] Van Dam, N.P. et al. (2026). TODO: add citation for SyntEyes-3D extension.
     """
 
     def __init__(self, synteye: SyntEye3D) -> None:
@@ -103,10 +87,8 @@ class SyntEyesGeometry(
             thickness=synteye.biometry.vitreous_depth,
         )
 
-        retina_radius_y = synteye.retina.radius_y**2 / synteye.retina.radius_z
-        retina_asphericity_y = (synteye.retina.radius_y / synteye.retina.radius_z) ** 2 - 1
-        retina_radius_x = synteye.retina.radius_x**2 / synteye.retina.radius_z
-        retina_asphericity_x = (synteye.retina.radius_x / synteye.retina.radius_z) ** 2 - 1
+        retina_radius_y, retina_asphericity_y = radii_to_curvature(synteye.retina.radius_y, synteye.retina.radius_z)
+        retina_radius_x, retina_asphericity_x = radii_to_curvature(synteye.retina.radius_x, synteye.retina.radius_z)
 
         self.retina = BiconicSurface(
             radius=retina_radius_y,
