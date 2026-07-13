@@ -1,15 +1,14 @@
-"""Escudero-Sanz and Navarro wide-angle schematic eye.
-
-This module does not provide an eye model class, because the default eye model in visisipy
-is already based on the Navarro geometry and materials.
-"""
+"""Randomly generated eye models using the SyntEyes method."""
 
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from visisipy.models.base import EyeModel
 from visisipy.models.geometry import (
     BiconicSurface,
     EyeGeometry,
+    EyeModelSurfaces,
     StandardSurface,
     Stop,
     ZernikeStandardSagSurface,
@@ -18,7 +17,21 @@ from visisipy.models.helpers import radii_to_curvature
 from visisipy.models.materials import EyeMaterials, MaterialModel
 from visisipy.synteyes.synteyes import SyntEye3D, generate_synteyes
 
-__all__ = ("SyntEyesGeometry",)
+if TYPE_CHECKING:
+    from visisipy.types import Unpack
+
+__all__ = ("SyntEyesEyeModel", "SyntEyesGeometry")
+
+
+class SyntEyesSurfaces(EyeModelSurfaces, total=False):
+    """Surfaces of an eye model generated with SyntEyes."""
+
+    cornea_front: ZernikeStandardSagSurface
+    cornea_back: ZernikeStandardSagSurface
+    pupil: Stop
+    lens_front: ZernikeStandardSagSurface
+    lens_back: StandardSurface
+    retina: BiconicSurface
 
 
 class SyntEyesGeometry(
@@ -58,44 +71,51 @@ class SyntEyesGeometry(
     .. [2] Van Dam, N.P. et al. (2026). TODO: add citation for SyntEyes-3D extension.
     """
 
-    def __init__(self, synteye: SyntEye3D) -> None:
-        self.cornea_front = ZernikeStandardSagSurface(
-            radius=float("inf"),
-            asphericity=0,
-            thickness=synteye.biometry.cornea_thickness,
-            zernike_coefficients=synteye.cornea.anterior_zernikes,
-            norm_radius=synteye.cornea.anterior_norm_diameter / 2,
-        )
-        self.cornea_back = ZernikeStandardSagSurface(
-            radius=float("inf"),
-            asphericity=0,
-            thickness=synteye.biometry.anterior_chamber_depth,
-            zernike_coefficients=synteye.cornea.posterior_zernikes,
-            norm_radius=synteye.cornea.posterior_norm_diameter / 2,
-        )
-        self.pupil = Stop(semi_diameter=synteye.biometry.pupil_diameter / 2)
-        self.lens_front = ZernikeStandardSagSurface(
-            radius=synteye.lens.anterior_radius,
-            asphericity=synteye.lens.anterior_conic,
-            thickness=synteye.biometry.lens_thickness,
-            zernike_coefficients=synteye.lens.anterior_zernikes,
-            norm_radius=synteye.lens.anterior_norm_diameter / 2,
-        )
-        self.lens_back = StandardSurface(
-            radius=synteye.lens.posterior_radius,
-            asphericity=synteye.lens.posterior_conic,
-            thickness=synteye.biometry.vitreous_depth,
-        )
+    def __init__(self, synteye: SyntEye3D | None = None, **surfaces: Unpack[SyntEyesSurfaces]) -> None:
+        if synteye is None:
+            surfaces = {}
+        else:
+            retina_radius_y, retina_asphericity_y = radii_to_curvature(synteye.retina.radius_y, synteye.retina.radius_z)
+            retina_radius_x, retina_asphericity_x = radii_to_curvature(synteye.retina.radius_x, synteye.retina.radius_z)
 
-        retina_radius_y, retina_asphericity_y = radii_to_curvature(synteye.retina.radius_y, synteye.retina.radius_z)
-        retina_radius_x, retina_asphericity_x = radii_to_curvature(synteye.retina.radius_x, synteye.retina.radius_z)
+            surfaces = SyntEyesSurfaces(
+                cornea_front=ZernikeStandardSagSurface(
+                    radius=float("inf"),
+                    asphericity=0,
+                    thickness=synteye.biometry.cornea_thickness,
+                    zernike_coefficients=synteye.cornea.anterior_zernikes,
+                    norm_radius=synteye.cornea.anterior_norm_diameter / 2,
+                ),
+                cornea_back=ZernikeStandardSagSurface(
+                    radius=float("inf"),
+                    asphericity=0,
+                    thickness=synteye.biometry.anterior_chamber_depth,
+                    zernike_coefficients=synteye.cornea.posterior_zernikes,
+                    norm_radius=synteye.cornea.posterior_norm_diameter / 2,
+                ),
+                pupil=Stop(semi_diameter=synteye.biometry.pupil_diameter / 2),
+                lens_front=ZernikeStandardSagSurface(
+                    radius=synteye.lens.anterior_radius,
+                    asphericity=synteye.lens.anterior_conic,
+                    thickness=synteye.biometry.lens_thickness,
+                    zernike_coefficients=synteye.lens.anterior_zernikes,
+                    norm_radius=synteye.lens.anterior_norm_diameter / 2,
+                ),
+                lens_back=StandardSurface(
+                    radius=synteye.lens.posterior_radius,
+                    asphericity=synteye.lens.posterior_conic,
+                    thickness=synteye.biometry.vitreous_depth,
+                ),
+                retina=BiconicSurface(
+                    radius=retina_radius_y,
+                    radius_x=retina_radius_x,
+                    asphericity=retina_asphericity_y,
+                    asphericity_x=retina_asphericity_x,
+                ),
+            )
 
-        self.retina = BiconicSurface(
-            radius=retina_radius_y,
-            radius_x=retina_radius_x,
-            asphericity=retina_asphericity_y,
-            asphericity_x=retina_asphericity_x,
-        )
+            surfaces.update(**surfaces)
+            super().__init__(**surfaces)
 
 
 class SyntEyesEyeModel(EyeModel):
@@ -104,7 +124,6 @@ class SyntEyesEyeModel(EyeModel):
     See Also
     --------
     SyntEyesGeometry : Geometric parameters of an eye model generated with SyntEyes.
-    visisipy.models.materials.SyntEyesMaterials : Optical materials of an eye model generated with SyntEyes.
     """
 
     def __init__(self, synteye: SyntEye3D | None = None) -> None:
