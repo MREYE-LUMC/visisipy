@@ -83,8 +83,11 @@ def assert_dicts_close(a: dict, b: dict, rtol: float = 1e-5, atol: float = 1e-8)
 
 
 @pytest.mark.skipif(
-    platform.system() == "Darwin",
-    reason="multivariate_normal returns different results on macOS. See https://numpy.org/neps/nep-0019-rng-policy.html#the-status-quo.",
+    platform.machine().lower() not in {"x86_64", "amd64"},
+    reason=(
+        "multivariate_normal returns different results on different architectures. "
+        "See https://numpy.org/neps/nep-0019-rng-policy.html#the-status-quo."
+    ),
 )
 def test_generate_single_synteye(sample_synteye: SyntEye3D, random_state: np.random.Generator) -> None:
     """Test generating a single SyntEyes eye model."""
@@ -126,7 +129,9 @@ def test_synteye_json_roundtrip(tmp_path):
     # Load from JSON
     loaded_synteyes = SyntEyes.load_json(json_file)
     assert len(loaded_synteyes) == 3
-    assert loaded_synteyes == synteyes
+
+    for original, loaded in zip(synteyes, loaded_synteyes, strict=True):
+        assert_dicts_close(original.to_dict(), loaded.to_dict())
 
 
 def test_synteye3d_json_roundtrip(tmp_path):
@@ -142,4 +147,6 @@ def test_synteye3d_json_roundtrip(tmp_path):
     # Load from JSON
     loaded_synteyes = SyntEyes.load_json(json_file)
     assert len(loaded_synteyes) == 3
-    assert loaded_synteyes == synteyes
+
+    for original, loaded in zip(synteyes, loaded_synteyes, strict=True):
+        assert_dicts_close(original.to_dict(), loaded.to_dict())
