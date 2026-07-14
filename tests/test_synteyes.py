@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from platform import platform
+
 import numpy as np
 import pytest
 
@@ -80,6 +82,10 @@ def assert_dicts_close(a: dict, b: dict, rtol: float = 1e-5, atol: float = 1e-8)
             assert value_a == pytest.approx(value_b, rel=rtol, abs=atol), f"Values for key {key} are not close"
 
 
+@pytest.mark.skipif(
+    platform.system() == "Darwin",
+    reason="multivariate_normal returns different results on macOS. See https://numpy.org/neps/nep-0019-rng-policy.html#the-status-quo.",
+)
 def test_generate_single_synteye(sample_synteye: SyntEye3D, random_state: np.random.Generator) -> None:
     """Test generating a single SyntEyes eye model."""
     synteye = generate_synteyes(1, rng=random_state)[0]
