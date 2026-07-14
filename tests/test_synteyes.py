@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from platform import platform
+import platform
 
 import numpy as np
 import pytest
