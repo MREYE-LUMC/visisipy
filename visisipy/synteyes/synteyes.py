@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
-from scipy import stats
 
 from visisipy.wavefront import ZernikeCoefficients
 
@@ -25,6 +24,9 @@ __all__ = (
     "SyntEye3D",
     "generate_synteyes",
 )
+
+
+RANDOM_NUMBER_GENERATOR = np.random.default_rng()
 
 
 @dataclass
@@ -392,6 +394,8 @@ def sample_retina_curvature(
     retina_thicknesses: NDArray[np.float64] | list[float],
     mu_retina: NDArray,
     cov_retina: NDArray,
+    *,
+    rng: np.random.Generator = RANDOM_NUMBER_GENERATOR,
 ) -> list[SyntEyesRetina]:
     """Sample retinal curvature values conditioned on axial length.
 
@@ -416,7 +420,7 @@ def sample_retina_curvature(
     cond_sgm = np.zeros((len(axial_lengths), 3))
     for i, axial_length in enumerate(axial_lengths):
         mean, covariance = conditional_sgm(mu_retina, cov_retina, [0], axial_length)
-        cond_sgm[i] = stats.multivariate_normal.rvs(mean=mean, cov=covariance, size=1)
+        cond_sgm[i] = rng.multivariate_normal(mean=mean, cov=covariance, size=1)
 
     return [SyntEyesRetina(radius_x=rx, radius_y=ry, radius_z=rz) for rx, ry, rz in cond_sgm]
 
@@ -429,6 +433,8 @@ def create_mgmm_data(
     w_c0: float,
     w_c1: float,
     n: int,
+    *,
+    rng: np.random.Generator = RANDOM_NUMBER_GENERATOR,
 ) -> NDArray:
     """Sample from a weighted two-component Gaussian mixture model.
 
@@ -454,8 +460,8 @@ def create_mgmm_data(
     np.ndarray
         Generated samples in latent eigencornea space.
     """
-    comp0 = stats.multivariate_normal.rvs(mu_c0, cov_c0, size=n)
-    comp1 = stats.multivariate_normal.rvs(mu_c1, cov_c1, size=n)
+    comp0 = rng.multivariate_normal(mu_c0, cov_c0, size=n)
+    comp1 = rng.multivariate_normal(mu_c1, cov_c1, size=n)
     return w_c0 * comp0 + w_c1 * comp1
 
 
@@ -567,7 +573,7 @@ class SyntEyes(UserList[S]):
         return result
 
 
-def generate_synteyes(n: int) -> SyntEyes[SyntEye3D]:
+def generate_synteyes(n: int, *, rng: np.random.Generator = RANDOM_NUMBER_GENERATOR) -> SyntEyes[SyntEye3D]:
     """Generate `n` 3D SyntEyes eye models.
 
     Parameters
@@ -598,13 +604,14 @@ def generate_synteyes(n: int) -> SyntEyes[SyntEye3D]:
         model_data.weights_orig[0],
         model_data.weights_orig[1],
         n,
+        rng=rng,
     ).reshape(n, -1)
 
     axial_lengths = eigencorneas[:, _INDEX_AL]
     retina_thicknesses = np.full_like(axial_lengths, _SYNTEYES_RETINA_THICKNESS)
 
     retinas = sample_retina_curvature(
-        axial_lengths, retina_thicknesses, model_data.mu_retina_radii, model_data.cov_retina_radii
+        axial_lengths, retina_thicknesses, model_data.mu_retina_radii, model_data.cov_retina_radii, rng=rng
     )
 
     synteyes_3d = SyntEyes[SyntEye3D]()
