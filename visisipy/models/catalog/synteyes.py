@@ -73,7 +73,14 @@ class SyntEyesGeometry(
 
     def __init__(self, synteye: SyntEye3D | None = None, **surfaces: Unpack[SyntEyesSurfaces]) -> None:
         if synteye is None:
-            surfaces = {}
+            if not surfaces:
+                msg = (
+                    "Surfaces must be provided if no SyntEye specification is given."
+                    "Note that specifying surfaces is only supported loading a SyntEyes eye model from a dictionary or JSON."
+                )
+                raise ValueError(msg)
+
+            super().__init__(**surfaces)
         else:
             retina_radius_y, retina_asphericity_y = radii_to_curvature(synteye.retina.radius_y, synteye.retina.radius_z)
             retina_radius_x, retina_asphericity_x = radii_to_curvature(synteye.retina.radius_x, synteye.retina.radius_z)
@@ -114,11 +121,10 @@ class SyntEyesGeometry(
                 ),
             )
 
-            surfaces.update(**surfaces)
             super().__init__(**surfaces)
 
 
-class SyntEyesEyeModel(EyeModel):
+class SyntEyesEyeModel(EyeModel[SyntEyesGeometry, EyeMaterials]):
     """SyntEyes randomly generated schematic eye model.
 
     See Also
@@ -149,7 +155,7 @@ class SyntEyesEyeModel(EyeModel):
         super().__init__(geometry=geometry, materials=materials)
 
     @classmethod
-    def generate(cls, n: int) -> SyntEyesEyeModel | list[SyntEyesEyeModel]:
+    def generate(cls, n: int) -> list[SyntEyesEyeModel]:
         """Generate one or multiple SyntEyes schematic eye models.
 
         Parameters
@@ -159,8 +165,8 @@ class SyntEyesEyeModel(EyeModel):
 
         Returns
         -------
-        SyntEyesEyeModel | list[SyntEyesEyeModel]
-            If n is 1, returns a single SyntEyesEyeModel. Otherwise, returns a list of SyntEyesEyeModel objects.
+        list[SyntEyesEyeModel]
+            A list of generated SyntEyesEyeModel objects.
 
         Raises
         ------
@@ -171,8 +177,5 @@ class SyntEyesEyeModel(EyeModel):
             raise ValueError("n must be a positive integer.")
 
         synteyes = generate_synteyes(n)
-
-        if n == 1:
-            return cls(synteyes[0])
 
         return [cls(synteye) for synteye in synteyes]

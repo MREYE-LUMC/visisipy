@@ -74,7 +74,11 @@ class GullstrandLeGrandGeometry(
         super().__init__(**gullstrand_surfaces)
 
 
-class GullstrandLeGrandEyeModel(EyeModel):
+class GullstrandLeGrandEyeModel(
+    EyeModel[
+        GullstrandLeGrandGeometry, GullstrandLeGrandAccommodatedMaterials | GullstrandLeGrandUnaccommodatedMaterials
+    ]
+):
     """Gullstrand-LeGrand schematic eye model.
 
     See Also

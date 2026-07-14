@@ -414,12 +414,12 @@ class NoSurface(Surface):
     thickness: int = field(default=0, init=False)
 
 
-_CorneaFront = TypeVar("_CorneaFront", bound=Surface, default=StandardSurface)
-_CorneaBack = TypeVar("_CorneaBack", bound=Surface, default=StandardSurface)
-_Pupil = TypeVar("_Pupil", bound=Surface, default=Stop)
-_LensFront = TypeVar("_LensFront", bound=Surface, default=StandardSurface)
-_LensBack = TypeVar("_LensBack", bound=Surface, default=StandardSurface)
-_Retina = TypeVar("_Retina", bound=StandardSurface, default=StandardSurface)
+_CorneaFront_co = TypeVar("_CorneaFront_co", bound=Surface, default=StandardSurface, covariant=True)
+_CorneaBack_co = TypeVar("_CorneaBack_co", bound=Surface, default=StandardSurface, covariant=True)
+_Pupil_co = TypeVar("_Pupil_co", bound=Surface, default=Stop, covariant=True)
+_LensFront_co = TypeVar("_LensFront_co", bound=Surface, default=StandardSurface, covariant=True)
+_LensBack_co = TypeVar("_LensBack_co", bound=Surface, default=StandardSurface, covariant=True)
+_Retina_co = TypeVar("_Retina_co", bound=StandardSurface, default=StandardSurface, covariant=True)
 
 
 class EyeModelSurfaces(TypedDict, total=False):
@@ -433,7 +433,7 @@ class EyeModelSurfaces(TypedDict, total=False):
     retina: StandardSurface
 
 
-class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBack, _Retina]):  # noqa: PLW1641
+class EyeGeometry(Generic[_CorneaFront_co, _CorneaBack_co, _Pupil_co, _LensFront_co, _LensBack_co, _Retina_co]):  # noqa: PLW1641
     """Geometric parameters of an eye.
 
     Sizes are specified in mm. This class is mainly intended as a base class for more specific eye models.
@@ -470,12 +470,12 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
 
     def __init__(
         self,
-        cornea_front: _CorneaFront | None = None,
-        cornea_back: _CorneaBack | None = None,
-        pupil: _Pupil | None = None,
-        lens_front: _LensFront | None = None,
-        lens_back: _LensBack | None = None,
-        retina: _Retina | None = None,
+        cornea_front: _CorneaFront_co | None = None,
+        cornea_back: _CorneaBack_co | None = None,
+        pupil: _Pupil_co | None = None,
+        lens_front: _LensFront_co | None = None,
+        lens_back: _LensBack_co | None = None,
+        retina: _Retina_co | None = None,
     ) -> None:
         """Initialize an instance of the EyeGeometry class.
 
@@ -507,60 +507,60 @@ class EyeGeometry(Generic[_CorneaFront, _CorneaBack, _Pupil, _LensFront, _LensBa
         self.retina = retina or StandardSurface()
 
     @property
-    def cornea_front(self) -> _CorneaFront:
+    def cornea_front(self) -> _CorneaFront_co:
         """Cornea front geometry."""
         return self._cornea_front
 
     @cornea_front.setter
-    def cornea_front(self, value: _CorneaFront) -> None:
+    def cornea_front(self, value: _CorneaFront_co) -> None:
         self._cornea_front = value
 
     @property
-    def cornea_back(self) -> _CorneaBack:
+    def cornea_back(self) -> _CorneaBack_co:
         """Cornea back geometry."""
         return self._cornea_back
 
     @cornea_back.setter
-    def cornea_back(self, value: _CorneaBack) -> None:
+    def cornea_back(self, value: _CorneaBack_co) -> None:
         self._cornea_back = value
 
     @property
-    def pupil(self) -> _Pupil:
+    def pupil(self) -> _Pupil_co:
         """Pupil geometry."""
         return self._pupil
 
     @pupil.setter
-    def pupil(self, value: _Pupil) -> None:
+    def pupil(self, value: _Pupil_co) -> None:
         if not value.is_stop:
             raise ValueError("The pupil surface must be a stop.")
 
         self._pupil = value
 
     @property
-    def lens_front(self) -> _LensFront:
+    def lens_front(self) -> _LensFront_co:
         """Lens front geometry."""
         return self._lens_front
 
     @lens_front.setter
-    def lens_front(self, value: _LensFront) -> None:
+    def lens_front(self, value: _LensFront_co) -> None:
         self._lens_front = value
 
     @property
-    def lens_back(self) -> _LensBack:
+    def lens_back(self) -> _LensBack_co:
         """Lens back geometry."""
         return self._lens_back
 
     @lens_back.setter
-    def lens_back(self, value: _LensBack) -> None:
+    def lens_back(self, value: _LensBack_co) -> None:
         self._lens_back = value
 
     @property
-    def retina(self) -> _Retina:
+    def retina(self) -> _Retina_co:
         """Retina geometry."""
         return self._retina
 
     @retina.setter
-    def retina(self, value: _Retina) -> None:
+    def retina(self, value: _Retina_co) -> None:
         if value.asphericity <= -1:
             raise ValueError(f"Only an elliptical retina is allowed (asphericity > -1), got {value.asphericity=}")
 

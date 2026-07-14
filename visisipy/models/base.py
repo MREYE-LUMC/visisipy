@@ -6,15 +6,22 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from sys import version_info
+from typing import TYPE_CHECKING, Any, Generic
 
 import visisipy.backend as _backend
+
+# Use typing_extensions.TypeVar for Python <3.13 to support default values for type variables
+if version_info >= (3, 13):
+    from typing import TypeVar
+else:
+    from typing_extensions import TypeVar
 
 if TYPE_CHECKING:
     from os import PathLike
 
     from visisipy.models.catalog.navarro import NavarroGeometry
-    from visisipy.models.geometry import EyeGeometry
+    from visisipy.models.geometry import EyeGeometry, Surface
     from visisipy.models.materials import EyeMaterials
 
 
@@ -46,8 +53,14 @@ def _get_default_materials() -> EyeMaterials:
     return NavarroMaterials()
 
 
+_Geometry = TypeVar(
+    "_Geometry", bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface]", default="NavarroGeometry"
+)
+_Materials = TypeVar("_Materials", bound="EyeMaterials", default="EyeMaterials")
+
+
 @dataclass
-class EyeModel:
+class EyeModel(Generic[_Geometry, _Materials]):
     """Optical model of the eye.
 
     Visisipy's eye models consist of two parts: the geometry and the material model. The geometry defines the shape of
@@ -75,8 +88,8 @@ class EyeModel:
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    geometry: EyeGeometry = field(default_factory=_get_default_geometry)
-    materials: EyeMaterials = field(default_factory=_get_default_materials)
+    geometry: _Geometry = field(default_factory=_get_default_geometry)
+    materials: _Materials = field(default_factory=_get_default_materials)
     _built: BaseEye | None = field(default=None, init=False, repr=False)
 
     def build(
