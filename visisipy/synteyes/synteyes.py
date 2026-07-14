@@ -551,10 +551,18 @@ class SyntEyes(UserList[S]):
                 {int(k): v for k, v in item["lens"]["anterior_zernikes"].items()}
             )
 
+            biometry = SyntEyesBiometry(**item["biometry"])
+            cornea = SyntEyesCornea(**item["cornea"])
+            lens = SyntEyesLens(**item["lens"])
+            materials = SyntEyesMaterials(**item["materials"])
+
             if "retina" in item:
-                result.append(SyntEye3D(**item))
+                retina = SyntEyesRetina(**item["retina"])
+                result.append(
+                    SyntEye3D(biometry=biometry, cornea=cornea, lens=lens, materials=materials, retina=retina)
+                )
             else:
-                result.append(SyntEye(**item))
+                result.append(SyntEye(biometry=biometry, cornea=cornea, lens=lens, materials=materials))
 
         return result
 
@@ -578,7 +586,7 @@ def generate_synteyes(n: int) -> SyntEyes[SyntEye3D]:
         If `n` is not a positive integer.
     """
     if n <= 0:
-        raise ValueError("Number of samples must be a positive integer.")
+        raise ValueError("Number of synteyes must be a positive integer.")
 
     model_data = load_synteyes_model_data()
 
