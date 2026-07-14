@@ -510,7 +510,7 @@ class SyntEyes(UserList[S]):
         if not filename.parent.exists():
             raise FileNotFoundError(f"Directory does not exist: {filename.parent}")
 
-        filename.write_text(json.dumps([eye.to_dict() for eye in self], indent=4))
+        filename.write_text(json.dumps([eye.to_dict() for eye in self], indent=4), encoding="utf-8")
 
     @classmethod
     def load_json(cls, filename: PathLike | str) -> SyntEyes:
