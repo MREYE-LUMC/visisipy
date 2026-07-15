@@ -35,8 +35,6 @@ jobs:
       - name: Set up uv
         id: setup-uv
         uses: astral-sh/setup-uv@v8.2.0
-      - name: Check system properties
-        run: uv run python -c "import platform; print(platform.platform(), platform.system(), platform.architecture(), platform.machine(), platform.uname())"
       - name: Run tests with Optiland numpy backend
         run: uvx hatch test --python ${{ matrix.python-version }} ./tests --no-opticstudio
       - name: Run tests with Optiland torch-cpu backend

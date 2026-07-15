@@ -368,8 +368,8 @@ def convert_to_single_orig_synteyes(
 
     Returns
     -------
-    pandas.DataFrame
-        Single-row dataframe with SyntEyes fields.
+    SyntEye
+        A SyntEye object containing the converted eigencornea data.
     """
     zernikes = 0.001 * eigencornea[np.newaxis, _INDICES_EIGENCORNEA] @ conv_ec.T
     zernikes += avg_ec  # avg_ec has shape (1, 91)
