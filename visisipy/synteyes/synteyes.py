@@ -15,6 +15,7 @@ import numpy as np
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from os import PathLike
 
     from numpy.typing import NDArray
@@ -426,12 +427,9 @@ def sample_retina_curvature(
 
 
 def create_mgmm_data(
-    mu_c0: NDArray,
-    mu_c1: NDArray,
-    cov_c0: NDArray,
-    cov_c1: NDArray,
-    w_c0: float,
-    w_c1: float,
+    mu: Sequence[NDArray],
+    cov: Sequence[NDArray],
+    weights: Sequence[float],
     n: int,
     *,
     rng: np.random.Generator = RANDOM_NUMBER_GENERATOR,
@@ -440,18 +438,12 @@ def create_mgmm_data(
 
     Parameters
     ----------
-    mu_c0 : np.ndarray
-        Mean vector of component 0.
-    mu_c1 : np.ndarray
-        Mean vector of component 1.
-    cov_c0 : np.ndarray
-        Covariance matrix of component 0.
-    cov_c1 : np.ndarray
-        Covariance matrix of component 1.
-    w_c0 : float
-        Weight for component 0 sample.
-    w_c1 : float
-        Weight for component 1 sample.
+    mu : Sequence[NDArray]
+        List of mean vectors for each component.
+    cov : Sequence[NDArray]
+        List of covariance matrices for each component.
+    weights : Sequence[float]
+        List of weights for each component.
     n : int
         Number of samples to generate.
 
@@ -459,10 +451,22 @@ def create_mgmm_data(
     -------
     np.ndarray
         Generated samples in latent eigencornea space.
+
+    Raises
+    ------
+    ValueError
+        If the lengths of mu, cov, and weights are not equal.
     """
-    comp0 = rng.multivariate_normal(mu_c0, cov_c0, size=n)
-    comp1 = rng.multivariate_normal(mu_c1, cov_c1, size=n)
-    return w_c0 * comp0 + w_c1 * comp1
+    if not len(mu) == len(cov) == len(weights):
+        raise ValueError("The lengths of mu, cov, and weights must be equal.")
+
+    counts = rng.multinomial(n, weights)
+    samples = [
+        rng.multivariate_normal(mean, covariance, size=count)
+        for mean, covariance, count in zip(mu, cov, counts, strict=True)
+    ]
+
+    return np.vstack(samples)
 
 
 def nearest_psd(matrix: NDArray) -> NDArray:
@@ -597,12 +601,9 @@ def generate_synteyes(n: int, *, rng: np.random.Generator = RANDOM_NUMBER_GENERA
     model_data = load_synteyes_model_data()
 
     eigencorneas = create_mgmm_data(
-        model_data.mu_orig[0],
-        model_data.mu_orig[1],
-        model_data.cov_orig[0],
-        model_data.cov_orig[1],
-        model_data.weights_orig[0],
-        model_data.weights_orig[1],
+        model_data.mu_orig,
+        model_data.cov_orig,
+        model_data.weights_orig,
         n,
         rng=rng,
     ).reshape(n, -1)
