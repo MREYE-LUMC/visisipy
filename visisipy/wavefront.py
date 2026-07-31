@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
+from collections.abc import Mapping
 
 __all__ = ("ZernikeCoefficients",)
 
@@ -23,7 +20,6 @@ def _validate_coefficient(key: int | tuple[int, int]) -> int:
         return key
 
     if _is_int_tuple(key):
-        _validate_nm(*key)
         return ZernikeCoefficients.to_noll(*key)
 
     msg = f"The coefficient must be an integer or a tuple of two integers, got {key} of type {type(key).__name__}."
@@ -72,7 +68,9 @@ class ZernikeCoefficients(defaultdict[int, float]):
         """
         normalized_terms = {}
 
-        if terms is not None:
+        # dataclasses `asdict` calls the constructor with non-dict arguments, so we need
+        # to handle that case to support serialization and deserialization of the class.
+        if isinstance(terms, Mapping):
             for key, value in terms.items():
                 noll_index = _validate_coefficient(key)
 

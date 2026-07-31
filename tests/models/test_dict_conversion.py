@@ -9,6 +9,7 @@ import re
 import pytest
 
 from visisipy.models.base import EyeModel
+from visisipy.models.catalog.synteyes import SyntEyesEyeModel, SyntEyesGeometry
 from visisipy.models.geometry import (
     BiconicSurface,
     EyeGeometry,
@@ -361,7 +362,7 @@ class TestEyeModelDict:
         assert type(reconstructed.geometry) is type(model.geometry)
         assert reconstructed.geometry == model.geometry
 
-    @pytest.mark.parametrize("geometry_type", ALL_EYE_GEOMETRIES.values())
+    @pytest.mark.parametrize("geometry_type", set(ALL_EYE_GEOMETRIES.values()) - {SyntEyesGeometry})
     @pytest.mark.parametrize("materials_type", ALL_MATERIALS.values())
     def test_roundtrip_full(self, geometry_type, materials_type):
         model = EyeModel(
@@ -373,6 +374,22 @@ class TestEyeModelDict:
 
         assert type(reconstructed.geometry) is geometry_type
         assert type(reconstructed.materials) is materials_type
+        assert reconstructed == model
+
+    # Separate test for SyntEyes because the geometry is randomly generated together with a
+    # corresponding material model, so we cannot instantiate it with arbitrary materials.
+    def test_roundtrip_synteyes(self):
+        model = SyntEyesEyeModel()
+        model = EyeModel(
+            geometry=model.geometry,
+            materials=model.materials,
+        )
+
+        data = model.to_dict()
+        reconstructed = EyeModel.from_dict(data)
+
+        assert type(reconstructed.geometry) is SyntEyesGeometry
+        assert type(reconstructed.materials) is EyeMaterials  # SyntEyesEyeModel uses the base EyeMaterials class
         assert reconstructed == model
 
     def test_to_json_includes_visisipy_version(self):

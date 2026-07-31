@@ -7,6 +7,7 @@ from warnings import warn
 
 from visisipy.models.catalog.navarro import NavarroGeometry
 from visisipy.models.geometry import EyeGeometry, Surface
+from visisipy.models.helpers import radii_to_curvature
 from visisipy.types import TypedDict, Unpack
 
 __all__ = ("create_geometry",)
@@ -279,9 +280,8 @@ def create_geometry(
         _update_attribute_if_specified(geometry.retina, "radius", parameters.get("retina_radius"))
         _update_attribute_if_specified(geometry.retina, "asphericity", parameters.get("retina_asphericity"))
     elif has_retina_ellipsoid_radii:
-        retina_radius = parameters["retina_ellipsoid_y_radius"] ** 2 / parameters["retina_ellipsoid_z_radius"]
-        retina_asphericity = (
-            parameters["retina_ellipsoid_y_radius"] ** 2 / parameters["retina_ellipsoid_z_radius"] ** 2 - 1
+        retina_radius, retina_asphericity = radii_to_curvature(
+            parameters["retina_ellipsoid_y_radius"], parameters["retina_ellipsoid_z_radius"]
         )
         _update_attribute_if_specified(geometry.retina, "radius", retina_radius)
         _update_attribute_if_specified(geometry.retina, "asphericity", retina_asphericity)
