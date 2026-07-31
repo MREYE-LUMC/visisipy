@@ -29,7 +29,7 @@ class SyntEyesSurfaces(EyeModelSurfaces, total=False):
     cornea_front: ZernikeStandardSagSurface
     cornea_back: ZernikeStandardSagSurface
     pupil: Stop
-    lens_front: ZernikeStandardSagSurface
+    lens_front: StandardSurface
     lens_back: StandardSurface
     retina: BiconicSurface
 
@@ -39,7 +39,7 @@ class SyntEyesGeometry(
         ZernikeStandardSagSurface,
         ZernikeStandardSagSurface,
         Stop,
-        ZernikeStandardSagSurface,
+        StandardSurface,
         StandardSurface,
         BiconicSurface,
     ]
@@ -49,6 +49,11 @@ class SyntEyesGeometry(
     This schematic eye is generated with the SyntEyes method [1]_ with the SyntEyes 3D extension [2]_.
     Sizes are specified in mm.
 
+    The SyntEyes method requires a Zernike phase surface for the lens front surface to include some additional
+    aberrations that are not caused by the cornea. However, since not all backends support Zernike phase surfaces,
+    a StandardSurface is used for the lens front surface in this implementation. For backends that support Zernike
+    phase surfaces, the Zernike phase surface can be manually added.
+
     Attributes
     ----------
     cornea_front : ZernikeStandardSagSurface
@@ -57,11 +62,11 @@ class SyntEyesGeometry(
         The back surface of the cornea.
     pupil : Stop
         The pupil of the eye.
-    lens_front : ZernikeStandardSagSurface
+    lens_front : StandardSurface
         The front surface of the lens.
     lens_back : StandardSurface
         The back surface of the lens.
-    retina : StandardSurface
+    retina : BiconicSurface
         The retina of the eye.
 
     References
@@ -101,12 +106,10 @@ class SyntEyesGeometry(
                     norm_radius=synteye.cornea.posterior_norm_diameter / 2,
                 ),
                 pupil=Stop(semi_diameter=synteye.biometry.pupil_diameter / 2),
-                lens_front=ZernikeStandardSagSurface(
+                lens_front=StandardSurface(
                     radius=synteye.lens.anterior_radius,
                     asphericity=synteye.lens.anterior_conic,
                     thickness=synteye.biometry.lens_thickness,
-                    zernike_coefficients=synteye.lens.anterior_zernikes,
-                    norm_radius=synteye.lens.anterior_norm_diameter / 2,
                 ),
                 lens_back=StandardSurface(
                     radius=synteye.lens.posterior_radius,
