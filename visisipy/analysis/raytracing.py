@@ -47,13 +47,13 @@ def raytrace(
 
 @analysis
 def raytrace(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     coordinates: Sequence[tuple[float, float]] | None = None,
     wavelengths: Sequence[float] | None = None,
     field_type: FieldType = "angle",
     pupil: tuple[float, float] = (0, 0),
     *,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[DataFrame, Any]:
     """Perform a ray trace analysis using the given parameters.

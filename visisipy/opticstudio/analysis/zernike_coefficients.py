@@ -29,9 +29,9 @@ def _build_zernike_result(
     else:
         raise ValueError('unit must be either "microns" or "waves"')
 
-    return ZernikeCoefficients(
-        {k: v.value * factor for k, v in zernike_result.coefficients.items() if k <= maximum_term}
-    )
+    return ZernikeCoefficients({
+        k: v.value * factor for k, v in zernike_result.coefficients.items() if k <= maximum_term
+    })
 
 
 def zernike_standard_coefficients(

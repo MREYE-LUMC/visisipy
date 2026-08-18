@@ -118,14 +118,14 @@ def fft_mtf(
 
 @analysis
 def fft_mtf(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     field_coordinate: FieldCoordinate | Literal["all"] = "all",
     field_type: FieldType = "angle",
     wavelength: float | None = None,
     sampling: SampleSize | str | int = 128,
     maximum_frequency: float | Literal["default"] = "default",
     *,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[MTFResult, Any]:
     """Calculate the FFT Modulation Transfer Function (MTF).

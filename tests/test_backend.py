@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
     from visisipy.optiland.backend import OptilandBackend
 
-# ruff: noqa: SLF001
+# ruff: file-ignore[private-member-access]
 # pyright: reportOptionalMemberAccess=false, reportTypedDictNotRequiredAccess=false
 
 

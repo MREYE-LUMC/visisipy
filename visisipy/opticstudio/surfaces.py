@@ -140,7 +140,7 @@ class OpticStudioSurface(BaseSurface):
             return None
 
         if self.surface.MaterialCell.GetSolveData().Type == zp.constants.Editors.SolveType.MaterialModel:
-            material_model = self.surface.MaterialCell.GetSolveData()._S_MaterialModel  # noqa: SLF001
+            material_model = self.surface.MaterialCell.GetSolveData()._S_MaterialModel  # ruff: ignore[private-member-access]
 
             return MaterialModel(
                 refractive_index=material_model.IndexNd,
@@ -364,7 +364,7 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
     This class provides methods and properties shared by all Zernike surfaces.
     """
 
-    def __new__(cls, *args, **kwargs):  # noqa: ARG004, RUF100
+    def __new__(cls, *args, **kwargs):  # ruff: ignore[unused-static-method-argument]
         if cls is BaseOpticStudioZernikeSurface:
             raise TypeError("Only child classes of BaseOpticStudioZernikeSurface may be instantiated.")
 
@@ -647,7 +647,7 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
 @make_surface.register
 def _make_surface(
     surface: StandardSurface,
-    material: Union[str, MaterialModel],  # noqa: UP007
+    material: Union[str, MaterialModel],  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OpticStudioSurface:
     return OpticStudioSurface(
@@ -663,7 +663,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: Stop,
-    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OpticStudioSurface:
     return OpticStudioSurface(
@@ -678,7 +678,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: BiconicSurface,
-    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OpticStudioBiconicSurface:
     return OpticStudioBiconicSurface(
@@ -696,7 +696,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: ZernikeStandardSagSurface,
-    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OpticStudioZernikeStandardSagSurface:
     return OpticStudioZernikeStandardSagSurface(
@@ -718,7 +718,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: ZernikeStandardPhaseSurface,
-    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OpticStudioZernikeStandardPhaseSurface:
     return OpticStudioZernikeStandardPhaseSurface(
@@ -738,8 +738,8 @@ def _make_surface(
 
 @make_surface.register
 def _make_surface(
-    surface: NoSurface,  # noqa: ARG001
-    material: None = None,  # noqa: ARG001
-    comment: str = "",  # noqa: ARG001
+    surface: NoSurface,  # ruff: ignore[unused-function-argument]
+    material: None = None,  # ruff: ignore[unused-function-argument]
+    comment: str = "",  # ruff: ignore[unused-function-argument]
 ) -> OpticStudioNoSurface:
     return OpticStudioNoSurface()

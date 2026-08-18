@@ -48,7 +48,7 @@ def opd_map(
 
 @analysis
 def opd_map(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
@@ -56,7 +56,7 @@ def opd_map(
     *,
     remove_tilt: bool = True,
     use_exit_pupil_shape: bool = False,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> DataFrame | tuple[DataFrame, Any]:
     """Calculate the Optical Path Difference (OPD) map at the retina surface.

@@ -89,7 +89,7 @@ class RayTraceResult(NamedTuple):
     x: float
     y: float
     z: float
-    l: float  # noqa: E741
+    l: float  # ruff: ignore[ambiguous-variable-name]
     m: float
     n: float
     l2: float

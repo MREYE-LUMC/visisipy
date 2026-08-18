@@ -285,14 +285,14 @@ def _convert_cornea(synteyes_array: NDArray[np.float64]) -> SyntEyesCornea:
     zernike_indices = zernike_index(8)
 
     anterior_zernike_terms = synteyes_array[_INDICES_ANTERIOR_CORNEA_ZERNIKE]
-    anterior_zernikes = ZernikeCoefficients(
-        {(n, m): anterior_zernike_terms[i] for i, (n, m) in enumerate(zernike_indices)}
-    )
+    anterior_zernikes = ZernikeCoefficients({
+        (n, m): anterior_zernike_terms[i] for i, (n, m) in enumerate(zernike_indices)
+    })
 
     posterior_zernike_terms = synteyes_array[_INDICES_POSTERIOR_CORNEA_ZERNIKE]
-    posterior_zernikes = ZernikeCoefficients(
-        {(n, m): posterior_zernike_terms[i] for i, (n, m) in enumerate(zernike_indices)}
-    )
+    posterior_zernikes = ZernikeCoefficients({
+        (n, m): posterior_zernike_terms[i] for i, (n, m) in enumerate(zernike_indices)
+    })
 
     return SyntEyesCornea(
         anterior_zernikes=anterior_zernikes,
@@ -302,9 +302,9 @@ def _convert_cornea(synteyes_array: NDArray[np.float64]) -> SyntEyesCornea:
 
 def _convert_lens(synteyes_array: NDArray[np.float64], lens_zernikes: NDArray[np.float64]) -> SyntEyesLens:
     zernike_indices = zernike_index(6)
-    anterior_zernikes = ZernikeCoefficients(
-        {(n, m): coefficient for coefficient, (n, m) in zip(lens_zernikes, zernike_indices, strict=False)}
-    )
+    anterior_zernikes = ZernikeCoefficients({
+        (n, m): coefficient for coefficient, (n, m) in zip(lens_zernikes, zernike_indices, strict=False)
+    })
 
     return SyntEyesLens(
         anterior_zernikes=anterior_zernikes,
@@ -551,15 +551,15 @@ class SyntEyes(UserList[S]):
         result: SyntEyes[SyntEye3D | SyntEye] = cls()
 
         for item in data:
-            item["cornea"]["anterior_zernikes"] = ZernikeCoefficients(
-                {int(k): v for k, v in item["cornea"]["anterior_zernikes"].items()}
-            )
-            item["cornea"]["posterior_zernikes"] = ZernikeCoefficients(
-                {int(k): v for k, v in item["cornea"]["posterior_zernikes"].items()}
-            )
-            item["lens"]["anterior_zernikes"] = ZernikeCoefficients(
-                {int(k): v for k, v in item["lens"]["anterior_zernikes"].items()}
-            )
+            item["cornea"]["anterior_zernikes"] = ZernikeCoefficients({
+                int(k): v for k, v in item["cornea"]["anterior_zernikes"].items()
+            })
+            item["cornea"]["posterior_zernikes"] = ZernikeCoefficients({
+                int(k): v for k, v in item["cornea"]["posterior_zernikes"].items()
+            })
+            item["lens"]["anterior_zernikes"] = ZernikeCoefficients({
+                int(k): v for k, v in item["lens"]["anterior_zernikes"].items()
+            })
 
             biometry = SyntEyesBiometry(**item["biometry"])
             cornea = SyntEyesCornea(**item["cornea"])

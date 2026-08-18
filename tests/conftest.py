@@ -61,7 +61,7 @@ def detect_opticstudio() -> bool:
     if platform.system() != "Windows":
         return False
 
-    import zospy as zp  # noqa: PLC0415
+    import zospy as zp  # ruff: ignore[import-outside-top-level]
 
     opticstudio_available: bool = False
 
@@ -116,7 +116,10 @@ def opticstudio_backend(
     if platform.system() != "Windows":
         pytest.skip("Running on a non-Windows platform.")
 
-    from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS, OpticStudioBackend  # noqa: PLC0415
+    from visisipy.opticstudio.backend import (  # ruff: ignore[import-outside-top-level]
+        OPTICSTUDIO_DEFAULT_SETTINGS,
+        OpticStudioBackend,
+    )
 
     settings = OPTICSTUDIO_DEFAULT_SETTINGS.copy()
     settings["mode"] = opticstudio_connection_mode
@@ -144,7 +147,7 @@ def optiland_computation_backend(request) -> Literal["numpy", "torch-cpu", "torc
 
 @pytest.fixture(scope="session")
 def optiland_backend_settings(optiland_computation_backend) -> OptilandSettings:
-    from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS  # noqa: PLC0415
+    from visisipy.optiland.backend import OPTILAND_DEFAULT_SETTINGS  # ruff: ignore[import-outside-top-level]
 
     settings = OPTILAND_DEFAULT_SETTINGS.copy()
 
@@ -164,7 +167,7 @@ def optiland_backend_settings(optiland_computation_backend) -> OptilandSettings:
 @pytest.fixture
 def optiland_backend(optiland_backend_settings) -> Generator[OptilandBackend, Any, None]:
     """Fixture to initialize the Optiland backend for testing."""
-    from visisipy.optiland.backend import OptilandBackend  # noqa: PLC0415
+    from visisipy.optiland.backend import OptilandBackend  # ruff: ignore[import-outside-top-level]
 
     if instance := OptilandBackend.get_instance():
         instance.update_settings(**optiland_backend_settings)

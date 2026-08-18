@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "Visisipy"
-year = datetime.now().year  # noqa: DTZ005
-copyright_year = str(year) if year == 2025 else f"2025 - {year}"  # noqa: PLR2004
-copyright = f"{copyright_year}, Corné Haasjes, Luc van Vught, Jan-Willem Beenakker"  # noqa: A001
+year = datetime.now().year  # ruff: ignore[call-datetime-now-without-tzinfo]
+copyright_year = str(year) if year == 2025 else f"2025 - {year}"  # ruff: ignore[magic-value-comparison]
+copyright = f"{copyright_year}, Corné Haasjes, Luc van Vught, Jan-Willem Beenakker"  # ruff: ignore[builtin-variable-shadowing]
 author = "Corné Haasjes, Luc van Vught, Jan-Willem Beenakker"
 
 # -- General configuration ---------------------------------------------------
@@ -74,12 +74,12 @@ if os.getenv("READTHEDOCS") == "True":
 else:
     try:
         git_branch = run(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],  # noqa: S607
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],  # ruff: ignore[start-process-with-partial-path]
             capture_output=True,
             text=True,
             check=True,
         ).stdout.strip()
-    except:  # noqa: E722
+    except:  # ruff: ignore[bare-except]
         git_branch = "main"
 
 logger.info("Building documentation for branch %s", git_branch)

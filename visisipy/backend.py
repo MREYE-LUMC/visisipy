@@ -96,7 +96,7 @@ class _AnalysisMethod(Generic[_Analysis]):
         return MethodType(self._analysis, instance.backend)
 
 
-class _classproperty(property):  # noqa: N801
+class _classproperty(property):  # ruff: ignore[invalid-class-name]
     def __get__(self, instance, owner=None):
         return self.fget(owner)
 
@@ -484,7 +484,7 @@ def set_backend(
     ValueError
         If an invalid backend is specified.
     """
-    global _BACKEND  # noqa: PLW0603
+    global _BACKEND  # ruff: ignore[global-statement]
 
     if _BACKEND is not None:
         warn(
@@ -493,11 +493,11 @@ def set_backend(
         )
 
     if backend == "opticstudio":
-        from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
+        from visisipy.opticstudio import OpticStudioBackend  # ruff: ignore[import-outside-top-level]
 
         _BACKEND = _get_or_initialize_backend(OpticStudioBackend, settings)  # type: ignore
     elif backend == "optiland":
-        from visisipy.optiland import OptilandBackend  # noqa: PLC0415
+        from visisipy.optiland import OptilandBackend  # ruff: ignore[import-outside-top-level]
 
         _BACKEND = _get_or_initialize_backend(OptilandBackend, settings)  # type: ignore
     else:
@@ -536,7 +536,7 @@ def get_oss() -> OpticStudioSystem:
     if platform.system() != "Windows":
         raise BackendAccessError("The OpticStudio backend is only available on Windows.")
 
-    from visisipy.opticstudio import OpticStudioBackend  # noqa: PLC0415
+    from visisipy.opticstudio import OpticStudioBackend  # ruff: ignore[import-outside-top-level]
 
     if instance := OpticStudioBackend.get_instance():
         return instance.oss
@@ -557,7 +557,7 @@ def get_optic() -> Optic:
     BackendAccessError
         If the OptilandBackend is not currently initialized.
     """
-    from visisipy.optiland import OptilandBackend  # noqa: PLC0415
+    from visisipy.optiland import OptilandBackend  # ruff: ignore[import-outside-top-level]
 
     if instance := OptilandBackend.get_instance():
         return instance.optic

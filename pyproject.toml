@@ -76,11 +76,11 @@ preview = "sphinx-autobuild docs docs/_build/html --open-browser --ignore docs/a
 
 [tool.hatch.envs.hatch-check-code]
 config-path = "ruff_defaults.toml"
-dependencies = ["ruff==0.15.20"]
+dependencies = ["ruff==0.16.3"]
 
 [tool.hatch.envs.hatch-check-fmt]
 config-path = "ruff_defaults.toml"
-dependencies = ["ruff==0.15.20"]
+dependencies = ["ruff==0.16.3"]
 
 # Disable type checking
 [tool.hatch.envs.hatch-check-types.scripts]
@@ -116,38 +116,41 @@ exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
 
 [tool.ruff]
 extend = "ruff_defaults.toml"
+preview = true
 line-length = 120
 
 [tool.ruff.lint]
-preview = true
 extend-select = [
     "D", # Pydocstyle
-    "DOC102", # Extraneous docstring parameters
+    "docstring-extraneous-parameter", # Extraneous docstring parameters
+    "RUF", # ruff-specific
 ]
 extend-ignore = [
-    "B028",
-    "D105",   # Missing docstring in magic method
-    "TRY003", # Avoid specifying long messages outside the exception class
-    "EM101",  # Exception must not use a string literal, assign to variable first
-    "EM102",  # Exception must not use an f-string literal, assign to variable first
+    "no-explicit-stacklevel",
+    "undocumented-magic-method",   # Missing docstring in magic method
+    "raise-vanilla-args", # Avoid specifying long messages outside the exception class
+    "raw-string-in-exception",  # Exception must not use a string literal, assign to variable first
+    "f-string-in-exception",  # Exception must not use an f-string literal, assign to variable first
+    "non-empty-init-module",
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"docs/*" = ["D", "DOC201", "I002", "INP001", "T20"]
-"examples/*" = ["I002", "INP001", "T20"]
-"scripts/*" = ["D", "S101"]
+"docs/*" = ["D", "docstring-missing-returns", "missing-required-import", "implicit-namespace-package", "T20"]
+"examples/*" = ["missing-required-import", "implicit-namespace-package", "T20"]
+"scripts/*" = ["D", "assert"]
 "tests/*" = [
     "D",
-    "ARG001",
-    "ARG002",
-    "DOC201",
-    "DOC402",
-    "DOC501",
-    "FBT001",
-    "PLC2701",
+    "float-equality-comparison",
+    "unused-function-argument",
+    "unused-method-argument",
+    "docstring-missing-returns",
+    "docstring-missing-yields",
+    "docstring-missing-exception",
+    "boolean-type-hint-positional-argument",
+    "import-private-name",
 ]
-"tests/opticstudio/*" = ["SLF001"]
-"tests/optiland/*" = ["SLF001"]
+"tests/opticstudio/*" = ["private-member-access"]
+"tests/optiland/*" = ["private-member-access"]
 
 [tool.ruff.lint.flake8-pytest-style]
 parametrize-names-type = "csv"

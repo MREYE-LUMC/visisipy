@@ -151,9 +151,9 @@ def run_optimization(
     solve_data = oss.LDE.GetSurfaceAt(2).MaterialCell.GetSolveData()
 
     return MaterialModel(
-        solve_data._S_MaterialModel.IndexNd,  # noqa: SLF001
-        solve_data._S_MaterialModel.AbbeVd,  # noqa: SLF001
-        solve_data._S_MaterialModel.dPgF,  # noqa: SLF001
+        solve_data._S_MaterialModel.IndexNd,  # ruff: ignore[private-member-access]
+        solve_data._S_MaterialModel.AbbeVd,  # ruff: ignore[private-member-access]
+        solve_data._S_MaterialModel.dPgF,  # ruff: ignore[private-member-access]
     ), result
 
 
@@ -265,18 +265,14 @@ def plot_refractive_indices(
     ax.set_position((box.x0, box.y0 + box.height * 0.15, box.width, box.height * 0.85))
 
     handles, labels = ax.get_legend_handles_labels()
-    handles.extend(
-        [
-            Line2D([], [], color="black", label="OpticStudio"),
-            Line2D([], [], color="black", linestyle="--", label="Optiland"),
-        ]
-    )
-    labels.extend(
-        [
-            "OpticStudio",
-            "Optiland",
-        ]
-    )
+    handles.extend([
+        Line2D([], [], color="black", label="OpticStudio"),
+        Line2D([], [], color="black", linestyle="--", label="Optiland"),
+    ])
+    labels.extend([
+        "OpticStudio",
+        "Optiland",
+    ])
     ax.legend(handles, labels, loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=3)
 
     # plt.tight_layout()

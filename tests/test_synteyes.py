@@ -115,12 +115,10 @@ def test_synteye_json_roundtrip(tmp_path):
     json_file = tmp_path / "synteye.json"
     assert not json_file.exists()
 
-    synteyes = SyntEyes(
-        [
-            SyntEye(biometry=synteye.biometry, cornea=synteye.cornea, lens=synteye.lens, materials=synteye.materials)
-            for synteye in generate_synteyes(3)
-        ]
-    )
+    synteyes = SyntEyes([
+        SyntEye(biometry=synteye.biometry, cornea=synteye.cornea, lens=synteye.lens, materials=synteye.materials)
+        for synteye in generate_synteyes(3)
+    ])
 
     # Save to JSON
     synteyes.save_json(json_file)

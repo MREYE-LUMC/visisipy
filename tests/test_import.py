@@ -5,7 +5,7 @@ from types import ModuleType
 
 import pytest
 
-# ruff: noqa: PLC0415
+# ruff: file-ignore[import-outside-top-level]
 
 
 @pytest.mark.windows_only

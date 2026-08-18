@@ -73,11 +73,11 @@ def cardinal_points(
 
 @analysis
 def cardinal_points(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     surface_1: int | None = None,
     surface_2: int | None = None,
     *,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[CardinalPointsResult, Any]:
     """Get the cardinal points of the system between `surface_1` and `surface_2`.
