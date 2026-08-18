@@ -76,11 +76,11 @@ preview = "sphinx-autobuild docs docs/_build/html --open-browser --ignore docs/a
 
 [tool.hatch.envs.hatch-check-code]
 config-path = "ruff_defaults.toml"
-dependencies = ["ruff==0.15.20"]
+dependencies = ["ruff==0.16.3"]
 
 [tool.hatch.envs.hatch-check-fmt]
 config-path = "ruff_defaults.toml"
-dependencies = ["ruff==0.15.20"]
+dependencies = ["ruff==0.16.3"]
 
 # Disable type checking
 [tool.hatch.envs.hatch-check-types.scripts]

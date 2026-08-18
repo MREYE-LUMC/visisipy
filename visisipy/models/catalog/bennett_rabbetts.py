@@ -117,7 +117,7 @@ class BennettRabbettsGeometry(
         super().__init__(**bennett_surfaces)
 
 
-class BennettRabbettsEyeModel(EyeModel):
+class BennettRabbettsEyeModel(EyeModel[BennettRabbettsGeometry, BennettRabbettsMaterials]):
     """Eye model using the Bennett-Rabbetts schematic eye geometry and materials.
 
     See Also
