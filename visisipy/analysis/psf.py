@@ -45,13 +45,13 @@ def fft_psf(
 
 @analysis
 def fft_psf(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 128,
     *,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> DataFrame | tuple[DataFrame, Any]:
     """Calculate the FFT Point Spread Function (PSF) at the retina surface.
@@ -120,14 +120,14 @@ def huygens_psf(
 
 @analysis
 def huygens_psf(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
     pupil_sampling: SampleSize | str | int = 128,
     image_sampling: SampleSize | str | int = 128,
     *,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> DataFrame | tuple[DataFrame, Any]:
     """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
@@ -200,14 +200,14 @@ def strehl_ratio(
 
 @analysis
 def strehl_ratio(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     field_type: FieldType = "angle",
     sampling: SampleSize | str | int = 128,
     psf_type: Literal["fft", "huygens"] = "huygens",
     *,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> float | tuple[float, Any]:
     """Calculate the Strehl ratio of the optical system.

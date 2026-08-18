@@ -65,7 +65,7 @@ OPTICSTUDIO_DEFAULT_SETTINGS: OpticStudioSettings = {
 class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
     """OpticStudio backend."""
 
-    def __new__(cls, *args, **kwargs) -> Self:  # noqa: ARG004
+    def __new__(cls, *args, **kwargs) -> Self:  # ruff: ignore[unused-static-method-argument]
         """Create a new instance of the OpticStudio backend.
 
         If an instance of the OpticStudio backend already exists, a warning is raised and the existing instance is returned.

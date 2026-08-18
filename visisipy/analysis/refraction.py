@@ -50,7 +50,7 @@ def refraction(
 
 @analysis
 def refraction(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     field_coordinate: FieldCoordinate | None = None,
     wavelength: float | None = None,
     sampling: SampleSize | str | int = 64,
@@ -58,7 +58,7 @@ def refraction(
     field_type: FieldType = "angle",
     *,
     use_higher_order_aberrations: bool = True,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[FourierPowerVectorRefraction, Any]:
     """Calculate the ocular refraction.

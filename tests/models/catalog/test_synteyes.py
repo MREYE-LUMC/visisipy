@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests.test_synteyes import sample_synteye  # noqa: F401
+from tests.test_synteyes import sample_synteye  # ruff: ignore[unused-import]
 from visisipy.models.catalog.synteyes import SyntEyesEyeModel, SyntEyesGeometry
 from visisipy.models.materials import EyeMaterials
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class TestSyntEyesGeometry:
-    def test_create_synteyes_geometry(self, sample_synteye: SyntEye3D):  # noqa: F811
+    def test_create_synteyes_geometry(self, sample_synteye: SyntEye3D):  # ruff: ignore[redefined-while-unused]
         geometry = SyntEyesGeometry(synteye=sample_synteye)
 
         assert geometry.cornea_front.thickness == sample_synteye.biometry.cornea_thickness
@@ -42,7 +42,7 @@ class TestSyntEyesGeometry:
 
 
 class TestSyntEyesEyeModel:
-    def test_create_synteyes_eye_model(self, sample_synteye: SyntEye3D):  # noqa: F811
+    def test_create_synteyes_eye_model(self, sample_synteye: SyntEye3D):  # ruff: ignore[redefined-while-unused]
         model = SyntEyesEyeModel(synteye=sample_synteye)
 
         assert isinstance(model.geometry, SyntEyesGeometry)

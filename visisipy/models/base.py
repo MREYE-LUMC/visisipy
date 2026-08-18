@@ -34,7 +34,7 @@ def _get_default_geometry() -> NavarroGeometry:
         The default eye geometry.
     """
     # Import here to avoid circular imports
-    from visisipy.models.catalog.navarro import NavarroGeometry  # noqa: PLC0415
+    from visisipy.models.catalog.navarro import NavarroGeometry  # ruff: ignore[import-outside-top-level]
 
     return NavarroGeometry()
 
@@ -48,7 +48,7 @@ def _get_default_materials() -> EyeMaterials:
         The default eye materials.
     """
     # Import here to avoid circular imports
-    from visisipy.models.materials import NavarroMaterials  # noqa: PLC0415
+    from visisipy.models.materials import NavarroMaterials  # ruff: ignore[import-outside-top-level]
 
     return NavarroMaterials()
 
@@ -183,8 +183,8 @@ class EyeModel(Generic[_Geometry, _Materials]):
         EyeModel
             An eye model instance with geometry and materials reconstructed from ``data``.
         """
-        from visisipy.models.geometry import EyeGeometry  # noqa: PLC0415
-        from visisipy.models.materials import EyeMaterials  # noqa: PLC0415
+        from visisipy.models.geometry import EyeGeometry  # ruff: ignore[import-outside-top-level]
+        from visisipy.models.materials import EyeMaterials  # ruff: ignore[import-outside-top-level]
 
         return cls(
             geometry=EyeGeometry.from_dict(data["geometry"]),
@@ -199,7 +199,7 @@ class EyeModel(Generic[_Geometry, _Materials]):
         str
             A JSON representation of the eye model.
         """
-        from visisipy import __version__  # noqa: PLC0415
+        from visisipy import __version__  # ruff: ignore[import-outside-top-level]
 
         data = self.to_dict()
         data["visisipy_version"] = __version__
@@ -311,7 +311,7 @@ class NoSurface(BaseSurface):
         """Surface is always `None` for this surface type."""
         return None
 
-    def build(self, *args, position: int, **kwargs) -> int:  # noqa: ARG002, PLR6301
+    def build(self, *args, position: int, **kwargs) -> int:  # ruff: ignore[unused-method-argument]
         """Advance the build index without adding a physical surface.
 
         Returns

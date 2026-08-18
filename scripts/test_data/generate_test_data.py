@@ -192,7 +192,7 @@ def main(args: argparse.Namespace) -> None:
             logger.info("Running {} with backend {}...", name, backend.type)
             try:
                 results = test.run(model=eye_model, backend=backend)
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:  # ruff: ignore[blind-except]
                 logger.error("Error running {} with backend {}: {}", name, backend.type, e)
                 continue
 

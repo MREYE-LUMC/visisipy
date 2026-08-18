@@ -68,17 +68,17 @@ class OptilandSurfaceProperty(Generic[PropertyType]):
             )
 
 
-class _built_only_property(property):  # noqa: N801
+class _built_only_property(property):  # ruff: ignore[invalid-class-name]
     """Property that can only be accessed after the surface has been built."""
 
     def __get__(self, obj: OptilandSurface, objtype=None):
-        if not obj._is_built:  # noqa: SLF001
+        if not obj._is_built:  # ruff: ignore[private-member-access]
             return None
 
         return super().__get__(obj, objtype)
 
     def __set__(self, obj: OptilandSurface, value) -> None:
-        if not obj._is_built:  # noqa: SLF001
+        if not obj._is_built:  # ruff: ignore[private-member-access]
             message = "Cannot set attribute of non-built surface."
             raise AttributeError(message)
 
@@ -131,7 +131,7 @@ class BaseOptilandSurface(BaseSurface, ABC):
 
     @property
     @abstractmethod
-    def _TYPE(self) -> str: ...  # noqa: N802
+    def _TYPE(self) -> str: ...  # ruff: ignore[invalid-function-name]
 
     @property
     def surface(self) -> optiland.surfaces.Surface | None:
@@ -659,7 +659,7 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
 @make_surface.register
 def _make_surface(
     surface: StandardSurface,
-    material: Union[str, MaterialModel],  # noqa: UP007
+    material: Union[str, MaterialModel],  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OptilandSurface:
     return OptilandSurface(
@@ -675,7 +675,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: Stop,
-    material: Union[str, MaterialModel] = "Air",  # noqa: UP007
+    material: Union[str, MaterialModel] = "Air",  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OptilandSurface:
     return OptilandSurface(
@@ -690,7 +690,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: BiconicSurface,
-    material: Union[str, MaterialModel] = "Air",  # noqa: UP007
+    material: Union[str, MaterialModel] = "Air",  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OptilandBiconicSurface:
     return OptilandBiconicSurface(
@@ -708,12 +708,12 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: ZernikeStandardSagSurface,
-    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OptilandZernikeStandardSagSurface:
     if surface.extrapolate:
         warn("Zernike surface extrapolation is not supported in Optiland.", UserWarning)
-    if surface.zernike_decenter_x != 0.0 or surface.zernike_decenter_y != 0.0:
+    if surface.zernike_decenter_x != 0.0 or surface.zernike_decenter_y != 0.0:  # ruff: ignore[float-equality-comparison]
         warn("Zernike surface decentering is not supported in Optiland.", UserWarning)
 
     return OptilandZernikeStandardSagSurface(
@@ -733,7 +733,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: ZernikeStandardPhaseSurface,
-    material: Union[str, MaterialModel] = "",  # noqa: UP007
+    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
     comment: str = "",
 ) -> OptilandSurface:
     raise NotImplementedError("ZernikeStandardPhaseSurface is not supported in Optiland.")
@@ -741,8 +741,8 @@ def _make_surface(
 
 @make_surface.register
 def _make_surface(
-    surface: NoSurface,  # noqa: ARG001
-    material: None = None,  # noqa: ARG001
-    comment: str = "",  # noqa: ARG001
+    surface: NoSurface,  # ruff: ignore[unused-function-argument]
+    material: None = None,  # ruff: ignore[unused-function-argument]
+    comment: str = "",  # ruff: ignore[unused-function-argument]
 ) -> OptilandNoSurface:
     return OptilandNoSurface()

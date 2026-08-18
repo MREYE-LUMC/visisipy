@@ -28,7 +28,7 @@ class ZOSPyLoader:
 
 class ZOSPyFinder:
     @staticmethod
-    def find_spec(fullname, path, target=None) -> ModuleSpec | None:  # noqa: ARG004
+    def find_spec(fullname, path, target=None) -> ModuleSpec | None:  # ruff: ignore[unused-static-method-argument]
         if fullname.split(".")[0] == "zospy":
             return ModuleSpec(name=fullname, loader=ZOSPyLoader(fullname))
 

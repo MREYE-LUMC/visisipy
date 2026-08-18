@@ -28,7 +28,7 @@ from visisipy.optiland.surfaces import (
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
-    import optiland.surfaces  # noqa: TC004
+    import optiland.surfaces  # ruff: ignore[runtime-import-in-type-checking-block]
     from optiland.optic import Optic
 
 

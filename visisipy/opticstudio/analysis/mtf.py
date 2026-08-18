@@ -31,7 +31,7 @@ FIELD_VALUE_REGEX = re.compile(r"-?\d+(?:[.,]\d+)?")
 def _parse_field_name(field_name: str) -> FieldCoordinate:
     values = FIELD_VALUE_REGEX.findall(field_name)
 
-    if not values or len(values) > 2:  # noqa: PLR2004
+    if not values or len(values) > 2:  # ruff: ignore[magic-value-comparison]
         msg = f"Could not parse field name: {field_name}"
         raise ValueError(msg)
 
@@ -44,7 +44,7 @@ def _parse_field_name(field_name: str) -> FieldCoordinate:
 
 
 def _build_mtf_result(fft_mtf_result: DataFrame) -> MTFResult:
-    if fft_mtf_result.columns.nlevels != 2:  # noqa: PLR2004
+    if fft_mtf_result.columns.nlevels != 2:  # ruff: ignore[magic-value-comparison]
         msg = "Expected a MultiIndex with 2 levels for the columns."
         raise ValueError(msg)
 

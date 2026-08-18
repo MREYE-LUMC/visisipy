@@ -33,7 +33,7 @@ __all__ = (
 
 
 @dataclass
-class Surface(ABC):  # noqa: B024
+class Surface(ABC):  # ruff: ignore[abstract-base-class-without-abstract-method]
     """Base class for optical surfaces.
 
     Attributes
@@ -293,7 +293,7 @@ class BiconicSurface(StandardSurface):
 
 @dataclass
 class BaseZernikeStandardSurface(StandardSurface, ABC):
-    def __new__(cls, *args, **kwargs):  # noqa: ARG004, RUF100
+    def __new__(cls, *args, **kwargs):  # ruff: ignore[unused-static-method-argument]
         if cls == BaseZernikeStandardSurface:
             raise TypeError("Cannot instantiate abstract class BaseZernikeStandardSurface.")
         return super().__new__(cls)
@@ -433,7 +433,7 @@ class EyeModelSurfaces(TypedDict, total=False):
     retina: StandardSurface
 
 
-class EyeGeometry(Generic[_CorneaFront_co, _CorneaBack_co, _Pupil_co, _LensFront_co, _LensBack_co, _Retina_co]):  # noqa: PLW1641
+class EyeGeometry(Generic[_CorneaFront_co, _CorneaBack_co, _Pupil_co, _LensFront_co, _LensBack_co, _Retina_co]):  # ruff: ignore[eq-without-hash]
     """Geometric parameters of an eye.
 
     Sizes are specified in mm. This class is mainly intended as a base class for more specific eye models.

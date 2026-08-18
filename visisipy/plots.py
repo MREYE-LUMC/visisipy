@@ -566,7 +566,10 @@ def _find_intersection(func1: Callable[[float], float], func2: Callable[[float],
         if ier == 1:  # Solution found
             return float(x_intersect[0])
     except ValueError as e:
-        warnings.warn(f"_find_intersection: Exception occurred while finding intersection: {e}", RuntimeWarning)
+        warnings.warn(
+            f"_find_intersection: Exception occurred while finding intersection: {e}",
+            RuntimeWarning,
+        )
     return None
 
 
@@ -644,7 +647,10 @@ def _plot_cornea(
         cornea_front_cutoff = cornea_back_cutoff = pupil_pos if cornea_intersection is None else cornea_intersection
     else:
         # Unusual configuration (concave front)
-        warnings.warn("Concave cornea front detected. Drawing to maximum thickness of 5 mm.", stacklevel=2)
+        warnings.warn(
+            "Concave cornea front detected. Drawing to maximum thickness of 5 mm.",
+            stacklevel=2,
+        )
         # Concave cornea curves backward, so extend 5mm backward from apex
         cornea_front_cutoff = cornea_front_pos - 5.0
 
@@ -809,7 +815,10 @@ def _plot_retina(
             cutoff = (lens_back_pos + retina_pos) / 2
     else:
         # Convex retina - draw to 5mm thickness and warn
-        warnings.warn("Convex retina detected. Drawing to maximum thickness of 5 mm.", stacklevel=2)
+        warnings.warn(
+            "Convex retina detected. Drawing to maximum thickness of 5 mm.",
+            stacklevel=2,
+        )
         # Convex retina curves forward, so extend 5mm forward from apex
         cutoff = retina_pos + 5.0 if retina_cutoff_position is None else retina_cutoff_position
 
@@ -1008,7 +1017,7 @@ def plot_eye(
     eye = Path.make_compound_path(cornea, pupil, lens, retina)
     translation = _backend_translation(geometry, backend)
 
-    if translation != 0.0:
+    if translation != 0.0:  # ruff: ignore[float-equality-comparison]
         eye = eye.transformed(Affine2D().translate(translation, 0))
 
     ax.add_patch(patches.PathPatch(eye, fill=None, **kwargs))

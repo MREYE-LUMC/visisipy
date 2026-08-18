@@ -53,7 +53,7 @@ def zernike_standard_coefficients(
 
 @analysis
 def zernike_standard_coefficients(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     field_coordinate: tuple[float, float] | None = None,
     wavelength: float | None = None,
     field_type: Literal["angle", "object_height"] = "angle",
@@ -61,7 +61,7 @@ def zernike_standard_coefficients(
     maximum_term: int = 45,
     unit: ZernikeUnit = "microns",
     *,
-    return_raw_result: bool = False,  # noqa: ARG001
+    return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[ZernikeCoefficients, Any]:
     """Calculate the Zernike standard coefficients at the retina surface.
@@ -151,7 +151,7 @@ def rms_hoa(
 
 @analysis
 def rms_hoa(
-    model: EyeModel | None = None,  # noqa: ARG001
+    model: EyeModel | None = None,  # ruff: ignore[unused-function-argument]
     min_order: int = 3,
     max_order: int = 8,
     field_coordinate: tuple[float, float] | None = None,
@@ -161,7 +161,7 @@ def rms_hoa(
     maximum_term: int | None = None,
     unit: ZernikeUnit = "microns",
     *,
-    return_raw_result: bool = True,  # noqa: ARG001
+    return_raw_result: bool = True,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
 ) -> tuple[float, Any]:
     r"""

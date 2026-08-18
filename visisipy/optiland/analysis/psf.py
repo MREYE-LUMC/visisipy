@@ -104,7 +104,7 @@ def fft_psf(
     )
 
     # psf._get_psf_units returns tuples of single-element or scalar arrays, depending on the computation backend.
-    psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # noqa: SLF001
+    psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # ruff: ignore[private-member-access]
     index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
@@ -164,7 +164,7 @@ def huygens_psf(
         image_size=int(image_sampling),
     )
 
-    psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # noqa: SLF001
+    psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # ruff: ignore[private-member-access]
     index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
     columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 

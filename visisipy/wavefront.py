@@ -9,7 +9,7 @@ __all__ = ("ZernikeCoefficients",)
 
 
 def _is_int_tuple(x: tuple[int, int]) -> bool:
-    return isinstance(x, tuple) and len(x) == 2 and all(isinstance(i, int) for i in x)  # noqa: PLR2004
+    return isinstance(x, tuple) and len(x) == 2 and all(isinstance(i, int) for i in x)  # ruff: ignore[magic-value-comparison]
 
 
 def _validate_coefficient(key: int | tuple[int, int]) -> int:

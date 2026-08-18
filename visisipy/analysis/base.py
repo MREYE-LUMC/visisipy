@@ -125,7 +125,7 @@ def analysis(function: Callable[..., T1 | tuple[T1, T2]]) -> Callable:
     -------
     Callable
         The analysis function.
-    """  # noqa: D401
+    """  # ruff: ignore[non-imperative-mood]
     _validate_analysis_signature(function)
 
     @wraps(function)

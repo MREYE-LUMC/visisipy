@@ -47,14 +47,12 @@ class FFTMTFTest(BaseAnalysisTest):
         )
 
         # Convert the result to a dataframe for easier comparison and loading.
-        return pd.DataFrame(
-            {
-                "frequency_tangential": result[self.coordinate].tangential.index,
-                "mtf_tangential": result[self.coordinate].tangential.values,
-                "frequency_sagittal": result[self.coordinate].sagittal.index,
-                "mtf_sagittal": result[self.coordinate].sagittal.values,
-            }
-        )
+        return pd.DataFrame({
+            "frequency_tangential": result[self.coordinate].tangential.index,
+            "mtf_tangential": result[self.coordinate].tangential.values,
+            "frequency_sagittal": result[self.coordinate].sagittal.index,
+            "mtf_sagittal": result[self.coordinate].sagittal.values,
+        })
 
 
 class FFTPSFTest(BaseAnalysisTest):
