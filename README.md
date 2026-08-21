@@ -1,5 +1,7 @@
 # Visisipy: accessible vision simulations in Python
 
+
+[![Made by the MReye research group](https://mreye.nl/media/badge.svg)](https://mreye.nl/open-science/software/visisipy)
 [![PyPI - Version](https://img.shields.io/pypi/v/visisipy)](https://pypi.org/project/visisipy/)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/visisipy)](https://anaconda.org/conda-forge/visisipy)
 ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2FMREYE-LUMC%2Fvisisipy%2Fmain%2Fpyproject.toml)
