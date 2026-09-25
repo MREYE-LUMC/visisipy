@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from warnings import warn
 
 from visisipy.analysis.refraction import zernike_data_to_refraction
+from visisipy.optiland.analysis.helpers import primary_wavelength, set_wavelength
 from visisipy.optiland.analysis.zernike_coefficients import (
     zernike_standard_coefficients,
 )
@@ -77,28 +78,28 @@ def refraction(
         old_aperture = backend.optic.aperture
         backend.update_pupil(pupil_diameter)
 
-    zernike_coefficients, zernike_opd = zernike_standard_coefficients(
-        backend=backend,
-        field_coordinate=field_coordinate,
-        wavelength=wavelength,
-        field_type=field_type,
-        sampling=SampleSize(sampling),
-        unit="waves",
-    )
+    wavelength = set_wavelength(backend, wavelength)
 
-    exit_pupil_semi_diameter = float(backend.optic.paraxial.XPD() / 2)
+    with primary_wavelength(backend, wavelength):
+        zernike_coefficients, zernike_opd = zernike_standard_coefficients(
+            backend=backend,
+            field_coordinate=field_coordinate,
+            wavelength=wavelength,
+            field_type=field_type,
+            sampling=SampleSize(sampling),
+            unit="waves",
+        )
 
-    if old_aperture is not None:
-        backend.update_pupil(old_aperture.value)
+        exit_pupil_semi_diameter = float(backend.optic.paraxial.XPD() / 2)
 
-    if wavelength is None:
-        wavelength = backend.get_wavelengths()[0]
+        if old_aperture is not None:
+            backend.update_pupil(old_aperture.value)
 
-    fourier_refraction = zernike_data_to_refraction(
-        zernike_coefficients,
-        exit_pupil_semi_diameter=exit_pupil_semi_diameter,
-        wavelength=wavelength,
-        use_higher_order_aberrations=use_higher_order_aberrations,
-    )
+        fourier_refraction = zernike_data_to_refraction(
+            zernike_coefficients,
+            exit_pupil_semi_diameter=exit_pupil_semi_diameter,
+            wavelength=wavelength,
+            use_higher_order_aberrations=use_higher_order_aberrations,
+        )
 
     return fourier_refraction, zernike_opd

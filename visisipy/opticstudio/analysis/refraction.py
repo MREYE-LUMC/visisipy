@@ -8,14 +8,16 @@ from warnings import warn
 import zospy as zp
 
 from visisipy.analysis.refraction import zernike_data_to_refraction
-from visisipy.opticstudio.analysis.helpers import set_wavelength
+from visisipy.opticstudio.analysis.helpers import primary_wavelength, set_wavelength
 from visisipy.opticstudio.analysis.zernike_coefficients import (
     zernike_standard_coefficients,
 )
 from visisipy.types import SampleSize
 
 if TYPE_CHECKING:
-    from zospy.analyses.wavefront.zernike_standard_coefficients import ZernikeStandardCoefficientsResult
+    from zospy.analyses.wavefront.zernike_standard_coefficients import (
+        ZernikeStandardCoefficientsResult,
+    )
 
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.refraction import FourierPowerVectorRefraction
@@ -66,8 +68,11 @@ def refraction(
     ZernikeStandardCoefficientsResult
         The raw ZOSPy result returned by the Zernike standard coefficients analysis.
     """
-    # Get the wavelength from OpticStudio if not specified
-    wavelength = set_wavelength(backend, wavelength)
+    wavelength_number = set_wavelength(backend, wavelength)
+
+    if wavelength is None:
+        # Get the wavelength from OpticStudio if not specified.
+        wavelength = backend.get_wavelengths()[wavelength_number - 1]
 
     # Temporarily change the pupil diameter
     old_pupil_value = None
@@ -83,19 +88,21 @@ def refraction(
 
         backend.update_pupil(pupil_diameter)
 
-    pupil_data = zp.functions.lde.get_pupil(backend.oss)
-    zernike_coefficients, raw_result = zernike_standard_coefficients(
-        backend,
-        field_coordinate=field_coordinate,
-        wavelength=wavelength,
-        field_type=field_type,
-        sampling=SampleSize(sampling),
-        unit="waves",
-    )
+    with primary_wavelength(backend, wavelength):
+        pupil_data = zp.functions.lde.get_pupil(backend.oss)
 
-    # Restore the original pupil diameter
-    if old_pupil_value is not None:
-        backend.update_pupil(old_pupil_value)
+        zernike_coefficients, raw_result = zernike_standard_coefficients(
+            backend,
+            field_coordinate=field_coordinate,
+            wavelength=wavelength,
+            field_type=field_type,
+            sampling=SampleSize(sampling),
+            unit="waves",
+        )
+
+        # Restore the original pupil diameter
+        if old_pupil_value is not None:
+            backend.update_pupil(old_pupil_value)
 
     return zernike_data_to_refraction(
         zernike_coefficients,

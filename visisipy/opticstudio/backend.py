@@ -627,6 +627,28 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         return None
 
+    def set_primary_wavelength(self, wavelength: float) -> None:
+        """Set the primary wavelength for the optical system.
+
+        The wavelength must be present in the optical system. If it is not, a ValueError is raised.
+
+        Parameters
+        ----------
+        wavelength : float
+            The wavelength to set as the primary wavelength.
+
+        Raises
+        ------
+        ValueError
+            If the specified wavelength is not present in the optical system.
+        """
+        wavelength_number = self.get_wavelength_number(wavelength)
+
+        if wavelength_number is None:
+            raise ValueError(f"The specified wavelength {wavelength} does not exist in the system.")
+
+        self.oss.SystemData.Wavelengths.GetWavelength(wavelength_number).MakePrimary()
+
     @staticmethod
     def set_ray_aiming(oss: OpticStudioSystem, ray_aiming: OpticStudioRayAimingType) -> None:
         """Set the OpticStudio ray aiming mode.
