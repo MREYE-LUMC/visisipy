@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from contextlib import contextmanager
+from typing import TYPE_CHECKING, Any
 from warnings import warn
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from visisipy.optiland.backend import OptilandBackend
     from visisipy.types import FieldType
 
@@ -61,14 +64,20 @@ def set_field(
         The normalized field coordinate of the field that was set.
     """
     if field_type != (current_field_type := backend.get_field_type()):
-        warn(f"Changing field type from {current_field_type} to {field_type}.", stacklevel=2)
+        warn(
+            f"Changing field type from {current_field_type} to {field_type}.",
+            stacklevel=2,
+        )
         backend.set_field_type(field_type)
 
     if field_coordinate is not None:
         try:
             field_index = backend.get_fields().index(field_coordinate)
         except ValueError:
-            warn(f"Field coordinate {field_coordinate} not found. Adding it to the system.", stacklevel=2)
+            warn(
+                f"Field coordinate {field_coordinate} not found. Adding it to the system.",
+                stacklevel=2,
+            )
             field_index = backend.add_field(field_coordinate)
     else:
         field_index = 0
@@ -76,3 +85,29 @@ def set_field(
     field_x, field_y = backend.optic.fields.get_field_coords()[field_index]
 
     return float(field_x), float(field_y)
+
+
+@contextmanager
+def primary_wavelength(backend: OptilandBackend, wavelength: float) -> Generator[None, Any, None]:
+    """Context manager to temporarily set a primary wavelength in the Optiland backend.
+
+    Parameters
+    ----------
+    backend : OptilandBackend
+        Reference to the Optiland backend.
+    wavelength : float
+        The wavelength to set as primary, in μm.
+
+    Yields
+    ------
+    None
+        The context manager does not yield any value.
+    """
+    original_primary_wavelength = backend.optic.wavelengths.primary_wavelength.value
+
+    backend.set_primary_wavelength(wavelength)
+
+    try:
+        yield
+    finally:
+        backend.set_primary_wavelength(original_primary_wavelength)

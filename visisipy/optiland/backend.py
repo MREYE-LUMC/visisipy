@@ -505,7 +505,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         list[float]
             List of wavelengths.
         """
-        return [w.value for w in self.optic.wavelengths]
+        return self.optic.wavelengths.get_wavelengths()
 
     def set_wavelengths(self, wavelengths: Sequence[float]):
         """Set the wavelengths for the optical system.
@@ -547,6 +547,27 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         """
         self.optic.wavelengths.add(wavelength)
         return self.optic.wavelengths.num_wavelengths - 1
+
+    def set_primary_wavelength(self, wavelength: float) -> None:
+        """Set the primary wavelength for the optical system.
+
+        The wavelength must already exist in the system. If it does not, a ValueError is raised.
+
+        Parameters
+        ----------
+        wavelength : float
+            The wavelength to be set as primary.
+
+        Raises
+        ------
+        ValueError
+            If the specified wavelength does not exist in the system.
+        """
+        if wavelength not in self.get_wavelengths():
+            raise ValueError(f"The specified wavelength {wavelength} does not exist in the system.")
+
+        for wl in self.optic.wavelengths.wavelengths:
+            wl.is_primary = wl.value == wavelength
 
     def iter_fields(self) -> Generator[tuple[int, tuple[float, float]], Any, None]:
         """Iterate over the fields in the optical system.

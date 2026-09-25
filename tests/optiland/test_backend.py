@@ -54,7 +54,13 @@ class TestOptilandBackend:
         assert optiland_backend.optic.surfaces.num_surfaces == 7
 
     @pytest.mark.parametrize(
-        "aperture_type", ["entrance_pupil_diameter", "float_by_stop_size", "image_f_number", "object_numeric_aperture"]
+        "aperture_type",
+        [
+            "entrance_pupil_diameter",
+            "float_by_stop_size",
+            "image_f_number",
+            "object_numeric_aperture",
+        ],
     )
     def test_build_model_updates_aperture_value(self, optiland_backend: OptilandBackend, eye_model, aperture_type):
         # Ensure the aperture value is different from the eye model pupil diameter
@@ -64,7 +70,10 @@ class TestOptilandBackend:
 
         if aperture_type == "float_by_stop_size":
             assert optiland_backend.get_setting("aperture_value") == eye_model.geometry.pupil.semi_diameter * 2
-            assert optiland_backend.get_aperture() == ("float_by_stop_size", eye_model.geometry.pupil.semi_diameter * 2)
+            assert optiland_backend.get_aperture() == (
+                "float_by_stop_size",
+                eye_model.geometry.pupil.semi_diameter * 2,
+            )
         else:
             assert optiland_backend.get_setting("aperture_value") == aperture_value
             assert optiland_backend.get_aperture() == (aperture_type, aperture_value)
@@ -95,10 +104,16 @@ class TestOptilandBackend:
         "filename,expectation",
         [
             ("navarro_eye.json", does_not_raise()),
-            ("nonexistent.json", pytest.raises(FileNotFoundError, match="The specified file does not exist:")),
+            (
+                "nonexistent.json",
+                pytest.raises(FileNotFoundError, match="The specified file does not exist:"),
+            ),
             (
                 "navarro_eye.zmx",
-                pytest.raises(ValueError, match=re.escape("File has extension .zmx, but only .json is supported.")),
+                pytest.raises(
+                    ValueError,
+                    match=re.escape("File has extension .zmx, but only .json is supported."),
+                ),
             ),
         ],
     )
@@ -160,7 +175,10 @@ class TestOptilandBackend:
             for coordinate, field in zip(coordinates, optiland_backend.optic.fields.fields, strict=False):
                 assert coordinate == (field.x, field.y)
 
-            assert isinstance(optiland_backend.optic.fields.field_definition, OPTILAND_FIELD_TYPES[field_type])
+            assert isinstance(
+                optiland_backend.optic.fields.field_definition,
+                OPTILAND_FIELD_TYPES[field_type],
+            )
 
     def test_get_fields(self, optiland_backend: OptilandBackend):
         coordinates = [(10, 10), (20, 20)]
@@ -195,7 +213,10 @@ class TestOptilandBackend:
             (
                 "angle",
                 "invalid",
-                pytest.raises(ValueError, match="field_type must be either 'angle' or 'object_height'"),
+                pytest.raises(
+                    ValueError,
+                    match="field_type must be either 'angle' or 'object_height'",
+                ),
             ),
         ],
     )
@@ -205,7 +226,10 @@ class TestOptilandBackend:
         with expectation:
             optiland_backend.set_field_type(new_type)
 
-            assert isinstance(optiland_backend.optic.fields.field_definition, OPTILAND_FIELD_TYPES[new_type])
+            assert isinstance(
+                optiland_backend.optic.fields.field_definition,
+                OPTILAND_FIELD_TYPES[new_type],
+            )
 
     @pytest.mark.parametrize(
         "wavelengths,expectation",
@@ -213,7 +237,10 @@ class TestOptilandBackend:
             ([0.543], does_not_raise()),
             ([0.543, 0.650], does_not_raise()),
             ([0.543, 0.650, 0.450], does_not_raise()),
-            ([], pytest.raises(ValueError, match="At least one wavelength must be provided")),
+            (
+                [],
+                pytest.raises(ValueError, match="At least one wavelength must be provided"),
+            ),
         ],
     )
     def test_set_wavelengths(self, wavelengths, expectation, optiland_backend: OptilandBackend):
@@ -222,7 +249,12 @@ class TestOptilandBackend:
 
             assert optiland_backend.optic.wavelengths.num_wavelengths == len(wavelengths)
             assert all(
-                w.value == e for w, e in zip(optiland_backend.optic.wavelengths.wavelengths, wavelengths, strict=False)
+                w.value == e
+                for w, e in zip(
+                    optiland_backend.optic.wavelengths.wavelengths,
+                    wavelengths,
+                    strict=False,
+                )
             )
 
     def test_get_wavelengths(self, optiland_backend: OptilandBackend):
@@ -240,7 +272,25 @@ class TestOptilandBackend:
         existing_wavelengths = optiland_backend.get_wavelengths()
 
         assert optiland_backend.add_wavelength(new_wavelength) == len(existing_wavelengths)
-        assert optiland_backend.get_wavelengths() == [*existing_wavelengths, new_wavelength]
+        assert optiland_backend.get_wavelengths() == [
+            *existing_wavelengths,
+            new_wavelength,
+        ]
+
+    @pytest.mark.parametrize(
+        "wavelength,expectation",
+        [
+            (0.6328, does_not_raise()),
+            (0.430, pytest.raises(ValueError, match=r"The specified wavelength 0\.43 does not exist in the system")),
+        ],
+    )
+    def test_set_primary_wavelength(self, optiland_backend: OptilandBackend, wavelength, expectation):
+        optiland_backend.set_wavelengths([0.543, 0.6328])
+        assert optiland_backend.optic.wavelengths.primary_wavelength.value == 0.543
+
+        with expectation:
+            optiland_backend.set_primary_wavelength(wavelength)
+            assert optiland_backend.optic.wavelengths.primary_wavelength.value == wavelength
 
 
 class TestOptilandBackendSettings:
@@ -281,7 +331,10 @@ class TestOptilandBackendSettings:
         optiland_backend.update_settings(field_type=field_type, fields=fields)
 
         self._assert_fields_equal(optiland_backend.optic.fields, fields)
-        assert isinstance(optiland_backend.optic.fields.field_definition, OPTILAND_FIELD_TYPES[field_type])
+        assert isinstance(
+            optiland_backend.optic.fields.field_definition,
+            OPTILAND_FIELD_TYPES[field_type],
+        )
 
     @pytest.mark.parametrize(
         "wavelengths",
@@ -291,7 +344,12 @@ class TestOptilandBackendSettings:
         optiland_backend.update_settings(wavelengths=wavelengths)
 
         assert all(
-            w.value == e for w, e in zip(optiland_backend.optic.wavelengths.wavelengths, wavelengths, strict=False)
+            w.value == e
+            for w, e in zip(
+                optiland_backend.optic.wavelengths.wavelengths,
+                wavelengths,
+                strict=False,
+            )
         )
 
     @pytest.mark.parametrize(
@@ -339,19 +397,35 @@ class TestOptilandBackendSettings:
                 "invalid",
                 None,
                 None,
-                pytest.raises(ValueError, match="ray_aiming must be one of 'paraxial', 'robust', or 'iterative'"),
+                pytest.raises(
+                    ValueError,
+                    match="ray_aiming must be one of 'paraxial', 'robust', or 'iterative'",
+                ),
             ),
             (
                 "iterative",
                 -1,
                 1e-5,
-                pytest.raises(ValueError, match="ray_aiming_max_iterations must be a positive integer"),
+                pytest.raises(
+                    ValueError,
+                    match="ray_aiming_max_iterations must be a positive integer",
+                ),
             ),
-            ("iterative", 100, -1e-5, pytest.raises(ValueError, match="ray_aiming_tolerance must be a positive float")),
+            (
+                "iterative",
+                100,
+                -1e-5,
+                pytest.raises(ValueError, match="ray_aiming_tolerance must be a positive float"),
+            ),
         ],
     )
     def test_ray_aiming(
-        self, ray_aiming_mode, max_iterations, tolerance, expectation, optiland_backend: OptilandBackend
+        self,
+        ray_aiming_mode,
+        max_iterations,
+        tolerance,
+        expectation,
+        optiland_backend: OptilandBackend,
     ):
         args = build_args(
             ray_aiming=ray_aiming_mode,
@@ -380,7 +454,10 @@ class TestOptilandBackendSettings:
                 "cpu",
                 "float32",
                 "none",
-                pytest.raises(ValueError, match="computation_backend must be either 'numpy' or 'torch'"),
+                pytest.raises(
+                    ValueError,
+                    match="computation_backend must be either 'numpy' or 'torch'",
+                ),
             ),
             (
                 "torch",
@@ -394,7 +471,10 @@ class TestOptilandBackendSettings:
                 "cpu",
                 "invalid_precision",
                 True,
-                pytest.raises(ValueError, match="torch_precision must be either 'float32' or 'float64'"),
+                pytest.raises(
+                    ValueError,
+                    match="torch_precision must be either 'float32' or 'float64'",
+                ),
             ),
         ],
     )
@@ -417,7 +497,12 @@ class TestOptilandBackendSettings:
             torch_device=torch_device,
             torch_precision=torch_precision,
             torch_use_grad_mode=torch_gradient_mode,
-            non_null_defaults={"computation_backend", "torch_device", "torch_precision", "torch_use_grad_mode"},
+            non_null_defaults={
+                "computation_backend",
+                "torch_device",
+                "torch_precision",
+                "torch_use_grad_mode",
+            },
         )
 
         with expectation:
@@ -454,7 +539,10 @@ class TestOptilandBackendSettings:
             ),
             (
                 12345,
-                pytest.raises(TypeError, match="name must be a string, dictionary, or a sequence of strings"),
+                pytest.raises(
+                    TypeError,
+                    match="name must be a string, dictionary, or a sequence of strings",
+                ),
             ),
         ],
     )

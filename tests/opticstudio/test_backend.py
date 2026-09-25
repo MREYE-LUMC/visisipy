@@ -10,7 +10,10 @@ import pytest
 import zospy as zp
 
 from visisipy import EyeModel
-from visisipy.opticstudio.backend import OPTICSTUDIO_DEFAULT_SETTINGS, OpticStudioBackend
+from visisipy.opticstudio.backend import (
+    OPTICSTUDIO_DEFAULT_SETTINGS,
+    OpticStudioBackend,
+)
 
 if TYPE_CHECKING:
     from pytest_mock import MockerFixture
@@ -71,7 +74,13 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 7
 
     @pytest.mark.parametrize(
-        "aperture_type", ["entrance_pupil_diameter", "float_by_stop_size", "image_f_number", "object_numeric_aperture"]
+        "aperture_type",
+        [
+            "entrance_pupil_diameter",
+            "float_by_stop_size",
+            "image_f_number",
+            "object_numeric_aperture",
+        ],
     )
     def test_build_model_updates_aperture_value(self, opticstudio_backend: OpticStudioBackend, aperture_type):
         model = EyeModel()
@@ -85,7 +94,10 @@ class TestOpticStudioBackend:
             # For float by stop size, the value is interpreted as the semi-diameter
             assert opticstudio_backend.get_setting("aperture_value") == model.geometry.pupil.semi_diameter * 2
             assert opticstudio_backend.oss.LDE.GetSurfaceAt(3).SemiDiameter == model.geometry.pupil.semi_diameter
-            assert opticstudio_backend.get_aperture() == ("float_by_stop_size", model.geometry.pupil.semi_diameter * 2)
+            assert opticstudio_backend.get_aperture() == (
+                "float_by_stop_size",
+                model.geometry.pupil.semi_diameter * 2,
+            )
         else:
             # For other aperture types, the value is interpreted as the aperture value
             assert opticstudio_backend.get_setting("aperture_value") == aperture_value
@@ -129,11 +141,15 @@ class TestOpticStudioBackend:
         "filename,expectation",
         [
             ("navarro_eye.zmx", does_not_raise()),
-            ("nonexistent.zmx", pytest.raises(FileNotFoundError, match="The specified file does not exist:")),
+            (
+                "nonexistent.zmx",
+                pytest.raises(FileNotFoundError, match="The specified file does not exist:"),
+            ),
             (
                 "navarro_eye.json",
                 pytest.raises(
-                    ValueError, match=re.escape("File has extension .json, but only .zmx and .zos are supported.")
+                    ValueError,
+                    match=re.escape("File has extension .json, but only .zmx and .zos are supported."),
                 ),
             ),
         ],
@@ -218,7 +234,12 @@ class TestOpticStudioBackend:
         ],
     )
     def test_set_fields(
-        self, opticstudio_backend: OpticStudioBackend, coordinates, field_type, field_constant, expectation
+        self,
+        opticstudio_backend: OpticStudioBackend,
+        coordinates,
+        field_type,
+        field_constant,
+        expectation,
     ):
         with expectation:
             opticstudio_backend.set_fields(coordinates, field_type)
@@ -284,7 +305,10 @@ class TestOpticStudioBackend:
             (
                 "angle",
                 "invalid",
-                pytest.raises(ValueError, match="field_type must be either 'angle' or 'object_height'"),
+                pytest.raises(
+                    ValueError,
+                    match="field_type must be either 'angle' or 'object_height'",
+                ),
             ),
         ],
     )
@@ -306,7 +330,10 @@ class TestOpticStudioBackend:
             ([0.543], does_not_raise()),
             ([0.543, 0.650], does_not_raise()),
             ([0.450, 0.543, 0.650], does_not_raise()),
-            ([], pytest.raises(ValueError, match="At least one wavelength must be provided")),
+            (
+                [],
+                pytest.raises(ValueError, match="At least one wavelength must be provided"),
+            ),
         ],
     )
     def test_set_wavelengths(self, wavelengths, expectation, opticstudio_backend: OpticStudioBackend):
@@ -322,7 +349,10 @@ class TestOpticStudioBackend:
         existing_wavelengths = opticstudio_backend.get_wavelengths()
 
         assert opticstudio_backend.add_wavelength(new_wavelength) == len(existing_wavelengths) + 1
-        assert opticstudio_backend.get_wavelengths() == [*existing_wavelengths, new_wavelength]
+        assert opticstudio_backend.get_wavelengths() == [
+            *existing_wavelengths,
+            new_wavelength,
+        ]
 
     def test_get_wavelengths(self, opticstudio_backend: OpticStudioBackend):
         wavelengths = [0.543, 0.650]
@@ -341,6 +371,34 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.get_wavelength_number(0.543) == 1
         assert opticstudio_backend.get_wavelength_number(0.650) == 2
         assert opticstudio_backend.get_wavelength_number(1.234) is None
+
+    def _get_primary_wavelength(self, opticstudio_backend: OpticStudioBackend) -> float:
+        for i in range(1, opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths + 1):
+            if (wavelength := opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(i)).IsPrimary:
+                return wavelength.Wavelength
+
+        raise ValueError("No primary wavelength found.")
+
+    @pytest.mark.parametrize(
+        "wavelength,expectation",
+        [
+            (0.6328, does_not_raise()),
+            (
+                0.430,
+                pytest.raises(
+                    ValueError,
+                    match=r"The specified wavelength 0\.43 does not exist in the system",
+                ),
+            ),
+        ],
+    )
+    def test_set_primary_wavelength(self, opticstudio_backend: OpticStudioBackend, wavelength: float, expectation):
+        opticstudio_backend.set_wavelengths([0.543, 0.6328])
+        assert self._get_primary_wavelength(opticstudio_backend) == 0.543
+
+        with expectation:
+            opticstudio_backend.set_primary_wavelength(wavelength)
+            assert self._get_primary_wavelength(opticstudio_backend) == wavelength
 
     @pytest.mark.parametrize(
         "aperture_type,new_aperture_value",
@@ -393,7 +451,13 @@ class TestOpticStudioBackendSettings:
             ("object_height", [(0, 0), (0, 10), (-10, 0), (10, -10)], "ObjectHeight"),
         ],
     )
-    def test_field(self, field_type, fields, expected_field_type, opticstudio_backend: OpticStudioBackend):
+    def test_field(
+        self,
+        field_type,
+        fields,
+        expected_field_type,
+        opticstudio_backend: OpticStudioBackend,
+    ):
         opticstudio_backend.update_settings(field_type=field_type, fields=fields)
 
         assert opticstudio_backend.oss.SystemData.Fields.NumberOfFields == len(fields)
@@ -426,7 +490,11 @@ class TestOpticStudioBackendSettings:
         ],
     )
     def test_aperture(
-        self, aperture_type, aperture_value, expected_aperture_type, opticstudio_backend: OpticStudioBackend
+        self,
+        aperture_type,
+        aperture_value,
+        expected_aperture_type,
+        opticstudio_backend: OpticStudioBackend,
     ):
         opticstudio_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)
 
@@ -474,7 +542,10 @@ class TestOpticStudioBackendSettings:
             ),
             (
                 12345,
-                pytest.raises(TypeError, match="name must be a string, dictionary, or a sequence of strings"),
+                pytest.raises(
+                    TypeError,
+                    match="name must be a string, dictionary, or a sequence of strings",
+                ),
             ),
         ],
     )
@@ -484,7 +555,12 @@ class TestOpticStudioBackendSettings:
 
     def test_init_calls_validate_settings(self, mocker: MockerFixture):
         patch_validate_settings = mocker.patch("visisipy.opticstudio.backend.OpticStudioBackend.validate_settings")
-        mocker.patch.multiple(OpticStudioBackend, _instances={}, connect=mocker.Mock(), new_model=mocker.Mock())
+        mocker.patch.multiple(
+            OpticStudioBackend,
+            _instances={},
+            connect=mocker.Mock(),
+            new_model=mocker.Mock(),
+        )
 
         OpticStudioBackend(fields=[])
 
@@ -504,7 +580,11 @@ class TestOpticStudioBackendSettings:
         ],
     )
     def test_validate_settings_is_called(
-        self, method, kwargs, mocker: MockerFixture, opticstudio_backend: OpticStudioBackend
+        self,
+        method,
+        kwargs,
+        mocker: MockerFixture,
+        opticstudio_backend: OpticStudioBackend,
     ):
         patch = mocker.patch.object(opticstudio_backend, "validate_settings")
 
