@@ -68,8 +68,11 @@ def refraction(
     ZernikeStandardCoefficientsResult
         The raw ZOSPy result returned by the Zernike standard coefficients analysis.
     """
-    # Get the wavelength from OpticStudio if not specified
-    wavelength = set_wavelength(backend, wavelength)
+    wavelength_number = set_wavelength(backend, wavelength)
+
+    if wavelength is None:
+        # Get the wavelength from OpticStudio if not specified.
+        wavelength = backend.get_wavelengths()[wavelength_number - 1]
 
     # Temporarily change the pupil diameter
     old_pupil_value = None
@@ -87,6 +90,7 @@ def refraction(
 
     with primary_wavelength(backend, wavelength):
         pupil_data = zp.functions.lde.get_pupil(backend.oss)
+
         zernike_coefficients, raw_result = zernike_standard_coefficients(
             backend,
             field_coordinate=field_coordinate,

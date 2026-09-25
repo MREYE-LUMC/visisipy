@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from warnings import warn
 
 from visisipy.analysis.refraction import zernike_data_to_refraction
-from visisipy.optiland.analysis.helpers import primary_wavelength
+from visisipy.optiland.analysis.helpers import primary_wavelength, set_wavelength
 from visisipy.optiland.analysis.zernike_coefficients import (
     zernike_standard_coefficients,
 )
@@ -78,8 +78,7 @@ def refraction(
         old_aperture = backend.optic.aperture
         backend.update_pupil(pupil_diameter)
 
-    if wavelength is None:
-        wavelength = backend.get_wavelengths()[0]
+    wavelength = set_wavelength(backend, wavelength)
 
     with primary_wavelength(backend, wavelength):
         zernike_coefficients, zernike_opd = zernike_standard_coefficients(
