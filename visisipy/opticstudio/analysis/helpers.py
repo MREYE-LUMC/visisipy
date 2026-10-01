@@ -9,8 +9,6 @@ from warnings import warn
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from zospy.zpcore import OpticStudioSystem
-
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.types import FieldType
 
@@ -84,34 +82,14 @@ def set_field(
     return field_number
 
 
-def _get_primary_wavelength(oss: OpticStudioSystem) -> float:
-    """Get the primary wavelength from the OpticStudio backend.
-
-    Parameters
-    ----------
-    oss : OpticStudioSystem
-        Reference to the OpticStudio system.
-
-    Returns
-    -------
-    float
-        The primary wavelength in μm.
-    """
-    for wavelength_number in range(1, oss.SystemData.Wavelengths.NumberOfWavelengths + 1):
-        if (wl := oss.SystemData.Wavelengths.GetWavelength(wavelength_number)).IsPrimary:
-            return wl.Wavelength
-
-    raise RuntimeError("No primary wavelength found in the system.")
-
-
 @contextmanager
 def primary_wavelength(backend: OpticStudioBackend, wavelength: float) -> Generator[None, Any, None]:
-    """Context manager to temporarily set a primary wavelength in the Optiland backend.
+    """Context manager to temporarily set a primary wavelength in the OpticStudio backend.
 
     Parameters
     ----------
-    backend : OptilandBackend
-        Reference to the Optiland backend.
+    backend : OpticStudioBackend
+        Reference to the OpticStudio backend.
     wavelength : float
         The wavelength to set as primary, in μm.
 
@@ -120,7 +98,7 @@ def primary_wavelength(backend: OpticStudioBackend, wavelength: float) -> Genera
     None
         The context manager does not yield any value.
     """
-    original_primary_wavelength = _get_primary_wavelength(backend.oss)
+    original_primary_wavelength = backend.get_primary_wavelength()
 
     backend.set_primary_wavelength(wavelength)
 

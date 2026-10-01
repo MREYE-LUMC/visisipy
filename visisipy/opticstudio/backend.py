@@ -627,6 +627,25 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
 
         return None
 
+    def get_primary_wavelength(self) -> float:
+        """Get the primary wavelength.
+
+        Returns
+        -------
+        float
+            The primary wavelength in μm.
+
+        Raises
+        ------
+        ValueError
+            If no primary wavelength is set in the optical system.
+        """
+        for wavelength_number in range(1, self.oss.SystemData.Wavelengths.NumberOfWavelengths + 1):
+            if (wl := self.oss.SystemData.Wavelengths.GetWavelength(wavelength_number)).IsPrimary:
+                return wl.Wavelength
+
+        raise RuntimeError("No primary wavelength found in the system.")
+
     def set_primary_wavelength(self, wavelength: float) -> None:
         """Set the primary wavelength for the optical system.
 

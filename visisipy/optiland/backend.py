@@ -548,6 +548,16 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         self.optic.wavelengths.add(wavelength)
         return self.optic.wavelengths.num_wavelengths - 1
 
+    def get_primary_wavelength(self) -> float:
+        """Get the primary wavelength from the optical system.
+
+        Returns
+        -------
+        float
+            The primary wavelength.
+        """
+        return self.optic.wavelengths.primary_wavelength.value
+
     def set_primary_wavelength(self, wavelength: float) -> None:
         """Set the primary wavelength for the optical system.
 

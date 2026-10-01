@@ -277,6 +277,17 @@ class TestOptilandBackend:
             new_wavelength,
         ]
 
+    def test_get_primary_wavelength(self, optiland_backend: OptilandBackend):
+        wavelengths = [0.543, 0.650]
+        optiland_backend.set_wavelengths(wavelengths)
+
+        assert optiland_backend.get_primary_wavelength() == 0.543
+
+        optiland_backend.optic.wavelengths[0].is_primary = False
+        optiland_backend.optic.wavelengths[1].is_primary = True
+
+        assert optiland_backend.get_primary_wavelength() == 0.650
+
     @pytest.mark.parametrize(
         "wavelength,expectation",
         [

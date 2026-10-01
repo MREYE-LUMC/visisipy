@@ -372,12 +372,16 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.get_wavelength_number(0.650) == 2
         assert opticstudio_backend.get_wavelength_number(1.234) is None
 
-    def _get_primary_wavelength(self, opticstudio_backend: OpticStudioBackend) -> float:
-        for i in range(1, opticstudio_backend.oss.SystemData.Wavelengths.NumberOfWavelengths + 1):
-            if (wavelength := opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(i)).IsPrimary:
-                return wavelength.Wavelength
+    def test_get_primary_wavelength(self, opticstudio_backend: OpticStudioBackend):
+        wavelengths = [0.543, 0.650]
+        opticstudio_backend.set_wavelengths(wavelengths)
 
-        raise ValueError("No primary wavelength found.")
+        assert opticstudio_backend.get_primary_wavelength() == 0.543
+
+        # Set the primary wavelength to the second wavelength
+        opticstudio_backend.oss.SystemData.Wavelengths.GetWavelength(2).MakePrimary()
+
+        assert opticstudio_backend.get_primary_wavelength() == 0.650
 
     @pytest.mark.parametrize(
         "wavelength,expectation",
@@ -394,11 +398,11 @@ class TestOpticStudioBackend:
     )
     def test_set_primary_wavelength(self, opticstudio_backend: OpticStudioBackend, wavelength: float, expectation):
         opticstudio_backend.set_wavelengths([0.543, 0.6328])
-        assert self._get_primary_wavelength(opticstudio_backend) == 0.543
+        assert opticstudio_backend.get_primary_wavelength() == 0.543
 
         with expectation:
             opticstudio_backend.set_primary_wavelength(wavelength)
-            assert self._get_primary_wavelength(opticstudio_backend) == wavelength
+            assert opticstudio_backend.get_primary_wavelength() == wavelength
 
     @pytest.mark.parametrize(
         "aperture_type,new_aperture_value",
