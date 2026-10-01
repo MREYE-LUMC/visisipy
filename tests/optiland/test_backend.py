@@ -390,7 +390,6 @@ class TestOptilandBackendSettings:
         expected_aperture_type,
         expectation,
         optiland_backend: OptilandBackend,
-        monkeypatch,
     ):
         with expectation:
             optiland_backend.update_settings(aperture_type=aperture_type, aperture_value=aperture_value)

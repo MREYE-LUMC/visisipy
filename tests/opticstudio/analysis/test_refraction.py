@@ -39,7 +39,6 @@ class TestRefractionAnalysis:
         use_higher_order_aberrations,
         opticstudio_analysis,
         opticstudio_backend,
-        monkeypatch,
     ):
         opticstudio_backend.build_model(
             EyeModel(),
