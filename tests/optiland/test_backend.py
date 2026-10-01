@@ -497,10 +497,10 @@ class TestOptilandBackendSettings:
         expectation,
         optiland_backend: OptilandBackend,
         monkeypatch,
+        mocker: MockerFixture,
     ):
         if computation_backend == "torch":
-            torch = pytest.importorskip("torch", reason="Torch is not installed")
-            monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+            mocker.patch("torch.cuda.is_available", return_value=True)
 
         args = build_args(
             computation_backend=computation_backend,
