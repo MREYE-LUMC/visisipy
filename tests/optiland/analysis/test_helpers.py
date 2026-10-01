@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import re
+from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
 import pytest
 
-from visisipy.optiland.analysis.helpers import set_field, set_wavelength
+from visisipy.optiland.analysis.helpers import (
+    primary_wavelength,
+    set_field,
+    set_wavelength,
+)
 
 if TYPE_CHECKING:
     from optiland.optic import Optic
@@ -34,14 +39,21 @@ class TestSetWavelength:
         optic.wavelengths.add(extra_wavelength_2)
 
         assert set_wavelength(optiland_backend, wavelength=extra_wavelength_1) == extra_wavelength_1
-        assert get_optic_wavelengths(optic) == [0.543, extra_wavelength_1, extra_wavelength_2]
+        assert get_optic_wavelengths(optic) == [
+            0.543,
+            extra_wavelength_1,
+            extra_wavelength_2,
+        ]
 
     def test_set_wavelength_new(self, optiland_backend: OptilandBackend):
         optic = optiland_backend.optic
         assert get_optic_wavelengths(optic) == [0.543]
         new_wavelength = 0.430
 
-        with pytest.warns(UserWarning, match=f"Wavelength {new_wavelength} not found. Adding it to the system."):
+        with pytest.warns(
+            UserWarning,
+            match=f"Wavelength {new_wavelength} not found. Adding it to the system.",
+        ):
             assert set_wavelength(optiland_backend, wavelength=new_wavelength) == new_wavelength
 
         assert get_optic_wavelengths(optic) == [0.543, new_wavelength]
@@ -77,7 +89,8 @@ class TestSetField:
         new_field_normalized = (1.0, 0.0)
 
         with pytest.warns(
-            UserWarning, match=re.escape(f"Field coordinate {new_field} not found. Adding it to the system.")
+            UserWarning,
+            match=re.escape(f"Field coordinate {new_field} not found. Adding it to the system."),
         ):
             assert set_field(optiland_backend, field_coordinate=new_field) == new_field_normalized
 
@@ -103,7 +116,35 @@ class TestSetField:
         optic.fields.set_type(old_type)
         assert optiland_backend.get_field_type() == old_type
 
-        with pytest.warns(UserWarning, match=re.escape(f"Changing field type from {old_type} to {new_type}.")):
+        with pytest.warns(
+            UserWarning,
+            match=re.escape(f"Changing field type from {old_type} to {new_type}."),
+        ):
             assert set_field(optiland_backend, field_coordinate=field, field_type=new_type) == normalized_field
 
         assert optiland_backend.get_field_type() == new_type
+
+
+@pytest.mark.parametrize(
+    "wavelength,expectation",
+    [
+        (0.6328, does_not_raise()),
+        (
+            0.431,
+            pytest.raises(
+                ValueError,
+                match=r"The specified wavelength 0\.431 does not exist in the system",
+            ),
+        ),
+    ],
+)
+def test_primary_wavelength_context_manager(optiland_backend: OptilandBackend, wavelength: float, expectation):
+    optiland_backend.set_wavelengths([0.543, 0.6328])
+
+    optic = optiland_backend.optic
+    assert optic.wavelengths.primary_wavelength.value == 0.543
+
+    with expectation, primary_wavelength(optiland_backend, wavelength):
+        assert optic.wavelengths.primary_wavelength.value == wavelength
+
+    assert optic.wavelengths.primary_wavelength.value == 0.543

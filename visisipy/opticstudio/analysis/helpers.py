@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from contextlib import contextmanager
+from typing import TYPE_CHECKING, Any, cast
 from warnings import warn
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.types import FieldType
 
@@ -63,11 +66,43 @@ def set_field(
     field_coordinate = cast("tuple[float, float]", field_coordinate)
 
     if field_type != (current_field_type := backend.get_field_type()):
-        warn(f"Changing field type from {current_field_type} to {field_type}.", stacklevel=2)
+        warn(
+            f"Changing field type from {current_field_type} to {field_type}.",
+            stacklevel=2,
+        )
         backend.set_field_type(field_type)
 
     if field_number is None:
-        warn(f"Field coordinate {field_coordinate} not found. Adding it to the system.", stacklevel=2)
+        warn(
+            f"Field coordinate {field_coordinate} not found. Adding it to the system.",
+            stacklevel=2,
+        )
         field_number = backend.add_field(field_coordinate)
 
     return field_number
+
+
+@contextmanager
+def primary_wavelength(backend: OpticStudioBackend, wavelength: float) -> Generator[None, Any, None]:
+    """Context manager to temporarily set a primary wavelength in the OpticStudio backend.
+
+    Parameters
+    ----------
+    backend : OpticStudioBackend
+        Reference to the OpticStudio backend.
+    wavelength : float
+        The wavelength to set as primary, in μm.
+
+    Yields
+    ------
+    None
+        The context manager does not yield any value.
+    """
+    original_primary_wavelength = backend.get_primary_wavelength()
+
+    backend.set_primary_wavelength(wavelength)
+
+    try:
+        yield
+    finally:
+        backend.set_primary_wavelength(original_primary_wavelength)

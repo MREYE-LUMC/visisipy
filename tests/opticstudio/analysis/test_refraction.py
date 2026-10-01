@@ -39,10 +39,10 @@ class TestRefractionAnalysis:
         use_higher_order_aberrations,
         opticstudio_analysis,
         opticstudio_backend,
-        monkeypatch,
     ):
         opticstudio_backend.build_model(
-            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+            EyeModel(),
+            object_distance=10 if field_type == "object_height" else float("inf"),
         )
 
         args = build_args(
@@ -52,7 +52,11 @@ class TestRefractionAnalysis:
             pupil_diameter=pupil_diameter,
             field_type=field_type,
             use_higher_order_aberrations=use_higher_order_aberrations,
-            non_null_defaults={"sampling", "field_type", "use_higher_order_aberrations"},
+            non_null_defaults={
+                "sampling",
+                "field_type",
+                "use_higher_order_aberrations",
+            },
         )
 
         assert opticstudio_analysis.refraction(**args)
@@ -65,7 +69,12 @@ class TestRefractionAnalysis:
         ],
     )
     def test_change_pupil(
-        self, opticstudio_backend, opticstudio_analysis, pupil_diameter, change_pupil_diameter, mocker: MockerFixture
+        self,
+        opticstudio_backend,
+        opticstudio_analysis,
+        pupil_diameter,
+        change_pupil_diameter,
+        mocker: MockerFixture,
     ):
         opticstudio_backend.update_settings(aperture_type="float_by_stop_size", aperture_value=1.0)
 
@@ -92,11 +101,27 @@ class TestRefractionAnalysis:
         self, pupil_diameter, aperture_type, opticstudio_backend, opticstudio_analysis
     ):
         opticstudio_backend.build_model(
-            EyeModel(), object_distance=10 if aperture_type == "object_numeric_aperture" else float("inf")
+            EyeModel(),
+            object_distance=10 if aperture_type == "object_numeric_aperture" else float("inf"),
         )
         opticstudio_backend.update_settings(aperture_type=aperture_type)
 
         with pytest.warns(
-            UserWarning, match="When updating the pupil size for aperture types other than 'float_by_stop_size'"
+            UserWarning,
+            match="When updating the pupil size for aperture types other than 'float_by_stop_size'",
         ):
             opticstudio_analysis.refraction(pupil_diameter=pupil_diameter)
+
+    def test_change_wavelength(self, opticstudio_backend, opticstudio_analysis, mocker: MockerFixture):
+        new_wavelength = 0.632
+
+        spy = mocker.spy(opticstudio_backend, "set_primary_wavelength")
+
+        assert opticstudio_backend.get_primary_wavelength() == 0.543
+
+        opticstudio_backend.build_model(EyeModel())
+        opticstudio_analysis.refraction(wavelength=new_wavelength)
+
+        assert opticstudio_backend.get_primary_wavelength() == 0.543
+        assert spy.call_count == 2
+        assert spy.call_args_list[0] == mocker.call(new_wavelength)

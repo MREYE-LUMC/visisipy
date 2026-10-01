@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import re
+from contextlib import nullcontext as does_not_raise
 from typing import TYPE_CHECKING
 
 import pytest
 import zospy as zp
 
-from visisipy.opticstudio.analysis.helpers import set_field, set_wavelength
+from visisipy.opticstudio.analysis.helpers import (
+    primary_wavelength,
+    set_field,
+    set_wavelength,
+)
 
 if TYPE_CHECKING:
     from zospy.zpcore import OpticStudioSystem
@@ -37,14 +42,21 @@ class TestSetWavelength:
         oss.SystemData.Wavelengths.AddWavelength(extra_wavelength_2, 1)
 
         assert set_wavelength(opticstudio_backend, wavelength=extra_wavelength_1) == 2
-        assert get_oss_wavelengths(oss) == [0.543, extra_wavelength_1, extra_wavelength_2]
+        assert get_oss_wavelengths(oss) == [
+            0.543,
+            extra_wavelength_1,
+            extra_wavelength_2,
+        ]
 
     def test_set_wavelength_new(self, opticstudio_backend: OpticStudioBackend):
         oss = opticstudio_backend.oss
         assert get_oss_wavelengths(oss) == [0.543]
         new_wavelength = 0.430
 
-        with pytest.warns(UserWarning, match=f"Wavelength {new_wavelength} not found. Adding it to the system."):
+        with pytest.warns(
+            UserWarning,
+            match=f"Wavelength {new_wavelength} not found. Adding it to the system.",
+        ):
             assert set_wavelength(opticstudio_backend, wavelength=new_wavelength) == 2
 
         assert get_oss_wavelengths(oss) == [0.543, new_wavelength]
@@ -80,7 +92,8 @@ class TestSetField:
         new_field = (10.0, 0.0)
 
         with pytest.warns(
-            UserWarning, match=re.escape(f"Field coordinate {new_field} not found. Adding it to the system.")
+            UserWarning,
+            match=re.escape(f"Field coordinate {new_field} not found. Adding it to the system."),
         ):
             assert set_field(opticstudio_backend, field_coordinate=new_field) == 2
 
@@ -116,3 +129,29 @@ class TestSetField:
             assert set_field(opticstudio_backend, field_coordinate=field, field_type=new_type) == field_number
 
         assert opticstudio_backend.get_field_type() == new_type
+
+
+@pytest.mark.parametrize(
+    "wavelength,expectation",
+    [
+        (0.6328, does_not_raise()),
+        (
+            0.431,
+            pytest.raises(
+                ValueError,
+                match=r"The specified wavelength 0\.431 does not exist in the system",
+            ),
+        ),
+    ],
+)
+def test_primary_wavelength_context_manager(opticstudio_backend: OpticStudioBackend, wavelength: float, expectation):
+    opticstudio_backend.set_wavelengths([0.543, 0.6328])
+    expected_index = opticstudio_backend.get_wavelength_number(wavelength)
+
+    oss = opticstudio_backend.oss
+    assert oss.SystemData.Wavelengths.GetWavelength(1).IsPrimary
+
+    with expectation, primary_wavelength(opticstudio_backend, wavelength):
+        assert oss.SystemData.Wavelengths.GetWavelength(expected_index).IsPrimary
+
+    assert oss.SystemData.Wavelengths.GetWavelength(1).IsPrimary

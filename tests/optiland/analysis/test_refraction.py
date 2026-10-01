@@ -118,3 +118,17 @@ class TestRefractionAnalysis:
             UserWarning, match="When updating the pupil size for aperture types other than 'float_by_stop_size'"
         ):
             optiland_analysis.refraction(pupil_diameter=pupil_diameter)
+
+    def test_change_wavelength(self, optiland_backend, optiland_analysis, mocker: MockerFixture):
+        new_wavelength = 0.632
+
+        spy = mocker.spy(optiland_backend, "set_primary_wavelength")
+
+        assert optiland_backend.optic.primary_wavelength == 0.543
+
+        optiland_backend.build_model(EyeModel())
+        optiland_analysis.refraction(wavelength=new_wavelength)
+
+        assert optiland_backend.optic.primary_wavelength == 0.543
+        assert spy.call_count == 2
+        assert spy.call_args_list[0] == mocker.call(new_wavelength)

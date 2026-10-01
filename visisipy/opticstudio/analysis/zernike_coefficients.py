@@ -6,11 +6,14 @@ from typing import TYPE_CHECKING
 
 import zospy as zp
 
+from visisipy.opticstudio.analysis.helpers import set_field, set_wavelength
 from visisipy.types import SampleSize, ZernikeUnit
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
-    from zospy.analyses.wavefront.zernike_standard_coefficients import ZernikeStandardCoefficientsResult
+    from zospy.analyses.wavefront.zernike_standard_coefficients import (
+        ZernikeStandardCoefficientsResult,
+    )
 
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.types import FieldCoordinate, FieldType
@@ -75,24 +78,17 @@ def zernike_standard_coefficients(
     if not isinstance(sampling, SampleSize):
         sampling = SampleSize(sampling)
 
+    wavelength_number = set_wavelength(backend, wavelength)
+    field_number = set_field(backend, field_coordinate, field_type)
+
     if wavelength is None:
-        wavelength_number = 1
-        wavelength = backend.get_wavelengths()[0]
-    else:
-        wavelength_number = backend.get_wavelength_number(wavelength)
-
-    if wavelength_number is None:
-        backend.set_wavelengths([wavelength])
-        wavelength_number = 1
-
-    if field_coordinate is not None:
-        backend.set_fields([field_coordinate], field_type=field_type)
+        wavelength = backend.get_wavelengths()[wavelength_number - 1]
 
     zernike_result = zp.analyses.wavefront.ZernikeStandardCoefficients(
         sampling=str(sampling),
         maximum_term=maximum_term,
         wavelength=wavelength_number,
-        field=1,
+        field=field_number,
         reference_opd_to_vertex=False,
         surface="Image",
         sx=0.0,
