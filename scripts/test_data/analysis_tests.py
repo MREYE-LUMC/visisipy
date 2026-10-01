@@ -148,6 +148,7 @@ class RefractionTest(BaseAnalysisTest):
         for coord in self.coordinates:
             # Force building a new model for each coordinate to ensure that the backend is properly cleared and reset between runs.
             backend.clear_model()
+            backend.update_settings(fields=[coord])
 
             refraction = visisipy.analysis.refraction(
                 model=model,

@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 def test_zernike_standard_coefficients(
     field, result_test_model: EyeModel, configure_backend: BaseBackend, expected_result: DataFrame
 ):
+    configure_backend.update_settings(fields=[field])
+
     result = visisipy.analysis.zernike_standard_coefficients(
         model=result_test_model,
         field_coordinate=field,
