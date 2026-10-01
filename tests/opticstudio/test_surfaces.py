@@ -47,9 +47,11 @@ def test_surface_type_exists(zos, surface_class: OpticStudioSurface):
 
 
 class TestOpticStudioSurfaceProperty:
-    MockSurface = SimpleNamespace(
-        Comment="Test comment",
-    )
+    @pytest.fixture
+    def mock_surface(self) -> SimpleNamespace:
+        return SimpleNamespace(
+            Comment="Test comment",
+        )
 
     class MockOpticStudioSurface:
         surface = None
@@ -63,38 +65,39 @@ class TestOpticStudioSurfaceProperty:
         prop = OpticStudioSurfaceProperty("Comment")
         assert prop.name == "Comment"
 
-    def test_get(self):
-        mock_surface = self.MockOpticStudioSurface(self.MockSurface)
+    def test_get(self, mock_surface):
+        surface = self.MockOpticStudioSurface(mock_surface)
 
-        assert mock_surface.comment == "Test comment"
+        assert surface.comment == "Test comment"
 
     def test_get_none(self):
         mock_surface = self.MockOpticStudioSurface(None)
 
         assert mock_surface.comment is None
 
-    def test_set(self):
-        surface = self.MockSurface
-        mock_surface = self.MockOpticStudioSurface(surface)
+    def test_set(self, mock_surface):
+        surface = self.MockOpticStudioSurface(mock_surface)
 
-        mock_surface.comment = "New comment"
+        surface.comment = "New comment"
 
-        assert mock_surface.comment == "New comment"
-        assert surface.Comment == "New comment"
+        assert surface.comment == "New comment"
+        assert mock_surface.Comment == "New comment"
 
     def test_set_none(self):
-        mock_surface = self.MockOpticStudioSurface(None)
+        surface = self.MockOpticStudioSurface(None)
 
         with pytest.raises(AttributeError, match=r"Cannot set attribute .+ of non-built surface"):
-            mock_surface.comment = "New comment"
+            surface.comment = "New comment"
 
 
 class TestOpticStudioSurfaceDataProperty:
-    MockSurface = SimpleNamespace(
-        SurfaceData=SimpleNamespace(
-            ExampleProperty="Example value",
+    @pytest.fixture
+    def mock_surface(self) -> SimpleNamespace:
+        return SimpleNamespace(
+            SurfaceData=SimpleNamespace(
+                ExampleProperty="Example value",
+            )
         )
-    )
 
     class MockOpticStudioSurface:
         surface = None
@@ -108,8 +111,8 @@ class TestOpticStudioSurfaceDataProperty:
         prop = OpticStudioSurfaceDataProperty("ExampleProperty")
         assert prop.name == "ExampleProperty"
 
-    def test_get(self):
-        mock_surface = self.MockOpticStudioSurface(self.MockSurface)
+    def test_get(self, mock_surface):
+        mock_surface = self.MockOpticStudioSurface(mock_surface)
 
         assert mock_surface.example_property == "Example value"
 
@@ -118,20 +121,17 @@ class TestOpticStudioSurfaceDataProperty:
 
         assert mock_surface.example_property is None
 
-    def test_set(self, monkeypatch):
-        surface = self.MockSurface
-        mock_surface = self.MockOpticStudioSurface(surface)
+    def test_set(self, mock_surface):
+        surface = self.MockOpticStudioSurface(mock_surface)
+        surface.example_property = "New value"
 
-        monkeypatch.setattr(mock_surface, "example_property", "New value")
-
-        assert mock_surface.example_property == "New value"
-        assert surface.SurfaceData.ExampleProperty == "New value"
+        assert mock_surface.SurfaceData.ExampleProperty == "New value"
 
     def test_set_none(self):
-        mock_surface = self.MockOpticStudioSurface(None)
+        surface = self.MockOpticStudioSurface(None)
 
         with pytest.raises(AttributeError, match=r"Cannot set attribute .+ of non-built surface"):
-            mock_surface.example_property = "New value"
+            surface.example_property = "New value"
 
 
 class TestOpticStudioSurface:
@@ -330,11 +330,17 @@ class TestBaseOpticStudioZernikeSurface:
             super().__init__(*args, **kwargs)
 
     def test_instantiation_raises_typeerror(self):
-        with pytest.raises(TypeError, match="Only child classes of BaseOpticStudioZernikeSurface may be instantiated"):
+        with pytest.raises(
+            TypeError,
+            match="Only child classes of BaseOpticStudioZernikeSurface may be instantiated",
+        ):
             BaseOpticStudioZernikeSurface("Useless comment")
 
     def test_init_large_zernike_coefficient_raises_valueerror(self):
-        with pytest.raises(ValueError, match="Zernike coefficients must be less than or equal to the maximum term 1"):
+        with pytest.raises(
+            ValueError,
+            match="Zernike coefficients must be less than or equal to the maximum term 1",
+        ):
             self.MockOpticStudioZernikeSurface(
                 comment="Test",
                 number_of_terms=1,
@@ -353,14 +359,22 @@ class TestBaseOpticStudioZernikeSurface:
     @pytest.mark.parametrize(
         "n,value,maximum_term,expectation",
         [
-            (0, 1.234, 1, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
+            (
+                0,
+                1.234,
+                1,
+                pytest.raises(ValueError, match="Zernike coefficient must be larger than 0"),
+            ),
             (1, 1.234, 2, does_not_raise()),
             (2, 1.234, 2, does_not_raise()),
             (
                 2,
                 1.234,
                 1,
-                pytest.raises(ValueError, match="Zernike coefficient must be smaller than the maximum term 1"),
+                pytest.raises(
+                    ValueError,
+                    match="Zernike coefficient must be smaller than the maximum term 1",
+                ),
             ),
         ],
     )
@@ -383,9 +397,16 @@ class TestBaseOpticStudioZernikeSurface:
             (
                 4,
                 {1: 1.234, 2: 3.456},
-                pytest.raises(ValueError, match="Zernike coefficient must be smaller than the maximum term 3"),
+                pytest.raises(
+                    ValueError,
+                    match="Zernike coefficient must be smaller than the maximum term 3",
+                ),
             ),
-            (0, {1: 1.234, 2: 3.456}, pytest.raises(ValueError, match="Zernike coefficient must be larger than 0")),
+            (
+                0,
+                {1: 1.234, 2: 3.456},
+                pytest.raises(ValueError, match="Zernike coefficient must be larger than 0"),
+            ),
         ],
     )
     def test_get_zernike_coefficient(self, oss, n, coefficients, expectation):

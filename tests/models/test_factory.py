@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import re
 from contextlib import nullcontext as does_not_raise
+from typing import TYPE_CHECKING
 
 import pytest
 
 from visisipy.models.catalog import GullstrandLeGrandGeometry, NavarroGeometry
 from visisipy.models.factory import _check_sign, create_geometry
-from visisipy.models.geometry import StandardSurface, Stop
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 class SentinelFloat(float):
@@ -79,7 +82,10 @@ class TestCreateGeometry:
     def test_base_no_eyegeometry_raises_typeerror(self, base_geometry):
         class InvalidGeometry: ...
 
-        with pytest.raises(TypeError, match=re.escape("The base geometry must be a subclass of EyeGeometry.")):
+        with pytest.raises(
+            TypeError,
+            match=re.escape("The base geometry must be a subclass of EyeGeometry."),
+        ):
             create_geometry(base=InvalidGeometry)
 
     def test_estimate_cornea_back_and_radius_warns(self, base_geometry, example_geometry_parameters):
@@ -139,7 +145,10 @@ class TestCreateGeometry:
     ):
         parameters = parameters_a | parameters_b
 
-        with pytest.raises(ValueError, match="Cannot specify both retina radius/asphericity and ellipsoid radii"):
+        with pytest.raises(
+            ValueError,
+            match="Cannot specify both retina radius/asphericity and ellipsoid radii",
+        ):
             create_geometry(base=base_geometry, **parameters)
 
     @pytest.mark.parametrize(
@@ -156,17 +165,20 @@ class TestCreateGeometry:
         ):
             create_geometry(base=base_geometry, **parameters)
 
-    def test_incomplete_thickness_raises_valueerror(self, base_geometry, monkeypatch):
+    def test_incomplete_thickness_raises_valueerror(self, base_geometry, monkeypatch, mocker: MockerFixture):
         # Mock the __init__ method to avoid setting the thickness of the cornea front
         def mock_init(self, *args, **kwargs):
-            self.cornea_front = StandardSurface(thickness=None)
-            self.cornea_back = StandardSurface()
-            self.pupil = Stop()
-            self.lens_front = StandardSurface()
-            self.lens_back = StandardSurface()
-            self.retina = StandardSurface()
+            (
+                self.cornea_front,
+                self.cornea_back,
+                self.pupil,
+                self.lens_front,
+                self.lens_back,
+                self.retina,
+            ) = kwargs.values()
+            self.cornea_front.thickness = None  # Set thickness to None to simulate incomplete thickness
 
-        monkeypatch.setattr(base_geometry, "__init__", mock_init)
+        mocker.patch("visisipy.models.geometry.EyeGeometry.__init__", new=mock_init)
 
         with pytest.raises(
             ValueError,
@@ -177,8 +189,18 @@ class TestCreateGeometry:
     @pytest.mark.parametrize(
         "geometry_parameters",
         [
-            {"axial_length": 10, "cornea_thickness": 1, "anterior_chamber_depth": 4, "lens_thickness": 5},
-            {"axial_length": 10, "cornea_thickness": 2, "anterior_chamber_depth": 4, "lens_thickness": 5},
+            {
+                "axial_length": 10,
+                "cornea_thickness": 1,
+                "anterior_chamber_depth": 4,
+                "lens_thickness": 5,
+            },
+            {
+                "axial_length": 10,
+                "cornea_thickness": 2,
+                "anterior_chamber_depth": 4,
+                "lens_thickness": 5,
+            },
         ],
     )
     def test_invalid_vitreous_thickness_raises_valueerror(self, base_geometry, geometry_parameters):
@@ -198,7 +220,11 @@ class TestCreateGeometry:
             )
 
     def test_set_retina_ellipsoid_radii(self, base_geometry):
-        geometry = create_geometry(base=base_geometry, retina_ellipsoid_z_radius=-12.34, retina_ellipsoid_y_radius=10)
+        geometry = create_geometry(
+            base=base_geometry,
+            retina_ellipsoid_z_radius=-12.34,
+            retina_ellipsoid_y_radius=10,
+        )
 
         assert pytest.approx(geometry.retina.ellipsoid_radii.z) == -12.34
         assert pytest.approx(geometry.retina.ellipsoid_radii.y) == 10
@@ -233,7 +259,8 @@ class TestCheckSign:
                 "invalid",
                 0,
                 pytest.raises(
-                    ValueError, match=re.escape("Invalid sign 'invalid' specified for test_param. Must be '+' or '-'.")
+                    ValueError,
+                    match=re.escape("Invalid sign 'invalid' specified for test_param. Must be '+' or '-'."),
                 ),
             ),
         ],
