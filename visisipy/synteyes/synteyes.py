@@ -49,13 +49,13 @@ def load_synteyes_model_data() -> SyntEyesModelData:
     Returns
     -------
     SyntEyesModelData
-        A dictionary containing the SyntEyes model data.
+        A dataclass containing the SyntEyes model data.
     """
     file = importlib.resources.files(__package__) / "modeldata.npz"
 
     with np.load(file) as data:
         cov_orig = np.zeros((2, *data["cov_orig0"].shape))
-        cov_orig[0] = nearest_psd(data["cov_orig0"])
+        cov_orig[0] = data["cov_orig0"]
         cov_orig[1] = data["cov_orig1"]
 
         return SyntEyesModelData(
@@ -427,9 +427,9 @@ def sample_retina_curvature(
 
 
 def create_mgmm_data(
-    mu: Sequence[NDArray],
-    cov: Sequence[NDArray],
-    weights: Sequence[float],
+    mu: Sequence[NDArray] | NDArray,
+    cov: Sequence[NDArray] | NDArray,
+    weights: Sequence[float] | NDArray[np.floating],
     n: int,
     *,
     rng: np.random.Generator = RANDOM_NUMBER_GENERATOR,
@@ -438,11 +438,11 @@ def create_mgmm_data(
 
     Parameters
     ----------
-    mu : Sequence[NDArray]
+    mu : Sequence[NDArray] | NDArray
         List of mean vectors for each component.
-    cov : Sequence[NDArray]
+    cov : Sequence[NDArray] | NDArray
         List of covariance matrices for each component.
-    weights : Sequence[float]
+    weights : Sequence[float] | NDArray[np.floating]
         List of weights for each component.
     n : int
         Number of samples to generate.
@@ -467,23 +467,6 @@ def create_mgmm_data(
     ]
 
     return np.vstack(samples)
-
-
-def nearest_psd(matrix: NDArray) -> NDArray:
-    """Project a matrix to a positive semi-definite approximation.
-
-    Parameters
-    ----------
-    matrix : np.ndarray
-        Input square matrix.
-
-    Returns
-    -------
-    np.ndarray
-        Matrix with eigenvalues clipped to a small positive threshold.
-    """
-    eigval, eigvec = np.linalg.eig(matrix)
-    return eigvec @ np.diag(np.maximum(eigval, 1e-6)) @ eigvec.T
 
 
 S = TypeVar("S", SyntEye, SyntEye3D, SyntEye | SyntEye3D)
@@ -569,7 +552,13 @@ class SyntEyes(UserList[S]):
             if "retina" in item:
                 retina = SyntEyesRetina(**item["retina"])
                 result.append(
-                    SyntEye3D(biometry=biometry, cornea=cornea, lens=lens, materials=materials, retina=retina)
+                    SyntEye3D(
+                        biometry=biometry,
+                        cornea=cornea,
+                        lens=lens,
+                        materials=materials,
+                        retina=retina,
+                    )
                 )
             else:
                 result.append(SyntEye(biometry=biometry, cornea=cornea, lens=lens, materials=materials))
@@ -612,14 +601,21 @@ def generate_synteyes(n: int, *, rng: np.random.Generator = RANDOM_NUMBER_GENERA
     retina_thicknesses = np.full_like(axial_lengths, _SYNTEYES_RETINA_THICKNESS)
 
     retinas = sample_retina_curvature(
-        axial_lengths, retina_thicknesses, model_data.mu_retina_radii, model_data.cov_retina_radii, rng=rng
+        axial_lengths,
+        retina_thicknesses,
+        model_data.mu_retina_radii,
+        model_data.cov_retina_radii,
+        rng=rng,
     )
 
     synteyes_3d = SyntEyes[SyntEye3D]()
 
     for eigencornea, retina in zip(eigencorneas, retinas, strict=True):
         synteye = convert_to_single_orig_synteyes(
-            eigencornea, conv_ec=model_data.conv_ec_orig, avg_ec=model_data.avg_ec_orig, lens_za=model_data.lens_za_orig
+            eigencornea,
+            conv_ec=model_data.conv_ec_orig,
+            avg_ec=model_data.avg_ec_orig,
+            lens_za=model_data.lens_za_orig,
         )
         synteye_3d = SyntEye3D.from_synteye(synteye, retina)
         synteyes_3d.append(synteye_3d)
