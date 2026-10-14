@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from importlib.metadata import version
 from typing import TYPE_CHECKING
 
 import numpy as np
 import zospy as zp
+from packaging.version import Version
 from pandas import DataFrame
 
 from visisipy.opticstudio.analysis.helpers import set_field, set_wavelength
@@ -40,6 +42,9 @@ def _pad_index(index: NDArray) -> NDArray:
 def _pad_opd_map(data: DataFrame) -> DataFrame:
     """Pad the OPD map with an empty row and column at the left and bottom edges.
 
+    This is only necessary for ZOSPy versions < 2.2.0, which do not return the outer row and column of the OPD map.
+    For newer versions, the original data is returned without any modifications.
+
     To ensure that the center of the wavefront is sampled, OpticStudio samples one row and
     column outside the pupil. This effectively yields a grid that is (N-1) x (N-1) for an NxN sampling.
     ZOSPy returns the data without this outer row and column, but to be consistent with other backends,
@@ -55,6 +60,11 @@ def _pad_opd_map(data: DataFrame) -> DataFrame:
     DataFrame
         The padded OPD map as a pandas DataFrame.
     """
+    zospy_version = Version(version("zospy"))
+
+    if zospy_version >= Version("2.2.0"):
+        return data
+
     x_coordinates = data.columns.to_numpy()
     y_coordinates = data.index.to_numpy()
 
