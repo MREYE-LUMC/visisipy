@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import pytest
 from pandas import DataFrame
@@ -7,6 +9,9 @@ from pandas import DataFrame
 from tests.helpers import build_args
 from visisipy import EyeModel
 from visisipy.opticstudio.analysis.wavefront import _pad_index, _pad_opd_map
+
+if TYPE_CHECKING:
+    from pytest_mock import MockerFixture
 
 
 class TestOPDMapAnalysis:
@@ -17,7 +22,9 @@ class TestOPDMapAnalysis:
         assert len(padded_index) == len(index) + 1
         assert padded_index[0] == -0.123
 
-    def test_pad_opd_map(self):
+    def test_pad_opd_map_zospy_pre_2_2_0(self, mocker: MockerFixture):
+        mocker.patch("visisipy.opticstudio.analysis.wavefront.version", return_value="2.1.0")
+
         opd_map = DataFrame(
             np.arange(9).reshape(3, 3),
             index=[-1, 0, 1],
@@ -33,6 +40,20 @@ class TestOPDMapAnalysis:
         assert np.all(np.isnan(padded_opd_map.to_numpy()[0, :]))
         assert np.all(np.isnan(padded_opd_map.to_numpy()[:, 0]))
 
+    def test_pad_opd_map_zospy_post_2_2_0(self, mocker: MockerFixture):
+        mocker.patch("visisipy.opticstudio.analysis.wavefront.version", return_value="2.2.0")
+
+        opd_map = DataFrame(
+            np.arange(9).reshape(3, 3),
+            index=[-1, 0, 1],
+            columns=[-1, 0, 1],
+            dtype=float,
+        )
+
+        padded_opd_map = _pad_opd_map(opd_map)
+
+        assert padded_opd_map is opd_map
+
     @pytest.mark.parametrize(
         "field_coordinate,wavelength,field_type,sampling,remove_tilt",
         [
@@ -44,10 +65,18 @@ class TestOPDMapAnalysis:
         ],
     )
     def test_opd_map(
-        self, opticstudio_backend, opticstudio_analysis, field_coordinate, wavelength, field_type, sampling, remove_tilt
+        self,
+        opticstudio_backend,
+        opticstudio_analysis,
+        field_coordinate,
+        wavelength,
+        field_type,
+        sampling,
+        remove_tilt,
     ):
         opticstudio_backend.build_model(
-            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+            EyeModel(),
+            object_distance=10 if field_type == "object_height" else float("inf"),
         )
 
         args = build_args(
