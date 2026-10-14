@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from importlib.metadata import version
 from typing import TYPE_CHECKING
 from warnings import filterwarnings
 
@@ -52,9 +53,15 @@ def model() -> EyeModel:
     materials = NavarroMaterials543()
     geometry = EyeGeometry(
         cornea_front=BiconicSurface(
-            radius=7.6967, asphericity=-0.2304, thickness=0.5615, radius_x=7.9487, asphericity_x=-0.2304
+            radius=7.6967,
+            asphericity=-0.2304,
+            thickness=0.5615,
+            radius_x=7.9487,
+            asphericity_x=-0.2304,
         ),
-        cornea_back=StandardSurface(radius=6.2343, asphericity=-0.1444, thickness=3.345),
+        cornea_back=StandardSurface(
+            radius=6.2343, asphericity=-0.1444, thickness=3.345
+        ),
         pupil=Stop(semi_diameter=1.0),
         lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=3.17),
         lens_back=StandardSurface(radius=-5.4537, asphericity=0, thickness=17.2285),
@@ -123,7 +130,9 @@ def get_file_name(test_name: str, backend_name: str, **extra_settings: str) -> P
     file_name = f"{test_name}_{backend_name}"
 
     if extra_settings:
-        settings_str = "_".join(f"{key}-{value}" for key, value in extra_settings.items())
+        settings_str = "_".join(
+            f"{key}-{value}" for key, value in extra_settings.items()
+        )
         file_name += f"_{settings_str}"
 
     return TEST_DATA_DIR / f"{file_name}.csv"
@@ -135,7 +144,9 @@ _MODEL_SUFFIXES: dict[BackendType, str] = {
 }
 
 
-def build_and_save_model(model: EyeModel, path: Path, backends: Iterable[BaseBackend]) -> None:
+def build_and_save_model(
+    model: EyeModel, path: Path, backends: Iterable[BaseBackend]
+) -> None:
     for backend in backends:
         suffix: str
 
@@ -154,13 +165,19 @@ def build_and_save_model(model: EyeModel, path: Path, backends: Iterable[BaseBac
 
 
 def main(args: argparse.Namespace) -> None:
+    logger.info(
+        f"Using ZOSPy version {version('zospy')} and Optiland version {version('optiland')}"
+    )
+
     if args.os_extension:
         logger.info("Connecting to OpticStudio in extension mode")
         OPTICSTUDIO_BACKEND_SETTINGS["mode"] = "extension"
 
     if args.test:
         if args.test not in TESTS:
-            logger.error("Test {} not found. Available tests: {}", args.test, list(TESTS.keys()))
+            logger.error(
+                "Test {} not found. Available tests: {}", args.test, list(TESTS.keys())
+            )
             sys.exit(1)
         else:
             logger.info("Only running test {}...", args.test)
@@ -193,7 +210,9 @@ def main(args: argparse.Namespace) -> None:
             try:
                 results = test.run(model=eye_model, backend=backend)
             except Exception as e:  # ruff: ignore[blind-except]
-                logger.error("Error running {} with backend {}: {}", name, backend.type, e)
+                logger.error(
+                    "Error running {} with backend {}: {}", name, backend.type, e
+                )
                 continue
 
             results.to_csv(result_path, index=True)
@@ -201,19 +220,29 @@ def main(args: argparse.Namespace) -> None:
 
 
 if __name__ == "__main__":
-    filterwarnings("ignore", category=UserWarning, message="Header and row length mismatch.*")
+    filterwarnings(
+        "ignore", category=UserWarning, message="Header and row length mismatch.*"
+    )
 
     logger.remove()  # Remove default logger to avoid duplicate logs
     logger.add(sys.stdout, format="<level>{level} | {message}</level>", colorize=True)
 
-    parser = argparse.ArgumentParser(description="Generate test data for analysis results tests.")
-    parser.add_argument(
-        "--save-model", action="store_true", help="Save the eye model used for generating the test data."
+    parser = argparse.ArgumentParser(
+        description="Generate test data for analysis results tests."
     )
     parser.add_argument(
-        "--force", action="store_true", help="Force regeneration of all test data, even if it already exists."
+        "--save-model",
+        action="store_true",
+        help="Save the eye model used for generating the test data.",
     )
-    parser.add_argument("--test", type=str, help="Only run a specific test, identified by its name.")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force regeneration of all test data, even if it already exists.",
+    )
+    parser.add_argument(
+        "--test", type=str, help="Only run a specific test, identified by its name."
+    )
     parser.add_argument(
         "--os-extension",
         action="store_true",
