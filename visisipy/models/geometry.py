@@ -282,7 +282,9 @@ class BiconicSurface(StandardSurface):
                 "Half axes are only defined for ellipsoids. This biconic surface is not an ellipsoid."
             )
 
-        z_radius = abs(z_radius_y)
+        x_radius = abs(x_radius)
+        y_radius = abs(y_radius)
+        z_radius = z_radius_y
 
         return _EllipsoidRadii(
             z=z_radius,

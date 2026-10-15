@@ -21,7 +21,7 @@ dependencies = [
     "matplotlib",
     "numba>=0.60.0",
     "numpy",
-    "optiland>=0.6.0,<0.7.0",
+    "optiland>=0.6.0,<0.6.3",
     "scipy",
     "typing-extensions>=4.12.2 ; python_full_version < '3.13'",
     "zospy>=2.1.2; sys_platform == 'win32'",
