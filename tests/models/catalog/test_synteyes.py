@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests.test_synteyes import sample_synteye  # ruff: ignore[unused-import]
+from tests.test_synteyes import _make_sample_synteye
 from visisipy.models.catalog.synteyes import SyntEyesEyeModel, SyntEyesGeometry
 from visisipy.models.materials import EyeMaterials
 
@@ -12,8 +12,14 @@ if TYPE_CHECKING:
     from visisipy.synteyes import SyntEye3D
 
 
+@pytest.fixture
+def sample_synteye() -> SyntEye3D:
+    """Fixture for a sample SyntEye3D eye model."""
+    return _make_sample_synteye()
+
+
 class TestSyntEyesGeometry:
-    def test_create_synteyes_geometry(self, sample_synteye: SyntEye3D):  # ruff: ignore[redefined-while-unused]
+    def test_create_synteyes_geometry(self, sample_synteye: SyntEye3D):
         geometry = SyntEyesGeometry(synteye=sample_synteye)
 
         assert geometry.cornea_front.thickness == sample_synteye.biometry.cornea_thickness
@@ -36,13 +42,16 @@ class TestSyntEyesGeometry:
         assert geometry.lens_back.radius == sample_synteye.lens.posterior_radius
         assert geometry.lens_back.asphericity == sample_synteye.lens.posterior_conic
 
+        assert geometry.retina.radius_x < 0
+        assert geometry.retina.radius < 0
+
         assert geometry.retina.ellipsoid_radii.x == pytest.approx(sample_synteye.retina.radius_x)
         assert geometry.retina.ellipsoid_radii.y == pytest.approx(sample_synteye.retina.radius_y)
-        assert geometry.retina.ellipsoid_radii.z == pytest.approx(sample_synteye.retina.radius_z)
+        assert geometry.retina.ellipsoid_radii.z == pytest.approx(-1 * sample_synteye.retina.radius_z)
 
 
 class TestSyntEyesEyeModel:
-    def test_create_synteyes_eye_model(self, sample_synteye: SyntEye3D):  # ruff: ignore[redefined-while-unused]
+    def test_create_synteyes_eye_model(self, sample_synteye: SyntEye3D):
         model = SyntEyesEyeModel(synteye=sample_synteye)
 
         assert isinstance(model.geometry, SyntEyesGeometry)
@@ -52,7 +61,7 @@ class TestSyntEyesEyeModel:
         assert model.geometry.lens_back.thickness == sample_synteye.biometry.vitreous_depth
         assert model.geometry.retina.ellipsoid_radii.x == pytest.approx(sample_synteye.retina.radius_x)
         assert model.geometry.retina.ellipsoid_radii.y == pytest.approx(sample_synteye.retina.radius_y)
-        assert model.geometry.retina.ellipsoid_radii.z == pytest.approx(sample_synteye.retina.radius_z)
+        assert model.geometry.retina.ellipsoid_radii.z == pytest.approx(-1 * sample_synteye.retina.radius_z)
 
     def test_create_random_eye_model(self):
         model = SyntEyesEyeModel()

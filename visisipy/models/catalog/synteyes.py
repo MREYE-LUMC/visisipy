@@ -90,6 +90,10 @@ class SyntEyesGeometry(
             retina_radius_y, retina_asphericity_y = radii_to_curvature(synteye.retina.radius_y, synteye.retina.radius_z)
             retina_radius_x, retina_asphericity_x = radii_to_curvature(synteye.retina.radius_x, synteye.retina.radius_z)
 
+            # Negate the retina radii to ensure that the retina is concave towards the front of the eye.
+            retina_radius_x *= -1
+            retina_radius_y *= -1
+
             surfaces = SyntEyesSurfaces(
                 cornea_front=ZernikeStandardSagSurface(
                     radius=float("inf"),
