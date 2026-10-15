@@ -92,7 +92,7 @@ cover = ""
 features = ["torch"]
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.10", "3.11", "3.12", "3.13"]
+python = ["3.11", "3.12", "3.13", "3.14"]
 
 [tool.pytest.ini_options]
 markers = [
