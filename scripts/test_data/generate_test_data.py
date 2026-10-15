@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from importlib.metadata import version
 from typing import TYPE_CHECKING
 from warnings import filterwarnings
 
@@ -52,7 +53,11 @@ def model() -> EyeModel:
     materials = NavarroMaterials543()
     geometry = EyeGeometry(
         cornea_front=BiconicSurface(
-            radius=7.6967, asphericity=-0.2304, thickness=0.5615, radius_x=7.9487, asphericity_x=-0.2304
+            radius=7.6967,
+            asphericity=-0.2304,
+            thickness=0.5615,
+            radius_x=7.9487,
+            asphericity_x=-0.2304,
         ),
         cornea_back=StandardSurface(radius=6.2343, asphericity=-0.1444, thickness=3.345),
         pupil=Stop(semi_diameter=1.0),
@@ -154,6 +159,8 @@ def build_and_save_model(model: EyeModel, path: Path, backends: Iterable[BaseBac
 
 
 def main(args: argparse.Namespace) -> None:
+    logger.info(f"Using ZOSPy version {version('zospy')} and Optiland version {version('optiland')}")
+
     if args.os_extension:
         logger.info("Connecting to OpticStudio in extension mode")
         OPTICSTUDIO_BACKEND_SETTINGS["mode"] = "extension"
@@ -208,10 +215,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Generate test data for analysis results tests.")
     parser.add_argument(
-        "--save-model", action="store_true", help="Save the eye model used for generating the test data."
+        "--save-model",
+        action="store_true",
+        help="Save the eye model used for generating the test data.",
     )
     parser.add_argument(
-        "--force", action="store_true", help="Force regeneration of all test data, even if it already exists."
+        "--force",
+        action="store_true",
+        help="Force regeneration of all test data, even if it already exists.",
     )
     parser.add_argument("--test", type=str, help="Only run a specific test, identified by its name.")
     parser.add_argument(

@@ -6,14 +6,7 @@ This module contains type definitions and utility classes for use throughout the
 from __future__ import annotations
 
 import re
-import sys
-from typing import Literal
-
-if sys.version_info >= (3, 11):
-    from typing import NotRequired, Self, TypedDict, Unpack
-else:
-    from typing_extensions import NotRequired, Self, TypedDict, Unpack
-
+from typing import Literal, NotRequired, Self, TypedDict, Unpack
 
 __all__ = (
     "ApertureType",
