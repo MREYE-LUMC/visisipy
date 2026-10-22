@@ -41,7 +41,14 @@ Modular design with support for [multiple backends][backends], both open-source 
 
 A simple web interface demonstrating some functionalities of Visisipy is available at [demo.mreye.nl/visisipy][demo].
 
-[![Visisipy online demo screenshot](_static/images/visisipy-demo.png)][demo]
+<div style="width: 100%; text-align: center; height: 600px; border-radius: 0.25rem; overflow: hidden;">
+    <iframe
+    src="https://demo.mreye.nl/shinylive/visisipy/"
+    title="Embedded interactive demo of Visisipy"
+    style="width: 126%; height: 750px; border: 0; transform: scale(0.8); transform-origin: 0 0;"
+    loading="lazy">
+    </iframe>
+</div>
 
 ## User guide
 
