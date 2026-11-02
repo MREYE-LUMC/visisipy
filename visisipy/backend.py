@@ -31,7 +31,16 @@ from collections.abc import Callable, Sequence
 from inspect import get_annotations
 from pathlib import Path
 from types import MethodType
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Literal, TypeVar, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Generic,
+    Literal,
+    TypeVar,
+    cast,
+    overload,
+)
 from warnings import warn
 from weakref import WeakValueDictionary
 
@@ -270,7 +279,7 @@ class BaseBackend(ABC, Generic[_Settings]):
     Backends should implement this interface to provide a unified interface for optical simulations.
     """
 
-    _instances: WeakValueDictionary[type[Self], Self] = WeakValueDictionary()
+    _instances: ClassVar[WeakValueDictionary[type, BaseBackend]] = WeakValueDictionary()
 
     def __init__(self) -> None:
         self._register(self)
@@ -493,11 +502,15 @@ def set_backend(
         )
 
     if backend == "opticstudio":
-        from visisipy.opticstudio import OpticStudioBackend  # ruff: ignore[import-outside-top-level]
+        from visisipy.opticstudio import (  # ruff: ignore[import-outside-top-level]
+            OpticStudioBackend,
+        )
 
         _BACKEND = _get_or_initialize_backend(OpticStudioBackend, settings)  # type: ignore
     elif backend == "optiland":
-        from visisipy.optiland import OptilandBackend  # ruff: ignore[import-outside-top-level]
+        from visisipy.optiland import (  # ruff: ignore[import-outside-top-level]
+            OptilandBackend,
+        )
 
         _BACKEND = _get_or_initialize_backend(OptilandBackend, settings)  # type: ignore
     else:
@@ -536,7 +549,9 @@ def get_oss() -> OpticStudioSystem:
     if platform.system() != "Windows":
         raise BackendAccessError("The OpticStudio backend is only available on Windows.")
 
-    from visisipy.opticstudio import OpticStudioBackend  # ruff: ignore[import-outside-top-level]
+    from visisipy.opticstudio import (  # ruff: ignore[import-outside-top-level]
+        OpticStudioBackend,
+    )
 
     if instance := OpticStudioBackend.get_instance():
         return instance.oss
@@ -557,7 +572,9 @@ def get_optic() -> Optic:
     BackendAccessError
         If the OptilandBackend is not currently initialized.
     """
-    from visisipy.optiland import OptilandBackend  # ruff: ignore[import-outside-top-level]
+    from visisipy.optiland import (  # ruff: ignore[import-outside-top-level]
+        OptilandBackend,
+    )
 
     if instance := OptilandBackend.get_instance():
         return instance.optic
