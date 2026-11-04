@@ -16,7 +16,7 @@ keywords = [
     "OpticStudio",
 ]
 authors = [{ name = "Corné Haasjes" }, { name = "Jan-Willem Beenakker" }]
-maintainers = [{ name = "MReye research group", email = "zospy@mreye.nl" }]
+maintainers = [{ name = "MReye research group", email = "software@mreye.nl" }]
 dependencies = [
     "matplotlib",
     "numba>=0.60.0",

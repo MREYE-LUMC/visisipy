@@ -31,7 +31,7 @@ It provides an easy-to-use interface to define and build eye models, and to perf
 ## Contributing
 
 Visisipy aims to be a community-driven project and warmly accepts contributions.
-If you want to contribute, please email us (visisipy@mreye.nl) or [open a new discussion](https://github.com/MREYE-LUMC/visisipy/discussions).
+If you want to contribute, please email us (software@mreye.nl) or [open a new discussion](https://github.com/MREYE-LUMC/visisipy/discussions).
 
 ## Installation
 
