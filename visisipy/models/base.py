@@ -20,43 +20,14 @@ else:
 if TYPE_CHECKING:
     from os import PathLike
 
-    from visisipy.models.catalog.navarro import NavarroGeometry
     from visisipy.models.geometry import EyeGeometry, Surface
     from visisipy.models.materials import EyeMaterials
 
 
-def _get_default_geometry() -> NavarroGeometry:
-    """Get the default eye geometry.
-
-    Returns
-    -------
-    EyeGeometry
-        The default eye geometry.
-    """
-    # Import here to avoid circular imports
-    from visisipy.models.catalog.navarro import NavarroGeometry  # ruff: ignore[import-outside-top-level]
-
-    return NavarroGeometry()
-
-
-def _get_default_materials() -> EyeMaterials:
-    """Get the default eye materials.
-
-    Returns
-    -------
-    EyeMaterials
-        The default eye materials.
-    """
-    # Import here to avoid circular imports
-    from visisipy.models.materials import NavarroMaterials  # ruff: ignore[import-outside-top-level]
-
-    return NavarroMaterials()
-
-
 _Geometry = TypeVar(
-    "_Geometry", bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface]", default="NavarroGeometry"
+    "_Geometry", bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface]"
 )
-_Materials = TypeVar("_Materials", bound="EyeMaterials", default="EyeMaterials")
+_Materials = TypeVar("_Materials", bound="EyeMaterials")
 
 
 @dataclass
@@ -66,7 +37,7 @@ class EyeModel(Generic[_Geometry, _Materials]):
     Visisipy's eye models consist of two parts: the geometry and the material model. The geometry defines the shape of
     the eye, while the material model defines the optical properties of the materials in the eye. By default, this model
     uses the geometry and materials of the Navarro wide-field eye model [1]_. The default material model has been
-    fitted to the refractive indices reported by Escudero-Sanz and Navarro [1]_. This model will work with all visible
+    fitted to the refractive indices reported by Escudero-Sanz and Navarro [1]_. This model works with all visible
     wavelengths, but could deviate slightly from the values provided in the literature for the specified wavelengths.
 
     Attributes
@@ -88,8 +59,8 @@ class EyeModel(Generic[_Geometry, _Materials]):
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    geometry: _Geometry = field(default_factory=_get_default_geometry)
-    materials: _Materials = field(default_factory=_get_default_materials)
+    geometry: _Geometry
+    materials: _Materials
     _built: BaseEye | None = field(default=None, init=False, repr=False)
 
     def build(
@@ -183,8 +154,12 @@ class EyeModel(Generic[_Geometry, _Materials]):
         EyeModel
             An eye model instance with geometry and materials reconstructed from ``data``.
         """
-        from visisipy.models.geometry import EyeGeometry  # ruff: ignore[import-outside-top-level]
-        from visisipy.models.materials import EyeMaterials  # ruff: ignore[import-outside-top-level]
+        from visisipy.models.geometry import (
+            EyeGeometry,  # ruff: ignore[import-outside-top-level]
+        )
+        from visisipy.models.materials import (
+            EyeMaterials,  # ruff: ignore[import-outside-top-level]
+        )
 
         return cls(
             geometry=EyeGeometry.from_dict(data["geometry"]),
