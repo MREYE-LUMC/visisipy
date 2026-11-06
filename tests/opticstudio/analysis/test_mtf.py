@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from tests.helpers import build_args
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -30,7 +30,7 @@ class TestFFTMTFAnalysis:
         sampling,
     ):
         opticstudio_backend.build_model(
-            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
         )
 
         args = build_args(
@@ -52,7 +52,7 @@ class TestFFTMTFAnalysis:
         fields = [(0, 0), (2, 0), (0, 2), (2, 2)]
 
         opticstudio_backend.update_settings(fields=fields)
-        opticstudio_backend.build_model(EyeModel(), object_distance=float("inf"))
+        opticstudio_backend.build_model(NavarroEyeModel(), object_distance=float("inf"))
 
         result, _ = opticstudio_analysis.fft_mtf(field_coordinate="all")
 

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.helpers import build_args
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 from visisipy.types import SampleSize
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ class TestRefractionAnalysis:
         opticstudio_backend,
     ):
         opticstudio_backend.build_model(
-            EyeModel(),
+            NavarroEyeModel(),
             object_distance=10 if field_type == "object_height" else float("inf"),
         )
 
@@ -101,7 +101,7 @@ class TestRefractionAnalysis:
         self, pupil_diameter, aperture_type, opticstudio_backend, opticstudio_analysis
     ):
         opticstudio_backend.build_model(
-            EyeModel(),
+            NavarroEyeModel(),
             object_distance=10 if aperture_type == "object_numeric_aperture" else float("inf"),
         )
         opticstudio_backend.update_settings(aperture_type=aperture_type)
@@ -119,7 +119,7 @@ class TestRefractionAnalysis:
 
         assert opticstudio_backend.get_primary_wavelength() == 0.543
 
-        opticstudio_backend.build_model(EyeModel())
+        opticstudio_backend.build_model(NavarroEyeModel())
         opticstudio_analysis.refraction(wavelength=new_wavelength)
 
         assert opticstudio_backend.get_primary_wavelength() == 0.543

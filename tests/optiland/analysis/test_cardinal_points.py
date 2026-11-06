@@ -4,7 +4,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 
 
 class TestCardinalPointsAnalysis:
@@ -31,7 +31,7 @@ class TestCardinalPointsAnalysis:
         ],
     )
     def test_cardinal_points(self, surface_1, surface_2, expectation, optiland_backend, optiland_analysis):
-        optiland_backend.build_model(EyeModel())
+        optiland_backend.build_model(NavarroEyeModel())
 
         with expectation:
             assert optiland_analysis.cardinal_points(surface_1, surface_2)

@@ -7,7 +7,7 @@ import pytest
 from pandas import DataFrame
 
 from tests.helpers import build_args
-from visisipy import EyeModel
+from visisipy import NavarroEyeModel
 from visisipy.opticstudio.analysis.wavefront import _pad_index, _pad_opd_map
 
 if TYPE_CHECKING:
@@ -75,7 +75,7 @@ class TestOPDMapAnalysis:
         remove_tilt,
     ):
         opticstudio_backend.build_model(
-            EyeModel(),
+            NavarroEyeModel(),
             object_distance=10 if field_type == "object_height" else float("inf"),
         )
 

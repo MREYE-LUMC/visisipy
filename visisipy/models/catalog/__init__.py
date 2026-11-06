@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from visisipy.models.catalog.bennett_rabbetts import BennettRabbettsEyeModel, BennettRabbettsGeometry
 from visisipy.models.catalog.gullstrand import GullstrandLeGrandEyeModel, GullstrandLeGrandGeometry
-from visisipy.models.catalog.navarro import NavarroGeometry
+from visisipy.models.catalog.navarro import NavarroEyeModel, NavarroGeometry
 from visisipy.models.catalog.synteyes import SyntEyesEyeModel, SyntEyesGeometry
 
 __all__ = (
@@ -12,6 +12,7 @@ __all__ = (
     "BennettRabbettsGeometry",
     "GullstrandLeGrandEyeModel",
     "GullstrandLeGrandGeometry",
+    "NavarroEyeModel",
     "NavarroGeometry",
     "SyntEyesEyeModel",
     "SyntEyesGeometry",

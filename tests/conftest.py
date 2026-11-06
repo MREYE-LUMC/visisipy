@@ -8,7 +8,7 @@ import pytest
 
 from visisipy import EyeGeometry, EyeMaterials, EyeModel
 from visisipy.models.geometry import NoSurface, StandardSurface, Stop
-from visisipy.models.materials import MaterialModel
+from visisipy.models.materials import MaterialModel, NavarroMaterials
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -234,7 +234,7 @@ def three_surface_eye_model():
         retina=StandardSurface(radius=-12.0, asphericity=0),
     )
 
-    return EyeModel(geometry)
+    return EyeModel(geometry=geometry, materials=NavarroMaterials())
 
 
 @pytest.fixture

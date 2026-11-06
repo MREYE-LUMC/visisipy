@@ -12,7 +12,10 @@ from visisipy.models.catalog import (
     BennettRabbettsGeometry,
     GullstrandLeGrandEyeModel,
     GullstrandLeGrandGeometry,
+    NavarroEyeModel,
     NavarroGeometry,
+    SyntEyesEyeModel,
+    SyntEyesGeometry,
 )
 from visisipy.models.factory import create_geometry
 from visisipy.models.geometry import EyeGeometry
@@ -35,12 +38,15 @@ __all__ = (
     "EyeModel",
     "GullstrandLeGrandEyeModel",
     "GullstrandLeGrandGeometry",
+    "NavarroEyeModel",
     "NavarroGeometry",
     "NavarroMaterials",
     "NavarroMaterials458",
     "NavarroMaterials543",
     "NavarroMaterials589",
     "NavarroMaterials633",
+    "SyntEyesEyeModel",
+    "SyntEyesGeometry",
     "create_geometry",
     "materials",
 )

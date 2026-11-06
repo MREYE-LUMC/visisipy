@@ -421,7 +421,7 @@ _CorneaBack_co = TypeVar("_CorneaBack_co", bound=Surface, default=StandardSurfac
 _Pupil_co = TypeVar("_Pupil_co", bound=Surface, default=Stop, covariant=True)
 _LensFront_co = TypeVar("_LensFront_co", bound=Surface, default=StandardSurface, covariant=True)
 _LensBack_co = TypeVar("_LensBack_co", bound=Surface, default=StandardSurface, covariant=True)
-_Retina_co = TypeVar("_Retina_co", bound=StandardSurface, default=StandardSurface, covariant=True)
+_Retina_co = TypeVar("_Retina_co", bound=Surface, default=StandardSurface, covariant=True)
 
 
 class EyeModelSurfaces(TypedDict, total=False):

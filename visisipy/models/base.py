@@ -17,6 +17,11 @@ if version_info >= (3, 13):
 else:
     from typing_extensions import TypeVar
 
+if version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 if TYPE_CHECKING:
     from os import PathLike
 
@@ -25,7 +30,8 @@ if TYPE_CHECKING:
 
 
 _Geometry = TypeVar(
-    "_Geometry", bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface]"
+    "_Geometry",
+    bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface, Surface]",
 )
 _Materials = TypeVar("_Materials", bound="EyeMaterials")
 
@@ -35,28 +41,19 @@ class EyeModel(Generic[_Geometry, _Materials]):
     """Optical model of the eye.
 
     Visisipy's eye models consist of two parts: the geometry and the material model. The geometry defines the shape of
-    the eye, while the material model defines the optical properties of the materials in the eye. By default, this model
-    uses the geometry and materials of the Navarro wide-field eye model [1]_. The default material model has been
-    fitted to the refractive indices reported by Escudero-Sanz and Navarro [1]_. This model works with all visible
-    wavelengths, but could deviate slightly from the values provided in the literature for the specified wavelengths.
+    the eye, while the material model defines the optical properties of the materials in the eye. Use a concrete
+    catalog model such as :class:`NavarroEyeModel` when a predefined model is desired.
 
     Attributes
     ----------
     geometry : EyeGeometry
-        Geometry of the eye. Defaults to the geometry of the Navarro eye model.
+        Explicit geometry specification for the eye.
     materials : EyeMaterials
-        Properties of the materials of the eye. Defaults to the materials of the Navarro eye model.
+        Explicit material specification for the eye.
 
     See Also
     --------
-    NavarroGeometry : Geometry of the Navarro eye model.
-    NavarroMaterials : Materials of the Navarro eye model.
-
-    References
-    ----------
-    .. [1] Escudero-Sanz, I., & Navarro, R. (1999).
-       Off-axis aberrations of a wide-angle schematic eye model.
-       JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
+    NavarroEyeModel : Predefined Navarro eye model.
     """
 
     geometry: _Geometry
@@ -141,7 +138,7 @@ class EyeModel(Generic[_Geometry, _Materials]):
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> EyeModel:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         """Create an eye model from a dictionary.
 
         Parameters
@@ -154,12 +151,8 @@ class EyeModel(Generic[_Geometry, _Materials]):
         EyeModel
             An eye model instance with geometry and materials reconstructed from ``data``.
         """
-        from visisipy.models.geometry import (
-            EyeGeometry,  # ruff: ignore[import-outside-top-level]
-        )
-        from visisipy.models.materials import (
-            EyeMaterials,  # ruff: ignore[import-outside-top-level]
-        )
+        from visisipy.models.geometry import EyeGeometry  # ruff: ignore[import-outside-top-level]
+        from visisipy.models.materials import EyeMaterials  # ruff: ignore[import-outside-top-level]
 
         return cls(
             geometry=EyeGeometry.from_dict(data["geometry"]),
@@ -181,7 +174,7 @@ class EyeModel(Generic[_Geometry, _Materials]):
         return json.dumps(data, allow_nan=True, indent=4)
 
     @classmethod
-    def from_json(cls, data: str) -> EyeModel:
+    def from_json(cls, data: str) -> Self:
         """Create an eye model from a JSON string.
 
         Parameters
@@ -229,7 +222,7 @@ class EyeModel(Generic[_Geometry, _Materials]):
             f.write(self.to_json())
 
     @classmethod
-    def load_json(cls, filename: str | PathLike) -> EyeModel:
+    def load_json(cls, filename: str | PathLike) -> Self:
         """Load an eye model from a JSON file.
 
         Parameters

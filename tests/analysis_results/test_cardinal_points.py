@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from visisipy.analysis import cardinal_points
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 from visisipy.models.materials import NavarroMaterials543
 
 if TYPE_CHECKING:
@@ -30,7 +30,7 @@ EXPECTED_CARDINAL_POINTS_RESULT = {
 
 @pytest.fixture
 def cardinal_points_result(configure_backend) -> CardinalPointsResult:
-    model = EyeModel(materials=NavarroMaterials543())
+    model = NavarroEyeModel(materials=NavarroMaterials543())
 
     return cardinal_points(model=model, backend=configure_backend)
 

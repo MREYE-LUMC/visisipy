@@ -1,12 +1,7 @@
-"""Escudero-Sanz and Navarro wide-angle schematic eye.
-
-This module does not provide an eye model class, because the default eye model in visisipy
-is already based on the Navarro geometry and materials.
-"""
+"""Escudero-Sanz and Navarro wide-angle schematic eye."""
 
 from __future__ import annotations
 
-from dataclasses import field
 from typing import TYPE_CHECKING
 
 from visisipy.models.base import EyeModel
@@ -22,7 +17,7 @@ if TYPE_CHECKING:
     from visisipy.types import Unpack
 
 
-__all__ = ("NavarroGeometry",)
+__all__ = ("NavarroEyeModel", "NavarroGeometry")
 
 
 class NavarroGeometry(
@@ -81,9 +76,7 @@ class NavarroGeometry(
 
     def __init__(self, **surfaces: Unpack[EyeModelSurfaces]) -> None:
         navarro_surfaces = EyeModelSurfaces(
-            cornea_front=StandardSurface(
-                radius=7.72, asphericity=-0.26, thickness=0.55
-            ),
+            cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
             cornea_back=StandardSurface(radius=6.50, asphericity=0, thickness=3.05),
             pupil=Stop(semi_diameter=1.348),
             lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),
@@ -121,5 +114,13 @@ class NavarroEyeModel(EyeModel[NavarroGeometry, NavarroMaterials]):
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    geometry: NavarroGeometry = field(default_factory=NavarroGeometry)
-    materials: NavarroMaterials = field(default_factory=NavarroMaterials)
+    def __init__(
+        self,
+        geometry: NavarroGeometry | None = None,
+        materials: NavarroMaterials | None = None,
+    ) -> None:
+        """Create a Navarro eye model."""
+        super().__init__(
+            geometry=NavarroGeometry() if geometry is None else geometry,
+            materials=NavarroMaterials() if materials is None else materials,
+        )

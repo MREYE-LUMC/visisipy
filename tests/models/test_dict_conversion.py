@@ -9,6 +9,7 @@ import re
 import pytest
 
 from visisipy.models.base import EyeModel
+from visisipy.models.catalog.navarro import NavarroEyeModel
 from visisipy.models.catalog.synteyes import SyntEyesEyeModel, SyntEyesGeometry
 from visisipy.models.geometry import (
     BiconicSurface,
@@ -319,26 +320,26 @@ ALL_MATERIALS.pop("EyeMaterials")  # Remove base class to avoid redundant test c
 
 class TestEyeModelDict:
     def test_to_dict_keys(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         result = model.to_dict()
 
         assert "geometry" in result
         assert "materials" in result
 
     def test_to_dict_geometry_is_dict(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         result = model.to_dict()
 
         assert isinstance(result["geometry"], dict)
 
     def test_to_dict_materials_is_dict(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         result = model.to_dict()
 
         assert isinstance(result["materials"], dict)
 
     def test_from_dict(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         data = model.to_dict()
         reconstructed = EyeModel.from_dict(data)
 
@@ -347,7 +348,7 @@ class TestEyeModelDict:
         assert isinstance(reconstructed.materials, EyeMaterials)
 
     def test_roundtrip_preserves_materials(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         data = model.to_dict()
         reconstructed = EyeModel.from_dict(data)
 
@@ -355,7 +356,7 @@ class TestEyeModelDict:
         assert reconstructed.materials == model.materials
 
     def test_roundtrip_preserves_geometry(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         data = model.to_dict()
         reconstructed = EyeModel.from_dict(data)
 
@@ -393,7 +394,7 @@ class TestEyeModelDict:
         assert reconstructed == model
 
     def test_to_json_includes_visisipy_version(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         json_data = model.to_json()
         parsed = json.loads(json_data)
 
@@ -402,15 +403,15 @@ class TestEyeModelDict:
         assert "materials" in parsed
 
     def test_from_json(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         json_data = model.to_json()
-        reconstructed = EyeModel.from_json(json_data)
+        reconstructed = NavarroEyeModel.from_json(json_data)
 
-        assert isinstance(reconstructed, EyeModel)
+        assert isinstance(reconstructed, NavarroEyeModel)
         assert reconstructed == model
 
     def test_from_json_missing_visisipy_version_raises_valueerror(self):
-        model = EyeModel()
+        model = NavarroEyeModel()
         data = model.to_dict()
         json_data = json.dumps(data)
 
@@ -423,7 +424,7 @@ class TestEyeModelDict:
             EyeModel.from_json(json_data)
 
     def test_save_and_load_json(self, tmp_path):
-        model = EyeModel()
+        model = NavarroEyeModel()
         path = tmp_path / "eye_model.json"
 
         model.save_json(path)
@@ -438,7 +439,7 @@ class TestEyeModelDict:
         assert loaded.geometry.retina == model.geometry.retina
 
     def test_save_json_invalid_extension_raises_valueerror(self, tmp_path):
-        model = EyeModel()
+        model = NavarroEyeModel()
         path = tmp_path / "eye_model.txt"
 
         with pytest.raises(ValueError, match=re.escape("Output filename must have a .json extension.")):

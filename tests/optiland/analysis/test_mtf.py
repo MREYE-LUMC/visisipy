@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from tests.helpers import build_args
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 
 
 class TestFFTMTFAnalysis:
@@ -27,7 +27,9 @@ class TestFFTMTFAnalysis:
         field_type,
         sampling,
     ):
-        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        optiland_backend.build_model(
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -48,7 +50,7 @@ class TestFFTMTFAnalysis:
         fields = [(0, 0), (2, 0), (0, 2), (2, 2)]
 
         optiland_backend.update_settings(fields=fields)
-        optiland_backend.build_model(EyeModel(), object_distance=float("inf"))
+        optiland_backend.build_model(NavarroEyeModel(), object_distance=float("inf"))
 
         result, _ = optiland_analysis.fft_mtf(field_coordinate="all")
 
