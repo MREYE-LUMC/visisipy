@@ -76,7 +76,9 @@ class NavarroGeometry(
 
     def __init__(self, **surfaces: Unpack[EyeModelSurfaces]) -> None:
         navarro_surfaces = EyeModelSurfaces(
-            cornea_front=StandardSurface(radius=7.72, asphericity=-0.26, thickness=0.55),
+            cornea_front=StandardSurface(
+                radius=7.72, asphericity=-0.26, thickness=0.55
+            ),
             cornea_back=StandardSurface(radius=6.50, asphericity=0, thickness=3.05),
             pupil=Stop(semi_diameter=1.348),
             lens_front=StandardSurface(radius=10.2, asphericity=-3.1316, thickness=4.0),

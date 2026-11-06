@@ -147,8 +147,12 @@ class EyeModel(Generic[_Geometry, _Materials]):
         EyeModel
             An eye model instance with geometry and materials reconstructed from ``data``.
         """
-        from visisipy.models.geometry import EyeGeometry  # ruff: ignore[import-outside-top-level]
-        from visisipy.models.materials import EyeMaterials  # ruff: ignore[import-outside-top-level]
+        from visisipy.models.geometry import (
+            EyeGeometry,
+        )
+        from visisipy.models.materials import (
+            EyeMaterials,
+        )
 
         return cls(
             geometry=EyeGeometry.from_dict(data["geometry"]),
