@@ -17,6 +17,11 @@ if version_info >= (3, 13):
 else:
     from typing_extensions import TypeVar
 
+if version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
+
 if TYPE_CHECKING:
     from os import PathLike
     from typing import Self
@@ -26,6 +31,8 @@ if TYPE_CHECKING:
 
 
 _Geometry = TypeVar(
+    "_Geometry",
+    bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface, Surface]",
     "_Geometry",
     bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface, Surface]",
 )
@@ -39,16 +46,21 @@ class EyeModel(Generic[_Geometry, _Materials]):
     Visisipy's eye models consist of two parts: the geometry and the material model. The geometry defines the shape of
     the eye, while the material model defines the optical properties of the materials in the eye. Use a concrete
     catalog model such as :class:`NavarroEyeModel` when a predefined model is desired.
+    the eye, while the material model defines the optical properties of the materials in the eye. Use a concrete
+    catalog model such as :class:`NavarroEyeModel` when a predefined model is desired.
 
     Attributes
     ----------
     geometry : EyeGeometry
         Explicit geometry specification for the eye.
+        Explicit geometry specification for the eye.
     materials : EyeMaterials
+        Explicit material specification for the eye.
         Explicit material specification for the eye.
 
     See Also
     --------
+    NavarroEyeModel : Predefined Navarro eye model.
     NavarroEyeModel : Predefined Navarro eye model.
     """
 
@@ -134,7 +146,7 @@ class EyeModel(Generic[_Geometry, _Materials]):
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> EyeModel:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         """Create an eye model from a dictionary.
 
         Parameters
@@ -147,12 +159,8 @@ class EyeModel(Generic[_Geometry, _Materials]):
         EyeModel
             An eye model instance with geometry and materials reconstructed from ``data``.
         """
-        from visisipy.models.geometry import (
-            EyeGeometry,
-        )
-        from visisipy.models.materials import (
-            EyeMaterials,
-        )
+        from visisipy.models.geometry import EyeGeometry  # ruff: ignore[import-outside-top-level]
+        from visisipy.models.materials import EyeMaterials  # ruff: ignore[import-outside-top-level]
 
         return cls(
             geometry=EyeGeometry.from_dict(data["geometry"]),
