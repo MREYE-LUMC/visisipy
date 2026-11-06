@@ -82,9 +82,8 @@ dependencies = ["ruff==0.17.3"]
 config-path = "ruff_defaults.toml"
 dependencies = ["ruff==0.17.3"]
 
-# Disable type checking
 [tool.hatch.envs.hatch-check-types.scripts]
-check = ""
+check = "pyrefly check"
 summarize = ""
 cover = ""
 
@@ -168,6 +167,11 @@ max-line-length = 120
 max-summary-lines = 1
 summary-quotes-same-line = true
 linewrap-full-docstring = true
+
+[tool.pyrefly]
+project-includes = [
+    "visisipy/**/*.py",
+]
 
 [dependency-groups]
 dev = [
