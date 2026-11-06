@@ -17,13 +17,9 @@ if version_info >= (3, 13):
 else:
     from typing_extensions import TypeVar
 
-if version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
-
 if TYPE_CHECKING:
     from os import PathLike
+    from typing import Self
 
     from visisipy.models.geometry import EyeGeometry, Surface
     from visisipy.models.materials import EyeMaterials
