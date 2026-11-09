@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import Literal, Unpack
 
 from visisipy.models.base import EyeModel
 from visisipy.models.geometry import EyeGeometry, EyeModelSurfaces, StandardSurface, Stop
 from visisipy.models.materials import GullstrandLeGrandAccommodatedMaterials, GullstrandLeGrandUnaccommodatedMaterials
-
-if TYPE_CHECKING:
-    from visisipy.types import Unpack
 
 __all__ = ("GullstrandLeGrandEyeModel", "GullstrandLeGrandGeometry")
 

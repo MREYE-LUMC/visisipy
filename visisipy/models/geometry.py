@@ -415,12 +415,12 @@ class NoSurface(Surface):
     thickness: float = field(default=0, init=False)
 
 
-_CorneaFront_co = TypeVar("_CorneaFront_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
-_CorneaBack_co = TypeVar("_CorneaBack_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
-_Pupil_co = TypeVar("_Pupil_co", bound=Surface, default=Stop)  # ruff: ignore[type-name-incorrect-variance]
-_LensFront_co = TypeVar("_LensFront_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
-_LensBack_co = TypeVar("_LensBack_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
-_Retina_co = TypeVar("_Retina_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
+_CorneaFront = TypeVar("_CorneaFront", bound=Surface)
+_CorneaBack = TypeVar("_CorneaBack", bound=Surface)
+_Pupil = TypeVar("_Pupil", bound=Surface)
+_LensFront = TypeVar("_LensFront", bound=Surface)
+_LensBack = TypeVar("_LensBack", bound=Surface)
+_Retina = TypeVar("_Retina", bound=Surface)
 
 
 class EyeModelSurfaces(TypedDict, total=False):
@@ -436,12 +436,12 @@ class EyeModelSurfaces(TypedDict, total=False):
 
 class EyeGeometry(
     Generic[
-        _CorneaFront_co,
-        _CorneaBack_co,
-        _Pupil_co,
-        _LensFront_co,
-        _LensBack_co,
-        _Retina_co,
+        _CorneaFront,
+        _CorneaBack,
+        _Pupil,
+        _LensFront,
+        _LensBack,
+        _Retina,
     ]
 ):
     """Geometric parameters of an eye.
@@ -480,12 +480,12 @@ class EyeGeometry(
 
     def __init__(
         self,
-        cornea_front: _CorneaFront_co | None = None,
-        cornea_back: _CorneaBack_co | None = None,
-        pupil: _Pupil_co | None = None,
-        lens_front: _LensFront_co | None = None,
-        lens_back: _LensBack_co | None = None,
-        retina: _Retina_co | None = None,
+        cornea_front: _CorneaFront | None = None,
+        cornea_back: _CorneaBack | None = None,
+        pupil: _Pupil | None = None,
+        lens_front: _LensFront | None = None,
+        lens_back: _LensBack | None = None,
+        retina: _Retina | None = None,
     ) -> None:
         """Initialize an instance of the EyeGeometry class.
 
@@ -509,68 +509,68 @@ class EyeGeometry(
         retina : StandardSurface, optional
             The retina of the eye. If not provided, a default Surface instance will be used.
         """
-        self.cornea_front = cast("_CorneaFront_co", cornea_front or StandardSurface())
-        self.cornea_back = cast("_CorneaBack_co", cornea_back or StandardSurface())
-        self.pupil = cast("_Pupil_co", pupil or Stop())
-        self.lens_front = cast("_LensFront_co", lens_front or StandardSurface())
-        self.lens_back = cast("_LensBack_co", lens_back or StandardSurface())
-        self.retina = cast("_Retina_co", retina or StandardSurface())
+        self.cornea_front = cast("_CorneaFront", cornea_front or StandardSurface())
+        self.cornea_back = cast("_CorneaBack", cornea_back or StandardSurface())
+        self.pupil = cast("_Pupil", pupil or Stop())
+        self.lens_front = cast("_LensFront", lens_front or StandardSurface())
+        self.lens_back = cast("_LensBack", lens_back or StandardSurface())
+        self.retina = cast("_Retina", retina or StandardSurface())
 
     @property
-    def cornea_front(self) -> _CorneaFront_co:
+    def cornea_front(self) -> _CorneaFront:
         """Cornea front geometry."""
         return self._cornea_front
 
     @cornea_front.setter
-    def cornea_front(self, value: _CorneaFront_co) -> None:
+    def cornea_front(self, value: _CorneaFront) -> None:
         self._cornea_front = value
 
     @property
-    def cornea_back(self) -> _CorneaBack_co:
+    def cornea_back(self) -> _CorneaBack:
         """Cornea back geometry."""
         return self._cornea_back
 
     @cornea_back.setter
-    def cornea_back(self, value: _CorneaBack_co) -> None:
+    def cornea_back(self, value: _CorneaBack) -> None:
         self._cornea_back = value
 
     @property
-    def pupil(self) -> _Pupil_co:
+    def pupil(self) -> _Pupil:
         """Pupil geometry."""
         return self._pupil
 
     @pupil.setter
-    def pupil(self, value: _Pupil_co) -> None:
+    def pupil(self, value: _Pupil) -> None:
         if not getattr(value, "is_stop", False):
             raise ValueError("The pupil surface must be a stop.")
 
         self._pupil = value
 
     @property
-    def lens_front(self) -> _LensFront_co:
+    def lens_front(self) -> _LensFront:
         """Lens front geometry."""
         return self._lens_front
 
     @lens_front.setter
-    def lens_front(self, value: _LensFront_co) -> None:
+    def lens_front(self, value: _LensFront) -> None:
         self._lens_front = value
 
     @property
-    def lens_back(self) -> _LensBack_co:
+    def lens_back(self) -> _LensBack:
         """Lens back geometry."""
         return self._lens_back
 
     @lens_back.setter
-    def lens_back(self, value: _LensBack_co) -> None:
+    def lens_back(self, value: _LensBack) -> None:
         self._lens_back = value
 
     @property
-    def retina(self) -> _Retina_co:
+    def retina(self) -> _Retina:
         """Retina geometry."""
         return self._retina
 
     @retina.setter
-    def retina(self, value: _Retina_co) -> None:
+    def retina(self, value: _Retina) -> None:
         asphericity = getattr(value, "asphericity", 0)
         if asphericity <= -1:
             raise ValueError(f"Only an elliptical retina is allowed (asphericity > -1), got {asphericity=}")
@@ -712,7 +712,7 @@ class EyeGeometry(
 
         return f"{name}({', '.join(f'{k}={v!r}' for k, v in surfaces.items())})"
 
-    def __key(self):
+    def _key(self):
         """Generate a tuple of the eye geometry's attributes for hashing and equality checks.
 
         Returns
@@ -733,10 +733,10 @@ class EyeGeometry(
         if not isinstance(other, EyeGeometry):
             return NotImplemented
 
-        return self.__key() == other.__key()
+        return self._key() == other._key()
 
     def __hash__(self) -> int:
-        return hash(self.__key())
+        return hash(self._key())
 
 
 @cache

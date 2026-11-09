@@ -53,7 +53,7 @@ def fft_psf(
     *,
     return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
-) -> DataFrame | tuple[DataFrame, Any]:
+) -> tuple[DataFrame, Any]:
     """Calculate the FFT Point Spread Function (PSF) at the retina surface.
 
     Parameters
@@ -129,7 +129,7 @@ def huygens_psf(
     *,
     return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
-) -> DataFrame | tuple[DataFrame, Any]:
+) -> tuple[DataFrame, Any]:
     """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
 
     Parameters
@@ -160,6 +160,8 @@ def huygens_psf(
     DataFrame
         The PSF data as a DataFrame. The DataFrame contains the PSF values at the specified field coordinate and
         wavelength.
+    Any
+        The raw analysis result from the backend.
     """
     return backend.analysis.huygens_psf(
         field_coordinate=field_coordinate,
@@ -209,7 +211,7 @@ def strehl_ratio(
     *,
     return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
-) -> float | tuple[float, Any]:
+) -> tuple[float, Any]:
     """Calculate the Strehl ratio of the optical system.
 
     The Strehl ratio is calculated from the point spread function. Which PSF is used depends on the `psf_type` parameter.

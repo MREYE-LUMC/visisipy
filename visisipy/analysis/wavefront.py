@@ -58,7 +58,7 @@ def opd_map(
     use_exit_pupil_shape: bool = False,
     return_raw_result: bool = False,  # ruff: ignore[unused-function-argument]
     backend: BaseBackend = _AUTOMATIC_BACKEND,
-) -> DataFrame | tuple[DataFrame, Any]:
+) -> tuple[DataFrame, Any]:
     """Calculate the Optical Path Difference (OPD) map at the retina surface.
 
     Parameters

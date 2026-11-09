@@ -167,6 +167,12 @@ linewrap-full-docstring = true
 project-includes = [
     "visisipy/**/*.py",
 ]
+project-excludes = [
+    # Exclude backend implementations, as they are not part of the public API
+    # and difficult to type-check
+    "visisipy/opticstudio/**/*.py",
+    "visisipy/optiland/**/*.py",
+]
 
 [dependency-groups]
 dev = [
@@ -174,6 +180,7 @@ dev = [
     "loguru>=0.7.3",
     "pytest>=8.3.5",
     "pytest-mock>=3.15.1",
+    "scipy-stubs>=1.17.1.5",
     "torch>=2.7.0",
 ]
 docs = [

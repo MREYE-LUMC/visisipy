@@ -51,9 +51,10 @@ def load_synteyes_model_data() -> SyntEyesModelData:
     SyntEyesModelData
         A dataclass containing the SyntEyes model data.
     """
-    file = importlib.resources.files(__package__) / "modeldata.npz"
-
-    with np.load(file) as data:
+    with (
+        importlib.resources.as_file(importlib.resources.files("visisipy.synteyes") / "modeldata.npz") as file,
+        np.load(file) as data,
+    ):
         cov_orig = np.zeros((2, *data["cov_orig0"].shape))
         cov_orig[0] = data["cov_orig0"]
         cov_orig[1] = data["cov_orig1"]
