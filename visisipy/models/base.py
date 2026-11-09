@@ -134,7 +134,7 @@ class EyeModel(Generic[_Geometry, _Materials]):
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> EyeModel:
         """Create an eye model from a dictionary.
 
         Parameters
