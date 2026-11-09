@@ -573,7 +573,7 @@ def _find_intersection(func1: Callable[[float], float], func2: Callable[[float],
     return None
 
 
-def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list:
+def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list[tuple[float, float]]:
     """Match vertices from two surfaces by y-coordinate to ensure proper edge connections.
 
     Returns list of vertices for connecting edges: [front_top, back_top, front_bottom, back_bottom]
@@ -592,28 +592,26 @@ def _match_surface_vertices(front_surface: Path, back_surface: Path) -> list:
         List of vertices for connecting edges: [front_top, back_top, front_bottom, back_bottom]
         or [front_top, back_bottom, front_bottom, back_top] depending on which pairing minimizes distance.
     """
+    front_vertices = np.asarray(front_surface.vertices, dtype=float)
+    back_vertices = np.asarray(back_surface.vertices, dtype=float)
+
     # Get y-coordinates of endpoints
-    front_y0 = front_surface.vertices[0][1]
-    back_y0 = back_surface.vertices[0][1]
-    back_y1 = back_surface.vertices[-1][1]
+    front_y0 = front_vertices[0, 1]
+    back_y0 = back_vertices[0, 1]
+    back_y1 = back_vertices[-1, 1]
+
+    front_top = (float(front_vertices[0, 0]), float(front_vertices[0, 1]))
+    front_bottom = (float(front_vertices[-1, 0]), float(front_vertices[-1, 1]))
+    back_top = (float(back_vertices[0, 0]), float(back_vertices[0, 1]))
+    back_bottom = (float(back_vertices[-1, 0]), float(back_vertices[-1, 1]))
 
     # Match vertices: if front_y0 and back_y0 are closer, connect 0-0 and -1--1
     # Otherwise connect 0--1 and -1-0
     if abs(front_y0 - back_y0) < abs(front_y0 - back_y1):
         # Connect matching ends
-        return [
-            front_surface.vertices[0],
-            back_surface.vertices[0],
-            front_surface.vertices[-1],
-            back_surface.vertices[-1],
-        ]
+        return [front_top, back_top, front_bottom, back_bottom]
     # Connect opposite ends
-    return [
-        front_surface.vertices[0],
-        back_surface.vertices[-1],
-        front_surface.vertices[-1],
-        back_surface.vertices[0],
-    ]
+    return [front_top, back_bottom, front_bottom, back_top]
 
 
 def _plot_cornea(
@@ -1006,12 +1004,19 @@ def plot_eye(
         Path.MOVETO,
         Path.LINETO,
     ]
-    vertices = [
-        (0, cornea_cutoff_y),
-        (0, geometry.pupil.semi_diameter),
-        (0, -geometry.pupil.semi_diameter),
-        (0, -cornea_cutoff_y),
-    ]
+    pupil_semi_diameter = geometry.pupil.semi_diameter
+    if pupil_semi_diameter is None:
+        raise ValueError("The pupil surface must have a semi-diameter.")
+
+    vertices = np.asarray(
+        [
+            (0, cornea_cutoff_y),
+            (0, pupil_semi_diameter),
+            (0, -pupil_semi_diameter),
+            (0, -cornea_cutoff_y),
+        ],
+        dtype=float,
+    )
     pupil = Path(vertices, codes)
 
     eye = Path.make_compound_path(cornea, pupil, lens, retina)
