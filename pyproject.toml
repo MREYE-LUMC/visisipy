@@ -178,7 +178,7 @@ project-excludes = [
     "visisipy/optiland/**/*.py",
 ]
 ignore-missing-imports = [
-    "zospy", # ZOSPy is not available in the CI environment
+    "zospy.*", # ZOSPy is not available in the CI environment
 ]
 
 [dependency-groups]
