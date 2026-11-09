@@ -6,19 +6,23 @@ This module contains type definitions and utility classes for use throughout the
 from __future__ import annotations
 
 import re
-from typing import Literal, NotRequired, Self, TypedDict, Unpack
+from sys import version_info
+from typing import Literal
+
+# Use typing_extensions.TypeVar for Python <3.13 to support default values for type variables
+if version_info >= (3, 13):
+    from typing import TypeVar
+else:
+    from typing_extensions import TypeVar
 
 __all__ = (
     "ApertureType",
     "FieldCoordinate",
     "FieldType",
-    "NotRequired",
     "OpticStudioRayAimingType",
     "OptilandRayAimingType",
     "SampleSize",
-    "Self",
-    "TypedDict",
-    "Unpack",
+    "TypeVar",
     "ZernikeUnit",
 )
 

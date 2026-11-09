@@ -37,14 +37,15 @@ from typing import (
     ClassVar,
     Generic,
     Literal,
+    Self,
+    TypedDict,
     TypeVar,
+    Unpack,
     cast,
     overload,
 )
 from warnings import warn
 from weakref import WeakValueDictionary
-
-from visisipy.types import Self, TypedDict, Unpack, ZernikeUnit
 
 if TYPE_CHECKING:
     from os import PathLike
@@ -59,7 +60,13 @@ if TYPE_CHECKING:
     from visisipy.opticstudio.backend import OpticStudioSettings
     from visisipy.optiland.backend import OptilandSettings
     from visisipy.refraction import FourierPowerVectorRefraction
-    from visisipy.types import ApertureType, FieldCoordinate, FieldType, SampleSize
+    from visisipy.types import (
+        ApertureType,
+        FieldCoordinate,
+        FieldType,
+        SampleSize,
+        ZernikeUnit,
+    )
     from visisipy.wavefront import ZernikeCoefficients
 
 __all__ = (
@@ -102,12 +109,14 @@ class _AnalysisMethod(Generic[_Analysis]):
         if instance is None:
             return self
 
-        return MethodType(self._analysis, instance.backend)
+        return cast("_Analysis", MethodType(self._analysis, instance.backend))
 
 
 class _classproperty(property):  # ruff: ignore[invalid-class-name]
     def __get__(self, instance, owner=None):
-        return self.fget(owner)
+        if self.fget is None:
+            raise AttributeError("class property has no getter")
+        return cast("Callable[..., Any]", self.fget)(owner)
 
 
 class BaseAnalysisRegistry(ABC):
@@ -418,7 +427,7 @@ class BaseBackend(ABC, Generic[_Settings]):
         if name not in self.settings:
             raise KeyError(f"Setting '{name}' has not been set.")
 
-        return self.settings[name]
+        return cast("dict[str, Any]", self.settings)[name]
 
     def save_settings(self, filename: str | PathLike) -> None:
         """Save backend settings to a JSON file.

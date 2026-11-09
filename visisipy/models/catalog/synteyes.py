@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TypedDict, Unpack
 
 from visisipy.models.base import EyeModel
 from visisipy.models.geometry import (
     BiconicSurface,
     EyeGeometry,
-    EyeModelSurfaces,
     StandardSurface,
     Stop,
     ZernikeStandardSagSurface,
@@ -17,13 +16,10 @@ from visisipy.models.helpers import radii_to_curvature
 from visisipy.models.materials import EyeMaterials, MaterialModel
 from visisipy.synteyes.synteyes import SyntEye3D, generate_synteyes
 
-if TYPE_CHECKING:
-    from visisipy.types import Unpack
-
 __all__ = ("SyntEyesEyeModel", "SyntEyesGeometry")
 
 
-class SyntEyesSurfaces(EyeModelSurfaces, total=False):
+class SyntEyesSurfaces(TypedDict, total=False):
     """Surfaces of an eye model generated with SyntEyes."""
 
     cornea_front: ZernikeStandardSagSurface

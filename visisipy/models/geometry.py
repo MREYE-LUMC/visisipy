@@ -6,12 +6,11 @@ from abc import ABC
 from dataclasses import dataclass, field, fields
 from functools import cache
 from sys import version_info
-from typing import Any, Generic, NamedTuple, cast
+from typing import Any, Generic, NamedTuple, TypedDict, cast
 
 import numpy as np
 
 from visisipy.models.helpers import _collect_subclasses, curvature_to_radii
-from visisipy.types import TypedDict
 from visisipy.wavefront import ZernikeCoefficients
 
 # Use typing_extensions.TypeVar for Python <3.13 to support default values for type variables
@@ -206,7 +205,7 @@ class Stop(StandardSurface):
         The thickness of the stop. Default is 0.
     """
 
-    semi_diameter: float = 1.0
+    semi_diameter: float | None = 1.0
     thickness: float = 0
     is_stop: bool = True
 
@@ -413,15 +412,15 @@ class NoSurface(Surface):
     """
 
     # Thickness is present on all surface instances, but cannot be set from the constructor.
-    thickness: int = field(default=0, init=False)
+    thickness: float = field(default=0, init=False)
 
 
-_CorneaFront_co = TypeVar("_CorneaFront_co", bound=Surface, default=StandardSurface, covariant=True)
-_CorneaBack_co = TypeVar("_CorneaBack_co", bound=Surface, default=StandardSurface, covariant=True)
-_Pupil_co = TypeVar("_Pupil_co", bound=Surface, default=Stop, covariant=True)
-_LensFront_co = TypeVar("_LensFront_co", bound=Surface, default=StandardSurface, covariant=True)
-_LensBack_co = TypeVar("_LensBack_co", bound=Surface, default=StandardSurface, covariant=True)
-_Retina_co = TypeVar("_Retina_co", bound=Surface, default=StandardSurface, covariant=True)
+_CorneaFront_co = TypeVar("_CorneaFront_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
+_CorneaBack_co = TypeVar("_CorneaBack_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
+_Pupil_co = TypeVar("_Pupil_co", bound=Surface, default=Stop)  # ruff: ignore[type-name-incorrect-variance]
+_LensFront_co = TypeVar("_LensFront_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
+_LensBack_co = TypeVar("_LensBack_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
+_Retina_co = TypeVar("_Retina_co", bound=Surface, default=StandardSurface)  # ruff: ignore[type-name-incorrect-variance]
 
 
 class EyeModelSurfaces(TypedDict, total=False):
@@ -435,7 +434,16 @@ class EyeModelSurfaces(TypedDict, total=False):
     retina: StandardSurface
 
 
-class EyeGeometry(Generic[_CorneaFront_co, _CorneaBack_co, _Pupil_co, _LensFront_co, _LensBack_co, _Retina_co]):  # ruff: ignore[eq-without-hash]
+class EyeGeometry(
+    Generic[
+        _CorneaFront_co,
+        _CorneaBack_co,
+        _Pupil_co,
+        _LensFront_co,
+        _LensBack_co,
+        _Retina_co,
+    ]
+):
     """Geometric parameters of an eye.
 
     Sizes are specified in mm. This class is mainly intended as a base class for more specific eye models.
@@ -501,12 +509,12 @@ class EyeGeometry(Generic[_CorneaFront_co, _CorneaBack_co, _Pupil_co, _LensFront
         retina : StandardSurface, optional
             The retina of the eye. If not provided, a default Surface instance will be used.
         """
-        self.cornea_front = cornea_front or StandardSurface()
-        self.cornea_back = cornea_back or StandardSurface()
-        self.pupil = pupil or Stop()
-        self.lens_front = lens_front or StandardSurface()
-        self.lens_back = lens_back or StandardSurface()
-        self.retina = retina or StandardSurface()
+        self.cornea_front = cast("_CorneaFront_co", cornea_front or StandardSurface())
+        self.cornea_back = cast("_CorneaBack_co", cornea_back or StandardSurface())
+        self.pupil = cast("_Pupil_co", pupil or Stop())
+        self.lens_front = cast("_LensFront_co", lens_front or StandardSurface())
+        self.lens_back = cast("_LensBack_co", lens_back or StandardSurface())
+        self.retina = cast("_Retina_co", retina or StandardSurface())
 
     @property
     def cornea_front(self) -> _CorneaFront_co:
@@ -533,7 +541,7 @@ class EyeGeometry(Generic[_CorneaFront_co, _CorneaBack_co, _Pupil_co, _LensFront
 
     @pupil.setter
     def pupil(self, value: _Pupil_co) -> None:
-        if not value.is_stop:
+        if not getattr(value, "is_stop", False):
             raise ValueError("The pupil surface must be a stop.")
 
         self._pupil = value
@@ -563,8 +571,9 @@ class EyeGeometry(Generic[_CorneaFront_co, _CorneaBack_co, _Pupil_co, _LensFront
 
     @retina.setter
     def retina(self, value: _Retina_co) -> None:
-        if value.asphericity <= -1:
-            raise ValueError(f"Only an elliptical retina is allowed (asphericity > -1), got {value.asphericity=}")
+        asphericity = getattr(value, "asphericity", 0)
+        if asphericity <= -1:
+            raise ValueError(f"Only an elliptical retina is allowed (asphericity > -1), got {asphericity=}")
 
         self._retina = value
 
@@ -726,6 +735,9 @@ class EyeGeometry(Generic[_CorneaFront_co, _CorneaBack_co, _Pupil_co, _LensFront
 
         return self.__key() == other.__key()
 
+    def __hash__(self) -> int:
+        return hash(self.__key())
+
 
 @cache
 def _get_surface_registry() -> dict[str, type[Surface]]:
@@ -742,9 +754,7 @@ def _get_surface_registry() -> dict[str, type[Surface]]:
 
 
 @cache
-def _get_eye_geometry_registry() -> dict[
-    str, type[EyeGeometry[Surface, Surface, Surface, Surface, Surface, StandardSurface]]
-]:
+def _get_eye_geometry_registry() -> dict[str, type[EyeGeometry]]:
     """Build a registry of all :class:`EyeGeometry` subclasses by recursively collecting ``__subclasses__``.
 
     Returns
@@ -752,6 +762,6 @@ def _get_eye_geometry_registry() -> dict[
     dict[str, type[EyeGeometry]]
         Mapping from class name to class for :class:`EyeGeometry` and all its subclasses.
     """
-    registry: dict[str, type[EyeGeometry[Surface, Surface, Surface, Surface, Surface, StandardSurface]]] = {}
+    registry: dict[str, type[EyeGeometry]] = {}
     _collect_subclasses(EyeGeometry, registry)
     return registry

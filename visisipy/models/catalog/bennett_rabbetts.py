@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TypedDict, Unpack
 
 from visisipy.models.base import EyeModel
-from visisipy.models.geometry import EyeGeometry, EyeModelSurfaces, NoSurface, StandardSurface, Stop
+from visisipy.models.geometry import EyeGeometry, NoSurface, StandardSurface, Stop
 from visisipy.models.materials import BennettRabbettsMaterials
-
-if TYPE_CHECKING:
-    from visisipy.types import Unpack
 
 __all__ = ("BennettRabbettsEyeModel", "BennettRabbettsGeometry")
 
@@ -17,13 +14,18 @@ __all__ = ("BennettRabbettsEyeModel", "BennettRabbettsGeometry")
 PUPIL_SEMI_DIAMETER_MM = 1.5
 
 
-class BennettRabbettsSurfaces(EyeModelSurfaces, total=False):
+class BennettRabbettsSurfaces(TypedDict, total=False):
     """Surfaces of the Bennett-Rabbetts schematic eye.
 
     This schematic eye does not have an anterior corneal surface.
     """
 
     cornea_front: NoSurface
+    cornea_back: StandardSurface
+    pupil: Stop
+    lens_front: StandardSurface
+    lens_back: StandardSurface
+    retina: StandardSurface
 
 
 surfaces_by_accommodation: dict[float, BennettRabbettsSurfaces] = {

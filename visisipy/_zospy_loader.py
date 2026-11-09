@@ -3,12 +3,13 @@ from __future__ import annotations
 import importlib
 import platform
 import sys
+from importlib.abc import Loader
 from importlib.machinery import ModuleSpec
 
 __all__ = ("install_zospy_loader",)
 
 
-class ZOSPyLoader:
+class ZOSPyLoader(Loader):
     def __init__(self, name):
         self.name = name
 

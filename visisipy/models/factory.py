@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, TypedDict, TypeVar, Unpack, cast
 from warnings import warn
 
 from visisipy.models.catalog.navarro import NavarroGeometry
 from visisipy.models.geometry import EyeGeometry, Surface
 from visisipy.models.helpers import radii_to_curvature
-from visisipy.types import TypedDict, Unpack
 
 __all__ = ("create_geometry",)
 
@@ -93,7 +92,7 @@ def _check_sign(value: float | None, name: str, sign: Literal["+", "-"]) -> None
         warn(msg.format("negative", name, value), UserWarning, stacklevel=2)
 
 
-GeometryType = TypeVar("GeometryType", bound=EyeGeometry)
+GeometryType = TypeVar("GeometryType", bound=EyeGeometry, default=NavarroGeometry)
 
 
 class GeometryParameters(TypedDict, total=False):
@@ -127,7 +126,7 @@ class GeometryParameters(TypedDict, total=False):
 
 
 def create_geometry(
-    base: type[GeometryType] = NavarroGeometry,
+    base: type[GeometryType] | None = None,
     *,
     estimate_cornea_back: bool = False,
     **parameters: Unpack[GeometryParameters],
@@ -203,6 +202,9 @@ def create_geometry(
         If the retina radius/asphericity and y/z ellipsoid radii are both specified.
         If only one of the retina ellipsoid radii is specified.
     """
+    if base is None:
+        base = cast("type[GeometryType]", NavarroGeometry)
+
     if not isinstance(base, type):
         raise TypeError("The base geometry must be a class. Did you put parentheses after the class name?")
 

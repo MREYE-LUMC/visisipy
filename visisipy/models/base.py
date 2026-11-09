@@ -6,24 +6,17 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from sys import version_info
 from typing import TYPE_CHECKING, Any, Generic
 
 import visisipy.backend as _backend
-
-# Use typing_extensions.TypeVar for Python <3.13 to support default values for type variables
-if version_info >= (3, 13):
-    from typing import TypeVar
-else:
-    from typing_extensions import TypeVar
+from visisipy.types import TypeVar
 
 if TYPE_CHECKING:
     from os import PathLike
     from typing import Self
 
-    from visisipy.models.geometry import EyeGeometry, Surface
-    from visisipy.models.materials import EyeMaterials
-
+    from visisipy.models.geometry import EyeGeometry, Surface  # ruff: ignore[unused-import]
+    from visisipy.models.materials import EyeMaterials  # ruff: ignore[unused-import]
 
 _Geometry = TypeVar(
     "_Geometry",
@@ -154,8 +147,11 @@ class EyeModel(Generic[_Geometry, _Materials]):
         EyeModel
             An eye model instance with geometry and materials reconstructed from ``data``.
         """
-        from visisipy.models.geometry import EyeGeometry  # ruff: ignore[import-outside-top-level]
-        from visisipy.models.materials import EyeMaterials  # ruff: ignore[import-outside-top-level]
+        # ruff: ignore[import-outside-top-level]
+        from visisipy.models.geometry import EyeGeometry
+
+        # ruff: ignore[import-outside-top-level]
+        from visisipy.models.materials import EyeMaterials
 
         return cls(
             geometry=EyeGeometry.from_dict(data["geometry"]),
