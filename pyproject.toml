@@ -115,21 +115,27 @@ line-length = 120
 
 [tool.ruff.lint]
 extend-select = [
-    "D", # Pydocstyle
+    "D",                              # Pydocstyle
     "docstring-extraneous-parameter", # Extraneous docstring parameters
-    "RUF", # ruff-specific
+    "RUF",                            # ruff-specific
 ]
 extend-ignore = [
     "no-explicit-stacklevel",
-    "undocumented-magic-method",   # Missing docstring in magic method
-    "raise-vanilla-args", # Avoid specifying long messages outside the exception class
-    "raw-string-in-exception",  # Exception must not use a string literal, assign to variable first
-    "f-string-in-exception",  # Exception must not use an f-string literal, assign to variable first
+    "undocumented-magic-method", # Missing docstring in magic method
+    "raise-vanilla-args",        # Avoid specifying long messages outside the exception class
+    "raw-string-in-exception",   # Exception must not use a string literal, assign to variable first
+    "f-string-in-exception",     # Exception must not use an f-string literal, assign to variable first
     "non-empty-init-module",
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
-"docs/*" = ["D", "docstring-missing-returns", "missing-required-import", "implicit-namespace-package", "T20"]
+"docs/*" = [
+    "D",
+    "docstring-missing-returns",
+    "missing-required-import",
+    "implicit-namespace-package",
+    "T20",
+]
 "examples/*" = ["missing-required-import", "implicit-namespace-package", "T20"]
 "scripts/*" = ["D", "assert"]
 "tests/*" = [
@@ -164,14 +170,15 @@ summary-quotes-same-line = true
 linewrap-full-docstring = true
 
 [tool.pyrefly]
-project-includes = [
-    "visisipy/**/*.py",
-]
+project-includes = ["visisipy/**/*.py"]
 project-excludes = [
     # Exclude backend implementations, as they are not part of the public API
     # and difficult to type-check
     "visisipy/opticstudio/**/*.py",
     "visisipy/optiland/**/*.py",
+]
+ignore-missing-imports = [
+    "zospy", # ZOSPy is not available in the CI environment
 ]
 
 [dependency-groups]
