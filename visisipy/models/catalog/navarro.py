@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Unpack
 
 from visisipy.models.base import EyeModel
 from visisipy.models.geometry import (
@@ -12,10 +12,6 @@ from visisipy.models.geometry import (
     Stop,
 )
 from visisipy.models.materials import NavarroMaterials
-
-if TYPE_CHECKING:
-    from visisipy.types import Unpack
-
 
 __all__ = ("NavarroEyeModel", "NavarroGeometry")
 

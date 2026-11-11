@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, Self, Unpack, cast
 from warnings import warn
 
 import zospy as zp
@@ -29,10 +29,7 @@ if TYPE_CHECKING:
         ApertureType,
         FieldCoordinate,
         FieldType,
-        NotRequired,
         OpticStudioRayAimingType,
-        Self,
-        Unpack,
     )
 
 
@@ -81,7 +78,7 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
                 "Reinitializing the backend is not necessary and may cause issues.",
                 stacklevel=2,
             )
-            return instance
+            return cast("Self", instance)
 
         instance = super().__new__(cls)
         instance.__initialized = False
@@ -370,6 +367,8 @@ class OpticStudioBackend(BaseBackend[OpticStudioSettings]):
             aperture_type = "image_f_number"
         elif self.oss.SystemData.Aperture.ApertureType == zp.constants.SystemData.ZemaxApertureType.ObjectSpaceNA:
             aperture_type = "object_numeric_aperture"
+        else:
+            raise ValueError(f"Unsupported OpticStudio aperture type: {self.oss.SystemData.Aperture.ApertureType!r}")
 
         if aperture_type == "float_by_stop_size":
             aperture_value = self.oss.LDE.GetSurfaceAt(self.oss.LDE.StopSurface).SemiDiameter * 2

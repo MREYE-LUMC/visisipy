@@ -6,24 +6,17 @@ import json
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from sys import version_info
 from typing import TYPE_CHECKING, Any, Generic
 
 import visisipy.backend as _backend
-
-# Use typing_extensions.TypeVar for Python <3.13 to support default values for type variables
-if version_info >= (3, 13):
-    from typing import TypeVar
-else:
-    from typing_extensions import TypeVar
+from visisipy.types import TypeVar
 
 if TYPE_CHECKING:
     from os import PathLike
     from typing import Self
 
-    from visisipy.models.geometry import EyeGeometry, Surface
-    from visisipy.models.materials import EyeMaterials
-
+    from visisipy.models.geometry import EyeGeometry, Surface  # ruff: ignore[unused-import]
+    from visisipy.models.materials import EyeMaterials  # ruff: ignore[unused-import]
 
 _Geometry = TypeVar(
     "_Geometry",
@@ -39,16 +32,21 @@ class EyeModel(Generic[_Geometry, _Materials]):
     Visisipy's eye models consist of two parts: the geometry and the material model. The geometry defines the shape of
     the eye, while the material model defines the optical properties of the materials in the eye. Use a concrete
     catalog model such as :class:`NavarroEyeModel` when a predefined model is desired.
+    the eye, while the material model defines the optical properties of the materials in the eye. Use a concrete
+    catalog model such as :class:`NavarroEyeModel` when a predefined model is desired.
 
     Attributes
     ----------
     geometry : EyeGeometry
         Explicit geometry specification for the eye.
+        Explicit geometry specification for the eye.
     materials : EyeMaterials
+        Explicit material specification for the eye.
         Explicit material specification for the eye.
 
     See Also
     --------
+    NavarroEyeModel : Predefined Navarro eye model.
     NavarroEyeModel : Predefined Navarro eye model.
     """
 
@@ -134,7 +132,7 @@ class EyeModel(Generic[_Geometry, _Materials]):
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> EyeModel:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         """Create an eye model from a dictionary.
 
         Parameters
@@ -147,8 +145,11 @@ class EyeModel(Generic[_Geometry, _Materials]):
         EyeModel
             An eye model instance with geometry and materials reconstructed from ``data``.
         """
-        from visisipy.models.geometry import EyeGeometry  # ruff: ignore[import-outside-top-level]
-        from visisipy.models.materials import EyeMaterials  # ruff: ignore[import-outside-top-level]
+        # ruff: ignore[import-outside-top-level]
+        from visisipy.models.geometry import EyeGeometry
+
+        # ruff: ignore[import-outside-top-level]
+        from visisipy.models.materials import EyeMaterials
 
         return cls(
             geometry=EyeGeometry.from_dict(data["geometry"]),

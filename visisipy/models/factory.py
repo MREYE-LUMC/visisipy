@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, TypedDict, Unpack, cast, overload
 from warnings import warn
 
 from visisipy.models.catalog.navarro import NavarroGeometry
 from visisipy.models.geometry import EyeGeometry, Surface
 from visisipy.models.helpers import radii_to_curvature
-from visisipy.types import TypedDict, Unpack
+from visisipy.types import TypeVar
 
 __all__ = ("create_geometry",)
 
@@ -93,7 +93,7 @@ def _check_sign(value: float | None, name: str, sign: Literal["+", "-"]) -> None
         warn(msg.format("negative", name, value), UserWarning, stacklevel=2)
 
 
-GeometryType = TypeVar("GeometryType", bound=EyeGeometry)
+GeometryType = TypeVar("GeometryType", bound=EyeGeometry, default=NavarroGeometry)
 
 
 class GeometryParameters(TypedDict, total=False):
@@ -126,12 +126,30 @@ class GeometryParameters(TypedDict, total=False):
     retina_ellipsoid_y_radius: float
 
 
+@overload
 def create_geometry(
-    base: type[GeometryType] = NavarroGeometry,
+    base: type[NavarroGeometry] = NavarroGeometry,
     *,
     estimate_cornea_back: bool = False,
     **parameters: Unpack[GeometryParameters],
-) -> GeometryType:
+) -> NavarroGeometry: ...
+
+
+@overload
+def create_geometry(
+    base: type[GeometryType],
+    *,
+    estimate_cornea_back: bool = False,
+    **parameters: Unpack[GeometryParameters],
+) -> GeometryType: ...
+
+
+def create_geometry(
+    base: type[GeometryType | NavarroGeometry] = NavarroGeometry,
+    *,
+    estimate_cornea_back: bool = False,
+    **parameters: Unpack[GeometryParameters],
+) -> GeometryType | NavarroGeometry:
     """Create a geometry instance from clinically used parameters.
 
     All parameters are optional, and if not provided, the default values will be used.
@@ -286,4 +304,4 @@ def create_geometry(
         _update_attribute_if_specified(geometry.retina, "radius", retina_radius)
         _update_attribute_if_specified(geometry.retina, "asphericity", retina_asphericity)
 
-    return geometry
+    return cast("GeometryType", geometry)

@@ -179,28 +179,28 @@ class NavarroMaterials(EyeMaterials):
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    cornea: MaterialModel = field(
+    cornea: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3760893927086157,
             abbe_number=53.049630674367904,
             partial_dispersion=0,
         )
     )
-    aqueous: MaterialModel = field(
+    aqueous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.337454140357322,
             abbe_number=48.49905307541748,
             partial_dispersion=0,
         )
     )
-    lens: MaterialModel = field(
+    lens: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.4201120875715691,
             abbe_number=46.3823857404518,
             partial_dispersion=0,
         )
     )
-    vitreous: MaterialModel = field(
+    vitreous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3360870349145728,
             abbe_number=49.685360416317124,
@@ -231,28 +231,28 @@ class NavarroMaterials458(NavarroMaterials):
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    cornea: MaterialModel = field(
+    cornea: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3828,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    aqueous: MaterialModel = field(
+    aqueous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3445,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    lens: MaterialModel = field(
+    lens: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.4292,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    vitreous: MaterialModel = field(
+    vitreous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3428,
             abbe_number=0,
@@ -283,28 +283,28 @@ class NavarroMaterials543(NavarroMaterials):
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    cornea: MaterialModel = field(
+    cornea: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3777,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    aqueous: MaterialModel = field(
+    aqueous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3391,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    lens: MaterialModel = field(
+    lens: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.4222,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    vitreous: MaterialModel = field(
+    vitreous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3377,
             abbe_number=0,
@@ -335,28 +335,28 @@ class NavarroMaterials589(NavarroMaterials):
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    cornea: MaterialModel = field(
+    cornea: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.376,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    aqueous: MaterialModel = field(
+    aqueous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3374,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    lens: MaterialModel = field(
+    lens: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.42,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    vitreous: MaterialModel = field(
+    vitreous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.336,
             abbe_number=0,
@@ -387,28 +387,28 @@ class NavarroMaterials633(NavarroMaterials):
        JOSA A, 16(8), 1881-1891. https://doi.org/10.1364/JOSAA.16.001881
     """
 
-    cornea: MaterialModel = field(
+    cornea: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3747,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    aqueous: MaterialModel = field(
+    aqueous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.336,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    lens: MaterialModel = field(
+    lens: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.4183,
             abbe_number=0,
             partial_dispersion=0,
         )
     )
-    vitreous: MaterialModel = field(
+    vitreous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3347,
             abbe_number=0,
@@ -438,22 +438,22 @@ class BennettRabbettsMaterials(EyeMaterials):
     """
 
     # The Bennett-Rabbetts model uses a single-surface cornea and therefore does not specify the corneal refractive index.
-    cornea: MaterialModel = field(
+    cornea: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.0,
         )
     )
-    aqueous: MaterialModel = field(
+    aqueous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.336,
         )
     )
-    lens: MaterialModel = field(
+    lens: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.422,
         )
     )
-    vitreous: MaterialModel = field(
+    vitreous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.336,
         )
@@ -473,22 +473,22 @@ class GullstrandLeGrandUnaccommodatedMaterials(EyeMaterials):
     .. [1] Le Grand, Y., El Hage, S.G. (1980). Physiological Optics. Springer.
     """
 
-    cornea: MaterialModel = field(
+    cornea: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3771,
         )
     )
-    aqueous: MaterialModel = field(
+    aqueous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.3374,
         )
     )
-    lens: MaterialModel = field(
+    lens: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.42,
         )
     )
-    vitreous: MaterialModel = field(
+    vitreous: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.336,
         )
@@ -508,7 +508,7 @@ class GullstrandLeGrandAccommodatedMaterials(GullstrandLeGrandUnaccommodatedMate
     .. [1] Le Grand, Y., El Hage, S.G. (1980). Physiological Optics. Springer.
     """
 
-    lens: MaterialModel = field(
+    lens: MaterialModel | str = field(
         default_factory=_material_model_factory(
             refractive_index=1.427,
         )

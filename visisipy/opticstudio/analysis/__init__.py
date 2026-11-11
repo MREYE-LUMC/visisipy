@@ -27,12 +27,12 @@ class OpticStudioAnalysisRegistry(BaseAnalysisRegistry):
     def __init__(self, backend: OpticStudioBackend):
         super().__init__(backend)
 
-    cardinal_points: _AnalysisMethod = _AnalysisMethod(cardinal_points)
-    fft_mtf: _AnalysisMethod = _AnalysisMethod(fft_mtf)
-    fft_psf: _AnalysisMethod = _AnalysisMethod(fft_psf)
-    huygens_psf: _AnalysisMethod = _AnalysisMethod(huygens_psf)
-    opd_map: _AnalysisMethod = _AnalysisMethod(opd_map)
-    raytrace: _AnalysisMethod = _AnalysisMethod(raytrace)
-    refraction: _AnalysisMethod = _AnalysisMethod(refraction)
-    strehl_ratio: _AnalysisMethod = _AnalysisMethod(strehl_ratio)
-    zernike_standard_coefficients: _AnalysisMethod = _AnalysisMethod(zernike_standard_coefficients)
+    cardinal_points: _AnalysisMethod = _AnalysisMethod(cardinal_points)  # pyrefly: ignore[bad-override]
+    fft_mtf: _AnalysisMethod = _AnalysisMethod(fft_mtf)  # pyrefly: ignore[bad-override]
+    fft_psf: _AnalysisMethod = _AnalysisMethod(fft_psf)  # pyrefly: ignore[bad-override]
+    huygens_psf: _AnalysisMethod = _AnalysisMethod(huygens_psf)  # pyrefly: ignore[bad-override]
+    opd_map: _AnalysisMethod = _AnalysisMethod(opd_map)  # pyrefly: ignore[bad-override]
+    raytrace: _AnalysisMethod = _AnalysisMethod(raytrace)  # pyrefly: ignore[bad-override]
+    refraction: _AnalysisMethod = _AnalysisMethod(refraction)  # pyrefly: ignore[bad-override]
+    strehl_ratio: _AnalysisMethod = _AnalysisMethod(strehl_ratio)  # pyrefly: ignore[bad-override]
+    zernike_standard_coefficients: _AnalysisMethod = _AnalysisMethod(zernike_standard_coefficients)  # pyrefly: ignore[bad-override]

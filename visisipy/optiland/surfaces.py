@@ -6,7 +6,16 @@ import weakref
 from abc import ABC, abstractmethod
 from functools import reduce, singledispatch
 from operator import attrgetter
-from typing import TYPE_CHECKING, Generic, TypeVar, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Generic,
+    NotRequired,
+    TypedDict,
+    TypeVar,
+    Union,
+    Unpack,
+    overload,
+)
 from warnings import warn
 
 from optiland.materials import AbbeMaterial, IdealMaterial, Material
@@ -23,14 +32,11 @@ from visisipy.models.geometry import (
     ZernikeStandardSagSurface,
 )
 from visisipy.models.materials import MaterialModel
-from visisipy.types import TypedDict
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
     import optiland.surfaces
     from optiland.optic import Optic
-
-    from visisipy.types import NotRequired, Unpack
 
 
 PropertyType = TypeVar("PropertyType")
