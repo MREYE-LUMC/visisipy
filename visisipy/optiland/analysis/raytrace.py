@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 
     from optiland.optic import Optic
 
-    from visisipy.backend import FieldCoordinate, FieldType
+    from visisipy.backend import FieldCoordinate, FieldType, SupportsBackend
     from visisipy.optiland import OptilandBackend
 
-__all__ = ("raytrace",)
+__all__ = ("OptilandRaytraceMixin",)
 
 
 def _trace_single_ray(
@@ -42,74 +42,77 @@ def _trace_single_ray(
     })
 
 
-def raytrace(
-    backend: OptilandBackend,
-    coordinates: Sequence[FieldCoordinate] | None = None,
-    wavelengths: Sequence[float] | None = None,
-    field_type: FieldType = "angle",
-    pupil: tuple[float, float] = (0, 0),
-) -> tuple[pd.DataFrame, None]:
-    """Perform a ray trace analysis using the given parameters.
+class OptilandRaytraceMixin:
+    """Mixin class for ray trace analysis in Optiland."""
 
-    The ray trace is performed for each wavelength and field in the system, using the generic ray trace in Optiland.
+    def raytrace(
+        self: SupportsBackend[OptilandBackend],
+        coordinates: Sequence[FieldCoordinate] | None = None,
+        wavelengths: Sequence[float] | None = None,
+        field_type: FieldType = "angle",
+        pupil: tuple[float, float] = (0, 0),
+    ) -> tuple[pd.DataFrame, None]:
+        """Perform a ray trace analysis using the given parameters.
 
-    The analysis returns a Dataframe with the following columns:
+        The ray trace is performed for each wavelength and field in the system, using the generic ray trace in Optiland.
 
-    - field: The field coordinates for the ray trace.
-    - wavelength: The wavelength used in the ray trace.
-    - surface: The surface number in the system.
-    - comment: The comment for the surface.
-    - x: The X-coordinate of the ray trace.
-    - y: The Y-coordinate of the ray trace.
-    - z: The Z-coordinate of the ray trace.
+        The analysis returns a Dataframe with the following columns:
 
-    Parameters
-    ----------
-    backend : OptilandBackend
-        The Optiland backend to use for the ray trace.
-    coordinates : Sequence[FieldCoordinate], optional
-        A sequence of tuples representing the coordinates for the ray trace.
-        If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.
-        If `field_type` is "object_height", the coordinates should be the object heights along the
-        (X, Y) axes in mm. Defaults to `None`, which uses the fields defined in the backend.
-    wavelengths : Sequence[float], optional
-        A sequence of wavelengths to be used in the ray trace. Defaults to `None`, which uses the wavelengths
-        defined in the backend.
-    field_type : Literal["angle", "object_height"], optional
-        The type of field to be used in the ray trace. Can be either "angle" or "object_height". Defaults to
-        "angle".
-    pupil : tuple[float, float], optional
-        A tuple representing the pupil coordinates for the ray trace. Defaults to (0, 0).
+        - field: The field coordinates for the ray trace.
+        - wavelength: The wavelength used in the ray trace.
+        - surface: The surface number in the system.
+        - comment: The comment for the surface.
+        - x: The X-coordinate of the ray trace.
+        - y: The Y-coordinate of the ray trace.
+        - z: The Z-coordinate of the ray trace.
 
-    Returns
-    -------
-    DataFrame
-        A pandas DataFrame containing the results of the ray trace analysis.
+        Parameters
+        ----------
+        self : SupportsBackend[OptilandBackend]
+            The Optiland backend to use for the ray trace.
+        coordinates : Sequence[FieldCoordinate], optional
+            A sequence of tuples representing the coordinates for the ray trace.
+            If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.
+            If `field_type` is "object_height", the coordinates should be the object heights along the
+            (X, Y) axes in mm. Defaults to `None`, which uses the fields defined in the backend.
+        wavelengths : Sequence[float], optional
+            A sequence of wavelengths to be used in the ray trace. Defaults to `None`, which uses the wavelengths
+            defined in the backend.
+        field_type : Literal["angle", "object_height"], optional
+            The type of field to be used in the ray trace. Can be either "angle" or "object_height". Defaults to
+            "angle".
+        pupil : tuple[float, float], optional
+            A tuple representing the pupil coordinates for the ray trace. Defaults to (0, 0).
 
-    Raises
-    ------
-    ValueError
-        If the pupil coordinates are not between -1 and 1.
-    """
-    if abs(pupil[0]) > 1 or abs(pupil[1]) > 1:
-        raise ValueError("Pupil coordinates must be between -1 and 1.")
+        Returns
+        -------
+        DataFrame
+            A pandas DataFrame containing the results of the ray trace analysis.
 
-    if coordinates is None:
-        coordinates = backend.get_fields()
+        Raises
+        ------
+        ValueError
+            If the pupil coordinates are not between -1 and 1.
+        """
+        if abs(pupil[0]) > 1 or abs(pupil[1]) > 1:
+            raise ValueError("Pupil coordinates must be between -1 and 1.")
 
-    if wavelengths is None:
-        wavelengths = backend.get_wavelengths()
+        if coordinates is None:
+            coordinates = self.backend.get_fields()
 
-    raytrace_results = []
+        if wavelengths is None:
+            wavelengths = self.backend.get_wavelengths()
 
-    for wavelength in wavelengths:
-        set_wavelength(backend, wavelength)
+        raytrace_results = []
 
-        for field in coordinates:
-            normalized_field = set_field(backend, field, field_type)
+        for wavelength in wavelengths:
+            set_wavelength(self.backend, wavelength)
 
-            result = _trace_single_ray(backend.optic, normalized_field, pupil, wavelength)
-            result.insert(0, "field", [(float(field[0]), float(field[1]))] * len(result))
-            raytrace_results.append(result)
+            for field in coordinates:
+                normalized_field = set_field(self.backend, field, field_type)
 
-    return pd.concat(raytrace_results).reset_index(), None
+                result = _trace_single_ray(self.backend.optic, normalized_field, pupil, wavelength)
+                result.insert(0, "field", [(float(field[0]), float(field[1]))] * len(result))
+                raytrace_results.append(result)
+
+        return pd.concat(raytrace_results).reset_index(), None

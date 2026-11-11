@@ -10,10 +10,11 @@ from visisipy.analysis.cardinal_points import CardinalPoints, CardinalPointsResu
 if TYPE_CHECKING:
     from optiland.paraxial import Paraxial
 
+    from visisipy.backend import SupportsBackend
     from visisipy.optiland import OptilandBackend
 
 
-__all__ = ("cardinal_points",)
+__all__ = ("OptilandCardinalPointsMixin",)
 
 
 def _build_cardinal_points_result(paraxial: Paraxial) -> CardinalPointsResult:
@@ -45,39 +46,42 @@ def _build_cardinal_points_result(paraxial: Paraxial) -> CardinalPointsResult:
     )
 
 
-def cardinal_points(
-    backend: OptilandBackend, surface_1: int | None = None, surface_2: int | None = None
-) -> tuple[CardinalPointsResult, Paraxial]:
-    """Get the cardinal points of the system between `surface_1` and `surface_2`.
+class OptilandCardinalPointsMixin:
+    """Mixin class for the cardinal points analysis in Optiland."""
 
-    Note that Optiland only supports calculating cardinal points for the entire system, not for a subset of surfaces.
-    A ValueError will be raised if `surface_1` or `surface_2` are different from the first and last surfaces in the system.
+    def cardinal_points(
+        self: SupportsBackend[OptilandBackend], surface_1: int | None = None, surface_2: int | None = None
+    ) -> tuple[CardinalPointsResult, Paraxial]:
+        """Get the cardinal points of the system between `surface_1` and `surface_2`.
 
-    Parameters
-    ----------
-    backend : OptilandBackend
-        Reference to the Optiland backend.
-    surface_1 : int | None, optional
-        The first surface to be used in the analysis. If `None`, the first surface in the system will be used.
-        Defaults to `None`.
-    surface_2 : int | None, optional
-        The second surface to be used in the analysis. If `None`, the last surface in the system will be used.
-        Defaults to `None`.
+        Note that Optiland only supports calculating cardinal points for the entire system, not for a subset of surfaces.
+        A ValueError will be raised if `surface_1` or `surface_2` are different from the first and last surfaces in the system.
 
-    Returns
-    -------
-    CardinalPointsResult
-        The cardinal points of the system.
+        Parameters
+        ----------
+        self : SupportsBackend[OptilandBackend]
+            Reference to the Optiland backend.
+        surface_1 : int | None, optional
+            The first surface to be used in the analysis. If `None`, the first surface in the system will be used.
+            Defaults to `None`.
+        surface_2 : int | None, optional
+            The second surface to be used in the analysis. If `None`, the last surface in the system will be used.
+            Defaults to `None`.
 
-    Raises
-    ------
-    ValueError
-        If `surface_1` or `surface_2` are not between 1 and the number of surfaces in the system, or if `surface_1`
-        is greater than or equal to `surface_2`.
-    """
-    if (surface_1 is not None and surface_1 not in {0, 1}) or (
-        surface_2 is not None and surface_2 != backend.optic.surfaces.num_surfaces - 1
-    ):
-        raise ValueError("Optiland only supports calculating cardinal points for the entire system.")
+        Returns
+        -------
+        CardinalPointsResult
+            The cardinal points of the system.
 
-    return _build_cardinal_points_result(backend.optic.paraxial), deepcopy(backend.optic.paraxial)
+        Raises
+        ------
+        ValueError
+            If `surface_1` or `surface_2` are not between 1 and the number of surfaces in the system, or if `surface_1`
+            is greater than or equal to `surface_2`.
+        """
+        if (surface_1 is not None and surface_1 not in {0, 1}) or (
+            surface_2 is not None and surface_2 != self.backend.optic.surfaces.num_surfaces - 1
+        ):
+            raise ValueError("Optiland only supports calculating cardinal points for the entire system.")
+
+        return _build_cardinal_points_result(self.backend.optic.paraxial), deepcopy(self.backend.optic.paraxial)

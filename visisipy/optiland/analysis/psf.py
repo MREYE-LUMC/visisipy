@@ -15,11 +15,12 @@ from visisipy.types import SampleSize
 if TYPE_CHECKING:
     from optiland.psf.base import BasePSF
 
+    from visisipy.backend import SupportsBackend
     from visisipy.optiland import OptilandBackend
     from visisipy.types import FieldCoordinate, FieldType
 
 
-__all__ = ("fft_psf", "huygens_psf")
+__all__ = ("OptilandPSFMixin",)
 
 
 FFT_PSF_MINIMUM_PUPIL_SAMPLING = 32
@@ -57,181 +58,180 @@ def _effective_pupil_sampling(pupil_sampling: int | SampleSize) -> int:
     return np.floor(32 * np.sqrt(2) ** (np.log2(pupil_sampling) - 5)).astype(int)
 
 
-def fft_psf(
-    backend: OptilandBackend,
-    field_coordinate: FieldCoordinate | None = None,
-    wavelength: float | None = None,
-    field_type: FieldType = "angle",
-    sampling: SampleSize | str | int = 128,
-) -> tuple[pd.DataFrame, VectorialFFTPSF | ScalarFFTPSF]:
-    """Calculate the FFT Point Spread Function (PSF) at the retina surface.
+class OptilandPSFMixin:
+    """Mixin class for PSF analyses in Optiland."""
 
-    Parameters
-    ----------
-    backend : OptilandBackend
-        Reference to the Optiland backend.
-    field_coordinate : tuple[float, float], optional
-        The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
-    wavelength : float, optional
-        The wavelength in μm. If `None`, the first wavelength in Optiland is used. Defaults to `None`.
-    field_type : Literal["angle", "object_height"], optional
-        The field type. Either "angle" or "object_height". Defaults to "angle". This parameter is only used if
-        `field_coordinate` is not `None`.
-    sampling : SampleSize | str | int, optional
-        The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
+    def fft_psf(
+        self: SupportsBackend[OptilandBackend],
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 128,
+    ) -> tuple[pd.DataFrame, VectorialFFTPSF | ScalarFFTPSF]:
+        """Calculate the FFT Point Spread Function (PSF) at the retina surface.
 
-    Returns
-    -------
-    DataFrame
-        The PSF data as a pandas DataFrame.
-    VectorialFFTPSF | ScalarFFTPSF
-        The Optiland FFTPSF object.
-    """
-    if not isinstance(sampling, SampleSize):
-        sampling = SampleSize(sampling)
+        Parameters
+        ----------
+        self : SupportsBackend[OptilandBackend]
+            Reference to the Optiland backend.
+        field_coordinate : tuple[float, float], optional
+            The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
+        wavelength : float, optional
+            The wavelength in μm. If `None`, the first wavelength in Optiland is used. Defaults to `None`.
+        field_type : Literal["angle", "object_height"], optional
+            The field type. Either "angle" or "object_height". Defaults to "angle". This parameter is only used if
+            `field_coordinate` is not `None`.
+        sampling : SampleSize | str | int, optional
+            The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
 
-    normalized_field = set_field(backend, field_coordinate, field_type)
-    wavelength = set_wavelength(backend, wavelength)
+        Returns
+        -------
+        DataFrame
+            The PSF data as a pandas DataFrame.
+        VectorialFFTPSF | ScalarFFTPSF
+            The Optiland FFTPSF object.
+        """
+        if not isinstance(sampling, SampleSize):
+            sampling = SampleSize(sampling)
 
-    num_rays = _effective_pupil_sampling(sampling)
+        normalized_field = set_field(self.backend, field_coordinate, field_type)
+        wavelength = set_wavelength(self.backend, wavelength)
 
-    psf = FFTPSF(
-        optic=backend.optic,
-        field=normalized_field,
-        wavelength=wavelength,
-        num_rays=num_rays,
-        grid_size=int(2 * sampling),
-    )
+        num_rays = _effective_pupil_sampling(sampling)
 
-    # psf._get_psf_units returns tuples of single-element or scalar arrays, depending on the computation backend.
-    psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # ruff: ignore[private-member-access]
-    index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
-    columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
-
-    # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
-    df = pd.DataFrame(to_numpy(psf.psf) / 100, index=index, columns=columns)
-
-    return df, psf
-
-
-def huygens_psf(
-    backend: OptilandBackend,
-    field_coordinate: FieldCoordinate | None = None,
-    wavelength: float | None = None,
-    field_type: FieldType = "angle",
-    pupil_sampling: SampleSize | str | int = 128,
-    image_sampling: SampleSize | str | int = 128,
-) -> tuple[pd.DataFrame, VectorialHuygensPSF | ScalarHuygensPSF]:
-    """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
-
-    Parameters
-    ----------
-    backend : OptilandBackend
-        Reference to the Optiland backend.
-    field_coordinate : tuple[float, float], optional
-        The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
-    wavelength : float, optional
-        The wavelength in μm. If `None`, the first wavelength in Optiland is used. Defaults to `None`.
-    field_type : Literal["angle", "object_height"], optional
-        The field type. Either "angle" or "object_height". Defaults to "angle". This parameter is only used if
-        `field_coordinate` is not `None`.
-    pupil_sampling : SampleSize | str | int, optional
-        The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
-    image_sampling : SampleSize | str | int, optional
-        The size of the PSF grid, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
-
-    Returns
-    -------
-    DataFrame
-        The PSF data as a pandas DataFrame.
-    VectorialHuygensPSF | ScalarHuygensPSF
-        The Optiland HuygensPSF object.
-    """
-    if not isinstance(pupil_sampling, SampleSize):
-        pupil_sampling = SampleSize(pupil_sampling)
-
-    if not isinstance(image_sampling, SampleSize):
-        image_sampling = SampleSize(image_sampling)
-
-    normalized_field = set_field(backend, field_coordinate, field_type)
-    wavelength = set_wavelength(backend, wavelength)
-
-    psf = HuygensPSF(
-        optic=backend.optic,
-        field=normalized_field,
-        wavelength=wavelength,
-        num_rays=int(pupil_sampling),
-        image_size=int(image_sampling),
-    )
-
-    psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # ruff: ignore[private-member-access]
-    index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
-    columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
-
-    # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
-    df = pd.DataFrame(psf.psf / 100, index=index, columns=columns)
-
-    return df, psf
-
-
-def strehl_ratio(
-    backend: OptilandBackend,
-    field_coordinate: FieldCoordinate | None = None,
-    wavelength: float | None = None,
-    field_type: FieldType = "angle",
-    sampling: SampleSize | str | int = 128,
-    psf_type: Literal["fft", "huygens"] = "huygens",
-) -> tuple[float, BasePSF]:
-    """Calculate the Strehl ratio of the optical system.
-
-    The Strehl ratio is calculated from the point spread function. Which PSF is used depends on the `psf_type` parameter.
-
-    Parameters
-    ----------
-    backend : OptilandBackend
-        Reference to the Optiland backend.
-    field_coordinate : FieldCoordinate | None
-        The field coordinate at which the Strehl ratio is calculated. If `None`, the first field coordinate in
-        Optiland is used.
-    wavelength : float | None
-        The wavelength at which the Strehl ratio is calculated. If `None`, the first wavelength in Optiland is used.
-    field_type : FieldType
-        The field type to be used in the analysis. Can be either "angle" or "object_height". Defaults to "angle".
-        This parameter is only used when `field_coordinate` is specified.
-    sampling : SampleSize | str | int
-        The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where N
-        is an integer. Defaults to 128.
-    psf_type : Literal["fft", "huygens"]
-        The type of PSF to be used for the Strehl ratio calculation. Can be either "fft" or "huygens". Defaults to "huygens".
-
-    Returns
-    -------
-    float
-        The Strehl ratio of the optical system at the specified field coordinate and wavelength.
-    BasePSF
-        The PSF object used to calculate the Strehl ratio. The type of the object depends on the `psf_type` parameter.
-    """
-    if psf_type == "fft":
-        _, psf = fft_psf(
-            backend=backend,
-            field_coordinate=field_coordinate,
+        psf = FFTPSF(
+            optic=self.backend.optic,
+            field=normalized_field,
             wavelength=wavelength,
-            field_type=field_type,
-            sampling=sampling,
+            num_rays=num_rays,
+            grid_size=int(2 * sampling),
         )
 
-        return psf.strehl_ratio(), psf
+        # psf._get_psf_units returns tuples of single-element or scalar arrays, depending on the computation backend.
+        psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # ruff: ignore[private-member-access]
+        index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
+        columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
-    if psf_type == "huygens":
-        _, psf = huygens_psf(
-            backend=backend,
-            field_coordinate=field_coordinate,
+        # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
+        df = pd.DataFrame(to_numpy(psf.psf) / 100, index=index, columns=columns)
+
+        return df, psf
+
+    def huygens_psf(
+        self: SupportsBackend[OptilandBackend],
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        pupil_sampling: SampleSize | str | int = 128,
+        image_sampling: SampleSize | str | int = 128,
+    ) -> tuple[pd.DataFrame, VectorialHuygensPSF | ScalarHuygensPSF]:
+        """Calculate the Huygens Point Spread Function (PSF) at the retina surface.
+
+        Parameters
+        ----------
+        self : SupportsBackend[OptilandBackend]
+            Reference to the Optiland backend.
+        field_coordinate : tuple[float, float], optional
+            The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
+        wavelength : float, optional
+            The wavelength in μm. If `None`, the first wavelength in Optiland is used. Defaults to `None`.
+        field_type : Literal["angle", "object_height"], optional
+            The field type. Either "angle" or "object_height". Defaults to "angle". This parameter is only used if
+            `field_coordinate` is not `None`.
+        pupil_sampling : SampleSize | str | int, optional
+            The size of the ray grid used to sample the pupil, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
+        image_sampling : SampleSize | str | int, optional
+            The size of the PSF grid, either string (e.g. '32x32') or int (e.g. 32). Defaults to 128.
+
+        Returns
+        -------
+        DataFrame
+            The PSF data as a pandas DataFrame.
+        VectorialHuygensPSF | ScalarHuygensPSF
+            The Optiland HuygensPSF object.
+        """
+        if not isinstance(pupil_sampling, SampleSize):
+            pupil_sampling = SampleSize(pupil_sampling)
+
+        if not isinstance(image_sampling, SampleSize):
+            image_sampling = SampleSize(image_sampling)
+
+        normalized_field = set_field(self.backend, field_coordinate, field_type)
+        wavelength = set_wavelength(self.backend, wavelength)
+
+        psf = HuygensPSF(
+            optic=self.backend.optic,
+            field=normalized_field,
             wavelength=wavelength,
-            field_type=field_type,
-            pupil_sampling=sampling,
-            image_sampling=sampling,
+            num_rays=int(pupil_sampling),
+            image_size=int(image_sampling),
         )
 
-        return psf.strehl_ratio(), psf
+        psf_extent_x, psf_extent_y = (x.item(0) for x in psf._get_psf_units(psf.psf))  # ruff: ignore[private-member-access]
+        index = np.linspace(-psf_extent_x / 2, psf_extent_x / 2, psf.psf.shape[0])
+        columns = np.linspace(-psf_extent_y / 2, psf_extent_y / 2, psf.psf.shape[1])
 
-    raise NotImplementedError(f"PSF type '{psf_type}' is not implemented.")
+        # The PSF rows are reversed in the y-direction to match the orientation of the PSF in OpticStudio.
+        df = pd.DataFrame(psf.psf / 100, index=index, columns=columns)
+
+        return df, psf
+
+    def strehl_ratio(
+        self: SupportsBackend[OptilandBackend],
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 128,
+        psf_type: Literal["fft", "huygens"] = "huygens",
+    ) -> tuple[float, BasePSF]:
+        """Calculate the Strehl ratio of the optical system.
+
+        The Strehl ratio is calculated from the point spread function. Which PSF is used depends on the `psf_type` parameter.
+
+        Parameters
+        ----------
+        self : SupportsBackend[OptilandBackend]
+            Reference to the Optiland backend.
+        field_coordinate : FieldCoordinate | None
+            The field coordinate at which the Strehl ratio is calculated. If `None`, the first field coordinate in
+            Optiland is used.
+        wavelength : float | None
+            The wavelength at which the Strehl ratio is calculated. If `None`, the first wavelength in Optiland is used.
+        field_type : FieldType
+            The field type to be used in the analysis. Can be either "angle" or "object_height". Defaults to "angle".
+            This parameter is only used when `field_coordinate` is specified.
+        sampling : SampleSize | str | int
+            The size of the ray grid used to sample the pupil. Can be an integer or a string in the format "NxN", where N
+            is an integer. Defaults to 128.
+        psf_type : Literal["fft", "huygens"]
+            The type of PSF to be used for the Strehl ratio calculation. Can be either "fft" or "huygens". Defaults to "huygens".
+
+        Returns
+        -------
+        float
+            The Strehl ratio of the optical system at the specified field coordinate and wavelength.
+        BasePSF
+            The PSF object used to calculate the Strehl ratio. The type of the object depends on the `psf_type` parameter.
+        """
+        if psf_type == "fft":
+            _, psf = self.fft_psf(
+                field_coordinate=field_coordinate,
+                wavelength=wavelength,
+                field_type=field_type,
+                sampling=sampling,
+            )
+
+            return psf.strehl_ratio(), psf
+
+        if psf_type == "huygens":
+            _, psf = self.huygens_psf(
+                field_coordinate=field_coordinate,
+                wavelength=wavelength,
+                field_type=field_type,
+                pupil_sampling=sampling,
+                image_sampling=sampling,
+            )
+
+            return psf.strehl_ratio(), psf
+
+        raise NotImplementedError(f"PSF type '{psf_type}' is not implemented.")

@@ -37,6 +37,7 @@ from typing import (
     ClassVar,
     Generic,
     Literal,
+    Protocol,
     Self,
     TypedDict,
     TypeVar,
@@ -158,7 +159,7 @@ class BaseAnalysisRegistry(ABC):
 
     @abstractmethod
     def cardinal_points(
-        self,
+        self: SupportsBackend[BaseBackend],
         surface_1: int | None = None,
         surface_2: int | None = None,
     ) -> tuple[CardinalPointsResult, Any]: ...
@@ -447,10 +448,15 @@ class BackendAccessError(RuntimeError):
     """Error raised when trying to access unavailable or non-initialized backend features."""
 
 
-_BT = TypeVar("_BT", bound=BaseBackend)
+_BackendT = TypeVar("_BackendT", bound=BaseBackend)
 
 
-def _get_or_initialize_backend(backend_type: type[_BT], settings: BackendSettings) -> _BT:
+class SupportsBackend(Protocol, Generic[_BackendT]):
+    @property
+    def backend(self) -> _BackendT: ...
+
+
+def _get_or_initialize_backend(backend_type: type[_BackendT], settings: BackendSettings) -> _BackendT:
     """Get the current instance of the specified backend, or initialize it if it has not been initialized yet.
 
     Returns
