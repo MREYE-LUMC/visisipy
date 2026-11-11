@@ -252,7 +252,7 @@ class TestSaveModel:
 
         file = (tmp_path / "model_file").with_suffix(suffix)
 
-        model = visisipy.EyeModel()
+        model = visisipy.NavarroEyeModel()
         # configure_backend.initialize()
         configure_backend.build_model(model)
 

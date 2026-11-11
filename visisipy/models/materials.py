@@ -210,7 +210,7 @@ class NavarroMaterials(EyeMaterials):
 
 
 @dataclass
-class NavarroMaterials458(EyeMaterials):
+class NavarroMaterials458(NavarroMaterials):
     """Material parameters of an eye for a wavelength of 458 nm, according to the Navarro model [1]_.
 
     Attributes
@@ -262,7 +262,7 @@ class NavarroMaterials458(EyeMaterials):
 
 
 @dataclass
-class NavarroMaterials543(EyeMaterials):
+class NavarroMaterials543(NavarroMaterials):
     """Material parameters of an eye for a wavelength of 543 nm, according to the Navarro model [1]_.
 
     Attributes
@@ -314,7 +314,7 @@ class NavarroMaterials543(EyeMaterials):
 
 
 @dataclass
-class NavarroMaterials589(EyeMaterials):
+class NavarroMaterials589(NavarroMaterials):
     """Material parameters of an eye for a wavelength of 589.3 nm, according to the Navarro model [1]_.
 
     Attributes
@@ -366,7 +366,7 @@ class NavarroMaterials589(EyeMaterials):
 
 
 @dataclass
-class NavarroMaterials633(EyeMaterials):
+class NavarroMaterials633(NavarroMaterials):
     """Material parameters of an eye for a wavelength of 632.8 nm, according to the Navarro model [1]_.
 
     Attributes

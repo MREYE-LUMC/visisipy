@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from tests.helpers import build_args
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 from visisipy.types import SampleSize
 
 pytestmark = [pytest.mark.needs_opticstudio]
@@ -33,7 +33,7 @@ class TestZernikeStandardCoefficientsAnalysis:
         opticstudio_analysis,
     ):
         opticstudio_backend.build_model(
-            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
         )
 
         args = build_args(
@@ -53,7 +53,7 @@ class TestZernikeStandardCoefficientsAnalysis:
 
         wavelength = wavelengths[0] if wavelengths else None
 
-        opticstudio_backend.build_model(EyeModel())
+        opticstudio_backend.build_model(NavarroEyeModel())
 
         coefficients_waves, _ = opticstudio_analysis.zernike_standard_coefficients(wavelength=wavelength, unit="waves")
         coefficients_microns, _ = opticstudio_analysis.zernike_standard_coefficients(

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from tests.helpers import build_args
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 from visisipy.types import SampleSize
 
 
@@ -36,7 +36,9 @@ class TestZernikeStandardCoefficientsAnalysis:
         optiland_backend,
         optiland_analysis,
     ):
-        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        optiland_backend.build_model(
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -55,7 +57,7 @@ class TestZernikeStandardCoefficientsAnalysis:
 
         wavelength = wavelengths[0] if wavelengths else None
 
-        optiland_backend.build_model(EyeModel())
+        optiland_backend.build_model(NavarroEyeModel())
 
         coefficients_waves, _ = optiland_analysis.zernike_standard_coefficients(wavelength=wavelength, unit="waves")
         coefficients_microns, _ = optiland_analysis.zernike_standard_coefficients(wavelength=wavelength, unit="microns")
@@ -73,7 +75,7 @@ class TestZernikeStandardCoefficientsAnalysis:
         )
 
     def test_zernike_standard_coefficients_maximum_term(self, optiland_backend, optiland_analysis):
-        optiland_backend.build_model(EyeModel())
+        optiland_backend.build_model(NavarroEyeModel())
 
         coefficients, _ = optiland_analysis.zernike_standard_coefficients(maximum_term=20)
 

@@ -7,7 +7,7 @@ from optiland.samples import NavarroWideAngleEye
 from optiland.wavefront import OPD
 
 from tests.helpers import build_args
-from visisipy import EyeModel
+from visisipy import NavarroEyeModel
 from visisipy.optiland.analysis.wavefront import generate_opd_map
 
 
@@ -78,7 +78,9 @@ class TestOPDMapAnalysis:
     def test_opd_map(
         self, optiland_backend, optiland_analysis, field_coordinate, wavelength, field_type, sampling, remove_tilt
     ):
-        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        optiland_backend.build_model(
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -92,7 +94,7 @@ class TestOPDMapAnalysis:
         assert optiland_analysis.opd_map(**args)
 
     def test_opd_map_use_exit_pupil_shape_warning(self, optiland_backend, optiland_analysis):
-        optiland_backend.build_model(EyeModel())
+        optiland_backend.build_model(NavarroEyeModel())
 
         with pytest.warns(UserWarning, match="Correcting for the exit pupil shape is not supported in Optiland."):
             optiland_analysis.opd_map(use_exit_pupil_shape=True)

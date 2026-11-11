@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from visisipy import EyeModel
+from visisipy import EyeModel, NavarroEyeModel
 from visisipy.analysis import base
 
 if TYPE_CHECKING:
@@ -47,11 +47,11 @@ class TestAnalysisDecorator:
     def test_decorator(self, mock_backend, example_analysis):
         decorated_analysis = base.analysis(example_analysis)
 
-        assert decorated_analysis(EyeModel(), 1) == 1
-        assert decorated_analysis(EyeModel(), 1, return_raw_result=True) == (1, 1)
+        assert decorated_analysis(NavarroEyeModel(), 1) == 1
+        assert decorated_analysis(NavarroEyeModel(), 1, return_raw_result=True) == (1, 1)
 
     def test_build_model(self, mock_backend, example_analysis):
-        model = EyeModel()
+        model = NavarroEyeModel()
 
         decorated_analysis = base.analysis(example_analysis)
         decorated_analysis(model, 1)
@@ -67,7 +67,7 @@ class TestAnalysisDecorator:
 
         decorated_analysis = base.analysis(example_analysis)
 
-        assert decorated_analysis(EyeModel(), 1) == mock_backend
+        assert decorated_analysis(NavarroEyeModel(), 1) == mock_backend
 
     def test_pass_backend(self):
         def example_analysis(
@@ -78,7 +78,7 @@ class TestAnalysisDecorator:
         decorated_analysis = base.analysis(example_analysis)
         backend = MockBackend()
 
-        assert decorated_analysis(EyeModel(), 1, backend=backend) == backend
+        assert decorated_analysis(NavarroEyeModel(), 1, backend=backend) == backend
 
     def test_no_model_raises_valueerror(self):
         def example_analysis(x, *, return_raw_result: bool = False, backend: BaseBackend):

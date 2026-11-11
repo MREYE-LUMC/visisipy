@@ -58,8 +58,8 @@ import visisipy
 # Uncomment the following line to use the open-source Optiland backend instead of OpticStudio
 # visisipy.set_backend("optiland")
 
-# Initialize the default Navarro model
-model = visisipy.EyeModel()
+# Initialize the Navarro model explicitly
+model = visisipy.NavarroEyeModel()
 model.geometry.pupil.thickness = 2.0
 
 # Build the model in OpticStudio

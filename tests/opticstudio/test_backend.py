@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 import zospy as zp
 
-from visisipy import EyeModel
+from visisipy import NavarroEyeModel
 from visisipy.opticstudio.backend import (
     OPTICSTUDIO_DEFAULT_SETTINGS,
     OpticStudioBackend,
@@ -65,7 +65,7 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
 
     def test_build_model(self, opticstudio_backend: OpticStudioBackend):
-        model = EyeModel()
+        model = NavarroEyeModel()
 
         opticstudio_backend.build_model(model)
 
@@ -83,7 +83,7 @@ class TestOpticStudioBackend:
         ],
     )
     def test_build_model_updates_aperture_value(self, opticstudio_backend: OpticStudioBackend, aperture_type):
-        model = EyeModel()
+        model = NavarroEyeModel()
 
         # Ensure the aperture value is different from the eye model pupil diameter
         aperture_value = model.geometry.pupil.semi_diameter * 2 + 1
@@ -105,7 +105,7 @@ class TestOpticStudioBackend:
             assert opticstudio_backend.get_aperture() == (aperture_type, aperture_value)
 
     def test_clear_model(self, opticstudio_backend: OpticStudioBackend):
-        model = EyeModel()
+        model = NavarroEyeModel()
 
         opticstudio_backend.build_model(model)
         assert opticstudio_backend.model is not None
@@ -117,7 +117,7 @@ class TestOpticStudioBackend:
         assert opticstudio_backend.oss.LDE.NumberOfSurfaces == 3
 
     def test_save_model(self, opticstudio_backend: OpticStudioBackend, tmp_path):
-        model = EyeModel()
+        model = NavarroEyeModel()
 
         opticstudio_backend.build_model(model)
 

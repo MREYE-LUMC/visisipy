@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from tests.helpers import build_args
-from visisipy import EyeModel
+from visisipy import NavarroEyeModel
 from visisipy.opticstudio.analysis.psf import _get_huygens_psf_extent, _opticstudio_batch_raytrace
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ class TestFFTPSFAnalysis:
         sampling,
     ):
         opticstudio_backend.build_model(
-            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
         )
 
         args = build_args(
@@ -133,7 +133,7 @@ class TestHuygensPSFAnalysis:
         image_sampling,
     ):
         opticstudio_backend.build_model(
-            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
         )
 
         args = build_args(
@@ -169,7 +169,7 @@ class TestStrehlRatioAnalysis:
         sampling,
     ):
         opticstudio_backend.build_model(
-            EyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
         )
 
         args = build_args(
@@ -209,7 +209,7 @@ class TestStrehlRatioAnalysis:
         psf_type,
         expectation,
     ):
-        opticstudio_backend.build_model(EyeModel(), object_distance=float("inf"))
+        opticstudio_backend.build_model(NavarroEyeModel(), object_distance=float("inf"))
 
         with expectation:
             opticstudio_analysis.strehl_ratio(psf_type=psf_type)

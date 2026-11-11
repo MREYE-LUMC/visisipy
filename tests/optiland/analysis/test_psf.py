@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from tests.helpers import build_args
-from visisipy import EyeModel
+from visisipy import NavarroEyeModel
 
 
 class TestFFTPSFAnalysis:
@@ -26,7 +26,9 @@ class TestFFTPSFAnalysis:
         field_type,
         sampling,
     ):
-        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        optiland_backend.build_model(
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -67,7 +69,9 @@ class TestHuygensPSFAnalysis:
         image_sampling,
         skip_if_not_numpy_backend,
     ):
-        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        optiland_backend.build_model(
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -102,7 +106,9 @@ class TestStrehlRatioAnalysis:
         if psf_type == "huygens":
             request.getfixturevalue("skip_if_not_numpy_backend")
 
-        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        optiland_backend.build_model(
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -116,7 +122,7 @@ class TestStrehlRatioAnalysis:
         assert optiland_analysis.strehl_ratio(**args)
 
     def test_invalid_psf_type(self, optiland_backend, optiland_analysis):
-        optiland_backend.build_model(EyeModel(), object_distance=float("inf"))
+        optiland_backend.build_model(NavarroEyeModel(), object_distance=float("inf"))
 
         with pytest.raises(NotImplementedError, match="PSF type 'invalid' is not implemented"):
             optiland_analysis.strehl_ratio(psf_type="invalid")

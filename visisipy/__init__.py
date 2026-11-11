@@ -9,19 +9,23 @@ from visisipy import analysis, models, optiland, plots, refraction, synteyes, wa
 from visisipy._zospy_loader import install_zospy_loader
 from visisipy.backend import get_backend, get_optic, get_oss, load_model, save_model, set_backend, update_settings
 from visisipy.models import (
+    BennettRabbettsEyeModel,
     EyeGeometry,
     EyeMaterials,
     EyeModel,
-    NavarroGeometry,
+    GullstrandLeGrandEyeModel,
+    NavarroEyeModel,
     NavarroMaterials,
     create_geometry,
 )
 
 __all__ = [
+    "BennettRabbettsEyeModel",
     "EyeGeometry",
     "EyeMaterials",
     "EyeModel",
-    "NavarroGeometry",
+    "GullstrandLeGrandEyeModel",
+    "NavarroEyeModel",
     "NavarroMaterials",
     "analysis",
     "create_geometry",

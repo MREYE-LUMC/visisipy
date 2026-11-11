@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.helpers import build_args
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 from visisipy.types import SampleSize
 
 if TYPE_CHECKING:
@@ -52,7 +52,9 @@ class TestRefractionAnalysis:
         optiland_backend,
         optiland_analysis,
     ):
-        optiland_backend.build_model(EyeModel(), object_distance=10 if field_type == "object_height" else float("inf"))
+        optiland_backend.build_model(
+            NavarroEyeModel(), object_distance=10 if field_type == "object_height" else float("inf")
+        )
 
         args = build_args(
             field_coordinate=field_coordinate,
@@ -80,7 +82,7 @@ class TestRefractionAnalysis:
     def test_change_pupil(
         self, pupil_diameter, change_pupil_diameter, optiland_backend, optiland_analysis, mocker: MockerFixture
     ):
-        optiland_backend.build_model(EyeModel())
+        optiland_backend.build_model(NavarroEyeModel())
         optiland_backend.update_settings(aperture_type="float_by_stop_size", aperture_value=1.0)
 
         spy = mocker.spy(optiland_backend, "update_pupil")
@@ -112,7 +114,7 @@ class TestRefractionAnalysis:
             pytest.xfail("Test fails due to internal error in Torch.")
 
         optiland_backend.build_model(
-            EyeModel(), object_distance=10 if aperture_type == "object_numeric_aperture" else float("inf")
+            NavarroEyeModel(), object_distance=10 if aperture_type == "object_numeric_aperture" else float("inf")
         )
         optiland_backend.update_settings(aperture_type=aperture_type)
 
@@ -128,7 +130,7 @@ class TestRefractionAnalysis:
 
         assert optiland_backend.optic.primary_wavelength == 0.543
 
-        optiland_backend.build_model(EyeModel())
+        optiland_backend.build_model(NavarroEyeModel())
         optiland_analysis.refraction(wavelength=new_wavelength)
 
         assert optiland_backend.optic.primary_wavelength == 0.543

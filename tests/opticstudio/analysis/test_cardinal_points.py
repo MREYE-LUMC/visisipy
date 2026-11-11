@@ -4,7 +4,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from visisipy.models import EyeModel
+from visisipy.models import NavarroEyeModel
 
 pytestmark = [pytest.mark.needs_opticstudio]
 
@@ -37,7 +37,7 @@ class TestCardinalPointsAnalysis:
         ],
     )
     def test_cardinal_points(self, opticstudio_backend, opticstudio_analysis, surface_1, surface_2, expectation):
-        opticstudio_backend.build_model(EyeModel())
+        opticstudio_backend.build_model(NavarroEyeModel())
 
         with expectation:
             assert opticstudio_analysis.cardinal_points(surface_1, surface_2)
