@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from visisipy.backend import BaseAnalysisRegistry
+from visisipy.backend import AnalysisRegistry
 from visisipy.opticstudio.analysis.cardinal_points import OpticStudioCardinalPointsMixin
 from visisipy.opticstudio.analysis.mtf import OpticStudioMTFMixin
 from visisipy.opticstudio.analysis.psf import OpticStudioPSFMixin
@@ -25,9 +25,13 @@ class OpticStudioAnalysisRegistry(
     OpticStudioRefractionMixin,
     OpticStudioOPDMixin,
     OpticStudioZernikeCoefficientsMixin,
-    BaseAnalysisRegistry,
+    AnalysisRegistry,
 ):
     """Analyses for the OpticStudio backend."""
 
-    def __init__(self, backend: OpticStudioBackend):
-        super().__init__(backend)
+    def __init__(self, backend: OpticStudioBackend) -> None:
+        self._backend = backend
+
+    @property
+    def backend(self) -> OpticStudioBackend:
+        return self._backend

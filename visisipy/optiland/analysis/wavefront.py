@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from optiland.distribution import BaseDistribution
     from optiland.wavefront import WavefrontData
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.optiland.backend import OptilandBackend
 
 
@@ -98,7 +98,7 @@ class OptilandOPDMixin:
     """Mixin class for OPD map analysis in Optiland."""
 
     def opd_map(
-        self: SupportsBackend[OptilandBackend],
+        self: AnalysisRegistry[OptilandBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -111,8 +111,8 @@ class OptilandOPDMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
-            Reference to the Optiland backend.
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
         field_coordinate : FieldCoordinate | None
             The coordinate of the field for which the wavefront is calculated. If `None`, the current field coordinate will be used.
         wavelength : float | None

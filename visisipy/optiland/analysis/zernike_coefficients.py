@@ -8,11 +8,11 @@ from optiland.backend import to_numpy
 from optiland.wavefront import ZernikeOPD
 
 from visisipy.optiland.analysis.helpers import set_field, set_wavelength
-from visisipy.types import SampleSize, ZernikeUnit
+from visisipy.types import FieldCoordinate, FieldType, SampleSize, ZernikeUnit
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
-    from visisipy.backend import FieldCoordinate, FieldType, SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.optiland.backend import OptilandBackend
 
 
@@ -38,7 +38,7 @@ class OptilandZernikeCoefficientsMixin:
     """Mixin class for Zernike coefficients analysis in Optiland."""
 
     def zernike_standard_coefficients(
-        self: SupportsBackend[OptilandBackend],
+        self: AnalysisRegistry[OptilandBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -50,8 +50,8 @@ class OptilandZernikeCoefficientsMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
-            Reference to the Optiland backend.
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
         field_coordinate : tuple[float, float] | None, optional
             The field coordinate for the Zernike calculation. When `None`, the first field in Optiland is used.
             Defaults to `None`.

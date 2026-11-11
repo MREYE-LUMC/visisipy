@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     from zospy.analyses.raysandspots.single_ray_trace import SingleRayTraceResult
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.types import FieldCoordinate, FieldType
 
@@ -39,7 +39,7 @@ class OpticStudioRaytraceMixin:
     """Mixin class for OpticStudio analyses."""
 
     def raytrace(
-        self: SupportsBackend[OpticStudioBackend],
+        self: AnalysisRegistry[OpticStudioBackend],
         coordinates: Sequence[FieldCoordinate] | None = None,
         wavelengths: Sequence[float] | None = None,
         field_type: FieldType = "angle",
@@ -62,8 +62,8 @@ class OpticStudioRaytraceMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OpticStudioBackend]
-            Reference to the OpticStudio backend.
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
         coordinates : Sequence[tuple[float, float]], optional
             A sequence of tuples representing the coordinates for the ray trace.
             If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.

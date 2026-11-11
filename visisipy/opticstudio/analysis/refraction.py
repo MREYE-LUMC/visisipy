@@ -16,7 +16,7 @@ if TYPE_CHECKING:
         ZernikeStandardCoefficientsResult,
     )
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.refraction import FourierPowerVectorRefraction
     from visisipy.types import FieldCoordinate, FieldType
@@ -28,7 +28,7 @@ class OpticStudioRefractionMixin:
     """Mixin class for OpticStudio analyses."""
 
     def refraction(
-        self: SupportsBackend[OpticStudioBackend],
+        self: AnalysisRegistry[OpticStudioBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         sampling: SampleSize | str | int = 64,
@@ -44,8 +44,8 @@ class OpticStudioRefractionMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OpticStudioBackend]
-            Reference to the OpticStudio backend.
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
         field_coordinate : tuple[float, float], optional
             The field coordinate for the Zernike calculation. When `None`, the first field in OpticStudio is used.
             Defaults to `None`.

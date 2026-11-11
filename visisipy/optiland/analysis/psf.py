@@ -15,7 +15,7 @@ from visisipy.types import SampleSize
 if TYPE_CHECKING:
     from optiland.psf.base import BasePSF
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.optiland import OptilandBackend
     from visisipy.types import FieldCoordinate, FieldType
 
@@ -62,7 +62,7 @@ class OptilandPSFMixin:
     """Mixin class for PSF analyses in Optiland."""
 
     def fft_psf(
-        self: SupportsBackend[OptilandBackend],
+        self: AnalysisRegistry[OptilandBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -72,8 +72,8 @@ class OptilandPSFMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
-            Reference to the Optiland backend.
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
         field_coordinate : tuple[float, float], optional
             The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
         wavelength : float, optional
@@ -118,7 +118,7 @@ class OptilandPSFMixin:
         return df, psf
 
     def huygens_psf(
-        self: SupportsBackend[OptilandBackend],
+        self: AnalysisRegistry[OptilandBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -129,8 +129,8 @@ class OptilandPSFMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
-            Reference to the Optiland backend.
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
         field_coordinate : tuple[float, float], optional
             The field coordinate (x, y) in mm. If `None`, the first field in Optiland is used. Defaults to `None`.
         wavelength : float, optional
@@ -177,7 +177,7 @@ class OptilandPSFMixin:
         return df, psf
 
     def strehl_ratio(
-        self: SupportsBackend[OptilandBackend],
+        self: AnalysisRegistry[OptilandBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -190,8 +190,8 @@ class OptilandPSFMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
-            Reference to the Optiland backend.
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
         field_coordinate : FieldCoordinate | None
             The field coordinate at which the Strehl ratio is calculated. If `None`, the first field coordinate in
             Optiland is used.

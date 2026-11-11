@@ -14,8 +14,9 @@ if TYPE_CHECKING:
 
     from optiland.optic import Optic
 
-    from visisipy.backend import FieldCoordinate, FieldType, SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.optiland import OptilandBackend
+    from visisipy.types import FieldCoordinate, FieldType
 
 __all__ = ("OptilandRaytraceMixin",)
 
@@ -46,7 +47,7 @@ class OptilandRaytraceMixin:
     """Mixin class for ray trace analysis in Optiland."""
 
     def raytrace(
-        self: SupportsBackend[OptilandBackend],
+        self: AnalysisRegistry[OptilandBackend],
         coordinates: Sequence[FieldCoordinate] | None = None,
         wavelengths: Sequence[float] | None = None,
         field_type: FieldType = "angle",
@@ -68,8 +69,8 @@ class OptilandRaytraceMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
-            The Optiland backend to use for the ray trace.
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
         coordinates : Sequence[FieldCoordinate], optional
             A sequence of tuples representing the coordinates for the ray trace.
             If `field_type` is "angle", the coordinates should be the angles along the (X, Y) axes in degrees.

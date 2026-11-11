@@ -14,7 +14,7 @@ from visisipy.optiland.analysis.psf import _effective_pupil_sampling
 from visisipy.types import FieldType, SampleSize
 
 if TYPE_CHECKING:
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.optiland.backend import OptilandBackend
     from visisipy.types import FieldCoordinate
 
@@ -54,7 +54,7 @@ class OptilandMTFMixin:
     """Mixin class for MTF analyses in Optiland."""
 
     def fft_mtf(
-        self: SupportsBackend[OptilandBackend],
+        self: AnalysisRegistry[OptilandBackend],
         field_coordinate: FieldCoordinate | Literal["all"] = "all",
         field_type: FieldType = "angle",
         wavelength: float | None = None,
@@ -65,8 +65,8 @@ class OptilandMTFMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
-            Reference to the Optiland backend.
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
         field_coordinate : FieldCoordinate | Literal["all"]
             The field coordinate(s) at which the MTF is calculated. Can be a specific coordinate (e.g., (0, 0)) or
             "all" to calculate for all fields in the backend. Defaults to "all".

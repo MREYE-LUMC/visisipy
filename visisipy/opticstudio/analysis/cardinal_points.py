@@ -11,7 +11,7 @@ from visisipy.analysis.cardinal_points import CardinalPoints, CardinalPointsResu
 if TYPE_CHECKING:
     from zospy.analyses.reports.cardinal_points import CardinalPointsResult as ZOSPyCardinalPointsResult
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.opticstudio.backend import OpticStudioBackend
 
 __all__ = ("OpticStudioCardinalPointsMixin",)
@@ -50,14 +50,14 @@ class OpticStudioCardinalPointsMixin:
     """Mixin class for OpticStudio analyses."""
 
     def cardinal_points(
-        self: SupportsBackend[OpticStudioBackend], surface_1: int | None = None, surface_2: int | None = None
+        self: AnalysisRegistry[OpticStudioBackend], surface_1: int | None = None, surface_2: int | None = None
     ) -> tuple[CardinalPointsResult, ZOSPyCardinalPointsResult]:
         """Get the cardinal points of the system between `surface_1` and `surface_2`.
 
         Parameters
         ----------
-        self : SupportsBackend[OpticStudioBackend]
-            Reference to the OpticStudio backend.
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
         surface_1 : int | None, optional
             The first surface to be used in the analysis. If `None`, the first surface in the system will be used.
             Defaults to `None`.

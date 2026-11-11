@@ -16,7 +16,7 @@ from visisipy.types import SampleSize
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.types import FieldCoordinate, FieldType
 
@@ -85,7 +85,7 @@ class OpticStudioOPDMixin:
     """Mixin class for OpticStudio analyses."""
 
     def opd_map(
-        self: SupportsBackend[OpticStudioBackend],
+        self: AnalysisRegistry[OpticStudioBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -98,8 +98,8 @@ class OpticStudioOPDMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OpticStudioBackend]
-            Reference to the OpticStudio backend.
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
         field_coordinate : FieldCoordinate | None
             The coordinate of the field for which the wavefront is calculated. If `None`, the current field coordinate will be used.
         wavelength : float | None

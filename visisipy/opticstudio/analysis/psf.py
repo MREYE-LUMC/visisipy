@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from zospy.analyses.psf.huygens_psf import HuygensPSFResult
     from zospy.zpcore import OpticStudioSystem
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.opticstudio import OpticStudioBackend
 
 __all__ = ("OpticStudioPSFMixin",)
@@ -186,7 +186,7 @@ class OpticStudioPSFMixin:
     """Mixin class for OpticStudio analyses."""
 
     def fft_psf(
-        self: SupportsBackend[OpticStudioBackend],
+        self: AnalysisRegistry[OpticStudioBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -196,8 +196,8 @@ class OpticStudioPSFMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OpticStudioBackend]
-            Reference to the OpticStudio backend.
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
         field_coordinate : tuple[float, float], optional
             The field coordinate (x, y) in mm. If `None`, the first field in OpticStudio is used. Defaults to `None`.
         wavelength : float, optional
@@ -243,7 +243,7 @@ class OpticStudioPSFMixin:
         return psf_result.data, psf_result.data
 
     def huygens_psf(
-        self: SupportsBackend[OpticStudioBackend],
+        self: AnalysisRegistry[OpticStudioBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -254,8 +254,8 @@ class OpticStudioPSFMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OpticStudioBackend]
-            Reference to the OpticStudio backend.
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
         field_coordinate : tuple[float, float], optional
             The field coordinate (x, y) in mm. If `None`, the first field in OpticStudio is used. Defaults to `None`.
         wavelength : float, optional
@@ -304,7 +304,7 @@ class OpticStudioPSFMixin:
         return psf_result.data.psf, psf_result.data
 
     def strehl_ratio(
-        self: SupportsBackend[OpticStudioBackend],
+        self: AnalysisRegistry[OpticStudioBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         field_type: FieldType = "angle",
@@ -317,8 +317,8 @@ class OpticStudioPSFMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OpticStudioBackend]
-            Reference to the OpticStudio backend.
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
         field_coordinate : FieldCoordinate | None
             The field coordinate at which the Strehl ratio is calculated. If `None`, the first field coordinate in
             OpticStudio is used.

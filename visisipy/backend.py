@@ -27,10 +27,9 @@ from __future__ import annotations
 import json
 import platform
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from inspect import get_annotations
 from pathlib import Path
-from types import MethodType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -91,36 +90,10 @@ BackendType = Literal["opticstudio", "optiland"]
 _DEFAULT_BACKEND: BackendType = "opticstudio" if platform.system() == "Windows" else "optiland"
 
 
-_Analysis = TypeVar("_Analysis", bound=Callable)
+_BackendT_co = TypeVar("_BackendT_co", bound="BaseBackend", covariant=True)
 
 
-class _AnalysisMethod(Generic[_Analysis]):
-    def __init__(self, analysis) -> None:
-        self._analysis = analysis
-
-    @overload
-    def __get__(self, instance: None, owner: type[BaseAnalysisRegistry]) -> _AnalysisMethod[_Analysis]: ...
-
-    @overload
-    def __get__(self, instance: BaseAnalysisRegistry, owner: type[BaseAnalysisRegistry]) -> _Analysis: ...
-
-    def __get__(
-        self, instance: BaseAnalysisRegistry | None, owner: type[BaseAnalysisRegistry]
-    ) -> _AnalysisMethod | _Analysis:
-        if instance is None:
-            return self
-
-        return cast("_Analysis", MethodType(self._analysis, instance.backend))
-
-
-class _classproperty(property):  # ruff: ignore[invalid-class-name]
-    def __get__(self, instance, owner=None):
-        if self.fget is None:
-            raise AttributeError("class property has no getter")
-        return cast("Callable[..., Any]", self.fget)(owner)
-
-
-class BaseAnalysisRegistry(ABC):
+class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
     """Base class for analysis registry.
 
     Interface for the analysis methods of the backend. Backends should implement this interface
@@ -150,21 +123,17 @@ class BaseAnalysisRegistry(ABC):
         Calculate the Zernike standard coefficients for the optical system.
     """
 
-    def __init__(self, backend: BaseBackend) -> None:
-        self._backend = backend
+    def __init__(self, backend: _BackendT_co) -> None: ...
 
     @property
-    def backend(self) -> BaseBackend:
-        return self._backend
+    def backend(self) -> _BackendT_co: ...
 
-    @abstractmethod
     def cardinal_points(
-        self: SupportsBackend[BaseBackend],
+        self,
         surface_1: int | None = None,
         surface_2: int | None = None,
     ) -> tuple[CardinalPointsResult, Any]: ...
 
-    @abstractmethod
     def fft_mtf(
         self,
         field_coordinate: FieldCoordinate | Literal["all"] = "all",
@@ -174,7 +143,6 @@ class BaseAnalysisRegistry(ABC):
         maximum_frequency: float | Literal["default"] = "default",
     ) -> tuple[MTFResult, Any]: ...
 
-    @abstractmethod
     def fft_psf(
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -183,7 +151,6 @@ class BaseAnalysisRegistry(ABC):
         sampling: SampleSize | str | int = 128,
     ) -> tuple[DataFrame, Any]: ...
 
-    @abstractmethod
     def huygens_psf(
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -193,7 +160,6 @@ class BaseAnalysisRegistry(ABC):
         image_sampling: SampleSize | str | int = 128,
     ) -> tuple[DataFrame, Any]: ...
 
-    @abstractmethod
     def opd_map(
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -205,7 +171,6 @@ class BaseAnalysisRegistry(ABC):
         use_exit_pupil_shape: bool = False,
     ) -> tuple[DataFrame, Any]: ...
 
-    @abstractmethod
     def raytrace(
         self,
         coordinates: Sequence[FieldCoordinate] | None = None,
@@ -214,7 +179,6 @@ class BaseAnalysisRegistry(ABC):
         pupil: tuple[float, float] = (0, 0),
     ) -> tuple[DataFrame, Any]: ...
 
-    @abstractmethod
     def refraction(
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -226,7 +190,6 @@ class BaseAnalysisRegistry(ABC):
         use_higher_order_aberrations: bool = True,
     ) -> tuple[FourierPowerVectorRefraction, Any]: ...
 
-    @abstractmethod
     def strehl_ratio(
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -236,7 +199,6 @@ class BaseAnalysisRegistry(ABC):
         psf_type: Literal["fft", "huygens"] = "huygens",
     ) -> tuple[float, Any]: ...
 
-    @abstractmethod
     def zernike_standard_coefficients(
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -338,7 +300,7 @@ class BaseBackend(ABC, Generic[_Settings]):
 
     @property
     @abstractmethod
-    def analysis(self) -> BaseAnalysisRegistry:
+    def analysis(self) -> AnalysisRegistry[Self]:
         """The analysis registry exposed by the backend."""
 
     @abstractmethod
@@ -448,15 +410,7 @@ class BackendAccessError(RuntimeError):
     """Error raised when trying to access unavailable or non-initialized backend features."""
 
 
-_BackendT = TypeVar("_BackendT", bound=BaseBackend)
-
-
-class SupportsBackend(Protocol, Generic[_BackendT]):
-    @property
-    def backend(self) -> _BackendT: ...
-
-
-def _get_or_initialize_backend(backend_type: type[_BackendT], settings: BackendSettings) -> _BackendT:
+def _get_or_initialize_backend(backend_type: type[_BackendT_co], settings: BackendSettings) -> _BackendT_co:
     """Get the current instance of the specified backend, or initialize it if it has not been initialized yet.
 
     Returns

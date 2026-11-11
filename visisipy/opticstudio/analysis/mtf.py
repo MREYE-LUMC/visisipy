@@ -14,7 +14,7 @@ from visisipy.types import FieldType, SampleSize
 if TYPE_CHECKING:
     from pandas import DataFrame, Series
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.types import FieldCoordinate
 
@@ -72,7 +72,7 @@ class OpticStudioMTFMixin:
     """Mixin class for OpticStudio analyses."""
 
     def fft_mtf(
-        self: SupportsBackend[OpticStudioBackend],
+        self: AnalysisRegistry[OpticStudioBackend],
         field_coordinate: FieldCoordinate | Literal["all"] = "all",
         field_type: FieldType = "angle",
         wavelength: float | None = None,
@@ -83,8 +83,8 @@ class OpticStudioMTFMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OpticStudioBackend]
-            Reference to the OpticStudio backend.
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
         field_coordinate : FieldCoordinate | Literal["all"]
             The field coordinate(s) at which the MTF is calculated. Can be a specific coordinate (e.g., (0, 0)) or
             "all" to calculate for all fields in the backend. Defaults to "all".

@@ -10,7 +10,7 @@ from visisipy.analysis.cardinal_points import CardinalPoints, CardinalPointsResu
 if TYPE_CHECKING:
     from optiland.paraxial import Paraxial
 
-    from visisipy.backend import SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.optiland import OptilandBackend
 
 
@@ -50,7 +50,7 @@ class OptilandCardinalPointsMixin:
     """Mixin class for the cardinal points analysis in Optiland."""
 
     def cardinal_points(
-        self: SupportsBackend[OptilandBackend], surface_1: int | None = None, surface_2: int | None = None
+        self: AnalysisRegistry[OptilandBackend], surface_1: int | None = None, surface_2: int | None = None
     ) -> tuple[CardinalPointsResult, Paraxial]:
         """Get the cardinal points of the system between `surface_1` and `surface_2`.
 
@@ -59,8 +59,8 @@ class OptilandCardinalPointsMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
-            Reference to the Optiland backend.
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
         surface_1 : int | None, optional
             The first surface to be used in the analysis. If `None`, the first surface in the system will be used.
             Defaults to `None`.
