@@ -13,7 +13,6 @@ from typing import (
     NotRequired,
     TypedDict,
     TypeVar,
-    Union,
     Unpack,
     overload,
 )
@@ -678,7 +677,7 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
 @make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: StandardSurface,
-    material: Union[str, MaterialModel],  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel,
     comment: str = "",
 ) -> OptilandSurface:
     return OptilandSurface(
@@ -694,7 +693,7 @@ def _make_surface(
 @make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: Stop,
-    material: Union[str, MaterialModel] = "Air",  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel = "Air",
     comment: str = "",
 ) -> OptilandSurface:
     return OptilandSurface(
@@ -709,7 +708,7 @@ def _make_surface(
 @make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: BiconicSurface,
-    material: Union[str, MaterialModel] = "Air",  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel = "Air",
     comment: str = "",
 ) -> OptilandBiconicSurface:
     return OptilandBiconicSurface(
@@ -727,7 +726,7 @@ def _make_surface(
 @make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: ZernikeStandardSagSurface,
-    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel = "",
     comment: str = "",
 ) -> OptilandZernikeStandardSagSurface:
     if surface.extrapolate:
@@ -752,7 +751,7 @@ def _make_surface(
 @make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: ZernikeStandardPhaseSurface,
-    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel = "",
     comment: str = "",
 ) -> OptilandSurface:
     raise NotImplementedError("ZernikeStandardPhaseSurface is not supported in Optiland.")

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC
 from functools import singledispatch
-from typing import TYPE_CHECKING, Generic, TypeVar, Union
+from typing import TYPE_CHECKING, Generic, TypeVar
 from warnings import warn
 
 import zospy as zp
@@ -654,7 +654,7 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
 @make_surface.register
 def _make_surface(
     surface: StandardSurface,
-    material: Union[str, MaterialModel],  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel,
     comment: str = "",
 ) -> OpticStudioSurface:
     return OpticStudioSurface(
@@ -670,7 +670,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: Stop,
-    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel = "",
     comment: str = "",
 ) -> OpticStudioSurface:
     return OpticStudioSurface(
@@ -685,7 +685,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: BiconicSurface,
-    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel = "",
     comment: str = "",
 ) -> OpticStudioBiconicSurface:
     return OpticStudioBiconicSurface(
@@ -703,7 +703,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: ZernikeStandardSagSurface,
-    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel = "",
     comment: str = "",
 ) -> OpticStudioZernikeStandardSagSurface:
     return OpticStudioZernikeStandardSagSurface(
@@ -725,7 +725,7 @@ def _make_surface(
 @make_surface.register
 def _make_surface(
     surface: ZernikeStandardPhaseSurface,
-    material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
+    material: str | MaterialModel = "",
     comment: str = "",
 ) -> OpticStudioZernikeStandardPhaseSurface:
     return OpticStudioZernikeStandardPhaseSurface(
