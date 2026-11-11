@@ -183,7 +183,7 @@ def _get_huygens_psf_extent(oss: OpticStudioSystem, field: int = 1, wavelength_n
 
 
 class OpticStudioPSFMixin:
-    """Mixin class for OpticStudio analyses."""
+    """Mixin class for PSF analyses in OpticStudio."""
 
     def fft_psf(
         self: AnalysisRegistry[OpticStudioBackend],

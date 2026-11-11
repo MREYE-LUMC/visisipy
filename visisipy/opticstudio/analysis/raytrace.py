@@ -36,7 +36,7 @@ def _build_raytrace_result(raytrace_results: list[pd.DataFrame]) -> pd.DataFrame
 
 
 class OpticStudioRaytraceMixin:
-    """Mixin class for OpticStudio analyses."""
+    """Mixin class for ray tracing analyses in OpticStudio."""
 
     def raytrace(
         self: AnalysisRegistry[OpticStudioBackend],

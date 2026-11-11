@@ -25,7 +25,7 @@ __all__ = ("OpticStudioRefractionMixin",)
 
 
 class OpticStudioRefractionMixin:
-    """Mixin class for OpticStudio analyses."""
+    """Mixin class for refraction analysis in OpticStudio."""
 
     def refraction(
         self: AnalysisRegistry[OpticStudioBackend],

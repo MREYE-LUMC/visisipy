@@ -82,7 +82,7 @@ def _pad_opd_map(data: DataFrame) -> DataFrame:
 
 
 class OpticStudioOPDMixin:
-    """Mixin class for OpticStudio analyses."""
+    """Mixin class for OPD map analysis in OpticStudio."""
 
     def opd_map(
         self: AnalysisRegistry[OpticStudioBackend],

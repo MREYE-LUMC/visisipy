@@ -5,7 +5,7 @@ as well as functions to interact with these backends.
 
 Interfaces:
 
-- `BaseAnalysisRegistry`: Base class for the backend analysis registry.
+- `AnalysisRegistry`: Protocol for the backend analysis registry.
 - `BaseBackend`: Base class for simulation backends.
 
 Functions:
@@ -94,7 +94,7 @@ _DEFAULT_BACKEND: BackendType = "opticstudio" if platform.system() == "Windows" 
 _BackendT_co = TypeVar("_BackendT_co", bound="BaseBackend", covariant=True)
 
 
-class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
+class AnalysisRegistry(Protocol[_BackendT_co]):
     """Base class for analysis registry.
 
     Interface for the analysis methods of the backend. Backends should implement this interface
@@ -129,12 +129,14 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
     @property
     def backend(self) -> _BackendT_co: ...  # ruff: ignore[undocumented-public-method]
 
+    @abstractmethod
     def cardinal_points(  # ruff: ignore[undocumented-public-method]
         self,
         surface_1: int | None = None,
         surface_2: int | None = None,
     ) -> tuple[CardinalPointsResult, Any]: ...
 
+    @abstractmethod
     def fft_mtf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | Literal["all"] = "all",
@@ -144,6 +146,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         maximum_frequency: float | Literal["default"] = "default",
     ) -> tuple[MTFResult, Any]: ...
 
+    @abstractmethod
     def fft_psf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -152,6 +155,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         sampling: SampleSize | str | int = 128,
     ) -> tuple[DataFrame, Any]: ...
 
+    @abstractmethod
     def huygens_psf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -161,6 +165,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         image_sampling: SampleSize | str | int = 128,
     ) -> tuple[DataFrame, Any]: ...
 
+    @abstractmethod
     def opd_map(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -172,6 +177,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         use_exit_pupil_shape: bool = False,
     ) -> tuple[DataFrame, Any]: ...
 
+    @abstractmethod
     def raytrace(  # ruff: ignore[undocumented-public-method]
         self,
         coordinates: Sequence[FieldCoordinate] | None = None,
@@ -180,6 +186,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         pupil: tuple[float, float] = (0, 0),
     ) -> tuple[DataFrame, Any]: ...
 
+    @abstractmethod
     def refraction(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -191,6 +198,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         use_higher_order_aberrations: bool = True,
     ) -> tuple[FourierPowerVectorRefraction, Any]: ...
 
+    @abstractmethod
     def strehl_ratio(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -200,6 +208,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         psf_type: Literal["fft", "huygens"] = "huygens",
     ) -> tuple[float, Any]: ...
 
+    @abstractmethod
     def zernike_standard_coefficients(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
@@ -411,7 +420,10 @@ class BackendAccessError(RuntimeError):
     """Error raised when trying to access unavailable or non-initialized backend features."""
 
 
-def _get_or_initialize_backend(backend_type: type[_BackendT_co], settings: BackendSettings) -> _BackendT_co:
+_BackendT = TypeVar("_BackendT", bound=BaseBackend)
+
+
+def _get_or_initialize_backend(backend_type: type[_BackendT], settings: BackendSettings) -> _BackendT:
     """Get the current instance of the specified backend, or initialize it if it has not been initialized yet.
 
     Returns

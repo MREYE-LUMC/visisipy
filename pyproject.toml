@@ -170,7 +170,7 @@ summary-quotes-same-line = true
 linewrap-full-docstring = true
 
 [tool.pyrefly]
-project-includes = ["visisipy/**/*.py", "visisipy/optiland/analysis/__init__.py"]
+project-includes = ["visisipy/**/*.py"]
 replace-imports-with-any = [
     "zospy.*", # ZOSPy is not available in the CI environment
     "optiland.*",

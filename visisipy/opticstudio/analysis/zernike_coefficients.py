@@ -41,7 +41,7 @@ def _build_zernike_result(
 
 
 class OpticStudioZernikeCoefficientsMixin:
-    """Mixin class for OpticStudio analyses."""
+    """Mixin class for Zernike coefficients analyses in OpticStudio."""
 
     def zernike_standard_coefficients(
         self: AnalysisRegistry[OpticStudioBackend],

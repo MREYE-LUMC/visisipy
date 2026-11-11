@@ -47,7 +47,7 @@ def _build_cardinal_points_result(cardinal_points_result: ZOSPyCardinalPointsRes
 
 
 class OpticStudioCardinalPointsMixin:
-    """Mixin class for OpticStudio analyses."""
+    """Mixin class for the cardinal points analysis in OpticStudio."""
 
     def cardinal_points(
         self: AnalysisRegistry[OpticStudioBackend], surface_1: int | None = None, surface_2: int | None = None

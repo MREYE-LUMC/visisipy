@@ -39,7 +39,7 @@ class OptilandRefractionMixin:
 
         Parameters
         ----------
-        self : SupportsBackend[OptilandBackend]
+        self : AnalysisRegistry[OptilandBackend]
             Reference to the OptilandBackend backend.
         field_coordinate : tuple[float, float], optional
             The field coordinate for the Zernike calculation. When `None`, the first field in Optiland is used.

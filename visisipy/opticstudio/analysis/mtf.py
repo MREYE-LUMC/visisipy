@@ -69,7 +69,7 @@ def _build_mtf_result(fft_mtf_result: DataFrame) -> MTFResult:
 
 
 class OpticStudioMTFMixin:
-    """Mixin class for OpticStudio analyses."""
+    """Mixin class for MTF analyses in OpticStudio."""
 
     def fft_mtf(
         self: AnalysisRegistry[OpticStudioBackend],
