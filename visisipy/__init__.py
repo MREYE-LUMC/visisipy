@@ -16,8 +16,6 @@ from visisipy.models import (
     GullstrandLeGrandEyeModel,
     NavarroEyeModel,
     NavarroMaterials,
-    SyntEyesEyeModel,
-    SyntEyesGeometry,
     create_geometry,
 )
 
@@ -29,8 +27,6 @@ __all__ = [
     "GullstrandLeGrandEyeModel",
     "NavarroEyeModel",
     "NavarroMaterials",
-    "SyntEyesEyeModel",
-    "SyntEyesGeometry",
     "analysis",
     "create_geometry",
     "get_backend",
