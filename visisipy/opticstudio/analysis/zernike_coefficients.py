@@ -15,8 +15,11 @@ if TYPE_CHECKING:
         ZernikeStandardCoefficientsResult,
     )
 
+    from visisipy.backend import SupportsBackend
     from visisipy.opticstudio.backend import OpticStudioBackend
     from visisipy.types import FieldCoordinate, FieldType
+
+__all__ = ("OpticStudioZernikeCoefficientsMixin",)
 
 
 def _build_zernike_result(
@@ -37,65 +40,69 @@ def _build_zernike_result(
     })
 
 
-def zernike_standard_coefficients(
-    backend: OpticStudioBackend,
-    field_coordinate: FieldCoordinate | None = None,
-    wavelength: float | None = None,
-    field_type: FieldType = "angle",
-    sampling: SampleSize | str | int = 64,
-    maximum_term: int = 45,
-    unit: ZernikeUnit = "microns",
-) -> tuple[ZernikeCoefficients, ZernikeStandardCoefficientsResult]:
-    """Calculate the Zernike standard coefficients at the retina surface.
+class OpticStudioZernikeCoefficientsMixin:
+    """Mixin class for OpticStudio analyses."""
 
-    Parameters
-    ----------
-    backend : OpticStudioBackend
-        Reference to the OpticStudio backend.
-    field_coordinate : tuple[float, float] | None, optional
-        The field coordinate for the Zernike calculation. When `None`, the first field in OpticStudio is used.
-        Defaults to `None`.
-    wavelength : float | None, optional
-        The wavelength for the Zernike calculation. When `None`, the first wavelength in OpticStudio is used.
-        Defaults to `None`.
-    field_type : Literal["angle", "object_height"], optional
-        The type of field to be used when setting the field coordinate. This parameter is only used when
-        `field_coordinate` is specified. Defaults to "angle".
-    sampling : SampleSize | str | int, optional
-        The sampling for the Zernike calculation. Defaults to 64.
-    maximum_term : int, optional
-        The maximum term for the Zernike calculation. Defaults to 45.
-    unit : ZernikeUnit, optional
-        The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
+    def zernike_standard_coefficients(
+        self: SupportsBackend[OpticStudioBackend],
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 64,
+        maximum_term: int = 45,
+        unit: ZernikeUnit = "microns",
+    ) -> tuple[ZernikeCoefficients, ZernikeStandardCoefficientsResult]:
+        """Calculate the Zernike standard coefficients at the retina surface.
 
-    Returns
-    -------
-    ZernikeCoefficients
-        Zernike standard coefficients.
-    ZernikeStandardCoefficientsResult
-        The raw Zernike standard coefficients analysis output from ZOSPy.
-    """
-    if not isinstance(sampling, SampleSize):
-        sampling = SampleSize(sampling)
+        Parameters
+        ----------
+        self : SupportsBackend[OpticStudioBackend]
+            Reference to the OpticStudio backend.
+        field_coordinate : tuple[float, float] | None, optional
+            The field coordinate for the Zernike calculation. When `None`, the first field in OpticStudio is used.
+            Defaults to `None`.
+        wavelength : float | None, optional
+            The wavelength for the Zernike calculation. When `None`, the first wavelength in OpticStudio is used.
+            Defaults to `None`.
+        field_type : Literal["angle", "object_height"], optional
+            The type of field to be used when setting the field coordinate. This parameter is only used when
+            `field_coordinate` is specified. Defaults to "angle".
+        sampling : SampleSize | str | int, optional
+            The sampling for the Zernike calculation. Defaults to 64.
+        maximum_term : int, optional
+            The maximum term for the Zernike calculation. Defaults to 45.
+        unit : ZernikeUnit, optional
+            The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
 
-    wavelength_number = set_wavelength(backend, wavelength)
-    field_number = set_field(backend, field_coordinate, field_type)
+        Returns
+        -------
+        ZernikeCoefficients
+            Zernike standard coefficients.
+        ZernikeStandardCoefficientsResult
+            The raw Zernike standard coefficients analysis output from ZOSPy.
+        """
+        backend = self.backend
+        if not isinstance(sampling, SampleSize):
+            sampling = SampleSize(sampling)
 
-    if wavelength is None:
-        wavelength = backend.get_wavelengths()[wavelength_number - 1]
+        wavelength_number = set_wavelength(backend, wavelength)
+        field_number = set_field(backend, field_coordinate, field_type)
 
-    zernike_result = zp.analyses.wavefront.ZernikeStandardCoefficients(
-        sampling=str(sampling),
-        maximum_term=maximum_term,
-        wavelength=wavelength_number,
-        field=field_number,
-        reference_opd_to_vertex=False,
-        surface="Image",
-        sx=0.0,
-        sy=0.0,
-        sr=1.0,
-    ).run(backend.oss)
+        if wavelength is None:
+            wavelength = backend.get_wavelengths()[wavelength_number - 1]
 
-    return _build_zernike_result(
-        zernike_result.data, maximum_term, wavelength=wavelength, unit=unit
-    ), zernike_result.data
+        zernike_result = zp.analyses.wavefront.ZernikeStandardCoefficients(
+            sampling=str(sampling),
+            maximum_term=maximum_term,
+            wavelength=wavelength_number,
+            field=field_number,
+            reference_opd_to_vertex=False,
+            surface="Image",
+            sx=0.0,
+            sy=0.0,
+            sr=1.0,
+        ).run(backend.oss)
+
+        return _build_zernike_result(
+            zernike_result.data, maximum_term, wavelength=wavelength, unit=unit
+        ), zernike_result.data

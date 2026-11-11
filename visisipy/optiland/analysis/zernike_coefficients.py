@@ -7,13 +7,12 @@ from typing import TYPE_CHECKING
 from optiland.backend import to_numpy
 from optiland.wavefront import ZernikeOPD
 
-from visisipy.backend import SupportsBackend
 from visisipy.optiland.analysis.helpers import set_field, set_wavelength
 from visisipy.types import SampleSize, ZernikeUnit
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
-    from visisipy.backend import FieldCoordinate, FieldType
+    from visisipy.backend import FieldCoordinate, FieldType, SupportsBackend
     from visisipy.optiland.backend import OptilandBackend
 
 
