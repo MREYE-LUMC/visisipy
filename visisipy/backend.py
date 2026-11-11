@@ -71,6 +71,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "DEFAULT_BACKEND_SETTINGS",
+    "AnalysisRegistry",
     "BackendAccessError",
     "BackendSettings",
     "BackendType",
@@ -126,15 +127,15 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
     def __init__(self, backend: _BackendT_co) -> None: ...
 
     @property
-    def backend(self) -> _BackendT_co: ...
+    def backend(self) -> _BackendT_co: ...  # ruff: ignore[undocumented-public-method]
 
-    def cardinal_points(
+    def cardinal_points(  # ruff: ignore[undocumented-public-method]
         self,
         surface_1: int | None = None,
         surface_2: int | None = None,
     ) -> tuple[CardinalPointsResult, Any]: ...
 
-    def fft_mtf(
+    def fft_mtf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | Literal["all"] = "all",
         field_type: FieldType = "angle",
@@ -143,7 +144,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         maximum_frequency: float | Literal["default"] = "default",
     ) -> tuple[MTFResult, Any]: ...
 
-    def fft_psf(
+    def fft_psf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -151,7 +152,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         sampling: SampleSize | str | int = 128,
     ) -> tuple[DataFrame, Any]: ...
 
-    def huygens_psf(
+    def huygens_psf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -160,7 +161,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         image_sampling: SampleSize | str | int = 128,
     ) -> tuple[DataFrame, Any]: ...
 
-    def opd_map(
+    def opd_map(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -171,7 +172,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         use_exit_pupil_shape: bool = False,
     ) -> tuple[DataFrame, Any]: ...
 
-    def raytrace(
+    def raytrace(  # ruff: ignore[undocumented-public-method]
         self,
         coordinates: Sequence[FieldCoordinate] | None = None,
         wavelengths: Sequence[float] | None = None,
@@ -179,7 +180,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         pupil: tuple[float, float] = (0, 0),
     ) -> tuple[DataFrame, Any]: ...
 
-    def refraction(
+    def refraction(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -190,7 +191,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         use_higher_order_aberrations: bool = True,
     ) -> tuple[FourierPowerVectorRefraction, Any]: ...
 
-    def strehl_ratio(
+    def strehl_ratio(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -199,7 +200,7 @@ class AnalysisRegistry(Protocol, Generic[_BackendT_co]):
         psf_type: Literal["fft", "huygens"] = "huygens",
     ) -> tuple[float, Any]: ...
 
-    def zernike_standard_coefficients(
+    def zernike_standard_coefficients(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,

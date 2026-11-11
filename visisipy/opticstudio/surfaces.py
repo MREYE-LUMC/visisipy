@@ -41,7 +41,7 @@ class OpticStudioSurfaceProperty(Generic[PropertyType]):
     def __init__(self, name: str) -> None:
         self.name = name
 
-    def __get__(self, obj: OpticStudioSurface, objtype=None) -> PropertyType:
+    def __get__(self, obj: OpticStudioSurface, objtype=None) -> PropertyType | None:
         if obj.surface is None:
             return None
 
@@ -64,7 +64,7 @@ class OpticStudioSurfaceDataProperty(Generic[PropertyType]):
     def __init__(self, name: str) -> None:
         self.name = name
 
-    def __get__(self, obj: OpticStudioSurface, objtype=None) -> PropertyType:
+    def __get__(self, obj: OpticStudioSurface, objtype=None) -> PropertyType | None:
         if obj.surface is None:
             return None
 
@@ -167,7 +167,7 @@ class OpticStudioSurface(BaseSurface):
             raise TypeError("'material' must be MaterialModel or str.")
 
     @property
-    def material(self) -> MaterialModel | str:
+    def material(self) -> MaterialModel | str | None:
         """Material of the surface."""
         return self._get_material()
 
@@ -190,16 +190,16 @@ class OpticStudioSurface(BaseSurface):
         if self.surface is not None and self.surface.Type != surface_type:
             zp.functions.lde.surface_change_type(self.surface, self._TYPE)
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
-        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        Create the surface in the provided `OpticStudioSystem` at index `position`.
         By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
         is set to `True`.
 
         Parameters
         ----------
-        oss : zospy.zpcore.OpticStudioSystem
+        optical_system : zospy.zpcore.OpticStudioSystem
             OpticStudio system in which the surface is created.
         position : int
             Index at which the surface is located, starting at 0 for the object surface.
@@ -211,7 +211,11 @@ class OpticStudioSurface(BaseSurface):
         int
             The index of the created surface. Subsequent surfaces should be added after this index.
         """
-        self._surface = oss.LDE.GetSurfaceAt(position) if replace_existing else oss.LDE.InsertNewSurfaceAt(position)
+        self._surface = (
+            optical_system.LDE.GetSurfaceAt(position)
+            if replace_existing
+            else optical_system.LDE.InsertNewSurfaceAt(position)
+        )
 
         self._set_surface_type()
 
@@ -329,16 +333,16 @@ class OpticStudioBiconicSurface(OpticStudioSurface):
     radius_x: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("XRadius")
     conic_x: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("XConic")
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
-        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        Create the surface in the provided `OpticStudioSystem` at index `position`.
         By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
         is set to `True`.
 
         Parameters
         ----------
-        oss : zospy.zpcore.OpticStudioSystem
+        optical_system : zospy.zpcore.OpticStudioSystem
             OpticStudio system in which the surface is created.
         position : int
             Index at which the surface is located, starting at 0 for the object surface.
@@ -350,7 +354,7 @@ class OpticStudioBiconicSurface(OpticStudioSurface):
         int
             The index of the created surface. Subsequent surfaces should be added after this index.
         """
-        surface_index = super().build(oss, position=position, replace_existing=replace_existing)
+        surface_index = super().build(optical_system, position=position, replace_existing=replace_existing)
 
         self.radius_x = self._radius_x
         self.conic_x = self._conic_x
@@ -414,8 +418,11 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
     def _validate_coefficient(self, n: int):
         if n < 1:
             raise ValueError("Zernike coefficient must be larger than 0.")
-        if n > self.number_of_terms:
-            raise ValueError(f"Zernike coefficient must be smaller than the maximum term {self.number_of_terms}.")
+        number_of_terms = self.number_of_terms
+        if number_of_terms is None:
+            raise RuntimeError("The surface has not been built.")
+        if n > number_of_terms:
+            raise ValueError(f"Zernike coefficient must be smaller than the maximum term {number_of_terms}.")
 
     def get_zernike_coefficient(self, n: int) -> float:
         """Get the value of the nth Zernike coefficient.
@@ -448,16 +455,16 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
 
         self.surface.SurfaceData.SetNthZernikeCoefficient(n, value)
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
-        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        Create the surface in the provided `OpticStudioSystem` at index `position`.
         By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
         is set to `True`.
 
         Parameters
         ----------
-        oss : zospy.zpcore.OpticStudioSystem
+        optical_system : zospy.zpcore.OpticStudioSystem
             OpticStudio system in which the surface is created.
         position : int
             Index at which the surface is located, starting at 0 for the object surface.
@@ -469,7 +476,7 @@ class BaseOpticStudioZernikeSurface(OpticStudioSurface, ABC):
         int
             The index of the created surface. Subsequent surfaces should be added after this index.
         """
-        index = super().build(oss, position=position, replace_existing=replace_existing)
+        index = super().build(optical_system, position=position, replace_existing=replace_existing)
 
         self.number_of_terms = self._number_of_terms
         self.norm_radius = self._norm_radius
@@ -523,16 +530,16 @@ class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
     zernike_decenter_x: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("ZernikeDecenter_X")
     zernike_decenter_y: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("ZernikeDecenter_Y")
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
-        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        Create the surface in the provided `OpticStudioSystem` at index `position`.
         By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
         is set to `True`.
 
         Parameters
         ----------
-        oss : zospy.zpcore.OpticStudioSystem
+        optical_system : zospy.zpcore.OpticStudioSystem
             OpticStudio system in which the surface is created.
         position : int
             Index at which the surface is located, starting at 0 for the object surface.
@@ -544,7 +551,7 @@ class OpticStudioZernikeStandardSagSurface(BaseOpticStudioZernikeSurface):
         int
             The index of the created surface. Subsequent surfaces should be added after this index.
         """
-        index = super().build(oss, position=position, replace_existing=replace_existing)
+        index = super().build(optical_system, position=position, replace_existing=replace_existing)
 
         self.extrapolate = self._extrapolate
         self.zernike_decenter_x = self._zernike_decenter_x
@@ -593,16 +600,16 @@ class OpticStudioZernikeStandardPhaseSurface(BaseOpticStudioZernikeSurface):
     extrapolate: OpticStudioSurfaceDataProperty[int] = OpticStudioSurfaceDataProperty("Extrapolate")
     diffract_order: OpticStudioSurfaceDataProperty[float] = OpticStudioSurfaceDataProperty("DiffractOrder")
 
-    def build(self, oss: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
 
-        Create the surface in the provided `OpticStudioSystem` `oss` at index `position`.
+        Create the surface in the provided `OpticStudioSystem` at index `position`.
         By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
         is set to `True`.
 
         Parameters
         ----------
-        oss : zospy.zpcore.OpticStudioSystem
+        optical_system : zospy.zpcore.OpticStudioSystem
             OpticStudio system in which the surface is created.
         position : int
             Index at which the surface is located, starting at 0 for the object surface.
@@ -614,7 +621,7 @@ class OpticStudioZernikeStandardPhaseSurface(BaseOpticStudioZernikeSurface):
         int
             The index of the created surface. Subsequent surfaces should be added after this index.
         """
-        index = super().build(oss, position=position, replace_existing=replace_existing)
+        index = super().build(optical_system, position=position, replace_existing=replace_existing)
 
         self.extrapolate = self._extrapolate
         self.diffract_order = self._diffract_order
@@ -706,11 +713,11 @@ def _make_surface(
         semi_diameter=surface.semi_diameter,
         conic=surface.asphericity,
         material=material,
-        zernike_coefficients=surface.zernike_coefficients,
+        zernike_coefficients=ZernikeCoefficients(surface.zernike_coefficients),
         extrapolate=1 if surface.extrapolate else 0,
         zernike_decenter_x=surface.zernike_decenter_x,
         zernike_decenter_y=surface.zernike_decenter_y,
-        number_of_terms=surface.maximum_term,
+        number_of_terms=surface.maximum_term or 0,
         norm_radius=surface.norm_radius,
     )
 
@@ -728,15 +735,15 @@ def _make_surface(
         semi_diameter=surface.semi_diameter,
         conic=surface.asphericity,
         material=material,
-        zernike_coefficients=surface.zernike_coefficients,
+        zernike_coefficients=ZernikeCoefficients(surface.zernike_coefficients),
         extrapolate=1 if surface.extrapolate else 0,
         diffract_order=surface.diffraction_order,
-        number_of_terms=surface.maximum_term,
+        number_of_terms=surface.maximum_term or 0,
         norm_radius=surface.norm_radius,
     )
 
 
-@make_surface.register
+@make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: NoSurface,  # ruff: ignore[unused-function-argument]
     material: None = None,  # ruff: ignore[unused-function-argument]

@@ -12,6 +12,7 @@ import visisipy.backend as _backend
 from visisipy.types import TypeVar
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
     from os import PathLike
     from typing import Self
 
@@ -258,7 +259,7 @@ class BaseSurface(ABC):
         """Backend-native surface object."""
 
     @abstractmethod
-    def build(self, *args, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: Any, *, position: int, replace_existing: bool = False) -> int:
         """Build the surface in the backend."""
 
 
@@ -330,7 +331,7 @@ class BaseEye(ABC):
         """Eye-model specification from which this backend-specific eye was built."""
 
     @property
-    def surfaces(self) -> dict[str, BaseSurface]:
+    def surfaces(self) -> Mapping[str, BaseSurface]:
         """Dictionary with surface names as keys and surfaces as values."""
         return {k.lstrip("_"): v for k, v in self.__dict__.items() if isinstance(v, BaseSurface)}
 

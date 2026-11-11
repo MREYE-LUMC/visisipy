@@ -170,15 +170,10 @@ summary-quotes-same-line = true
 linewrap-full-docstring = true
 
 [tool.pyrefly]
-project-includes = ["visisipy/**/*.py"]
-project-excludes = [
-    # Exclude backend implementations, as they are not part of the public API
-    # and difficult to type-check
-    "visisipy/opticstudio/**/*.py",
-    "visisipy/optiland/**/*.py",
-]
-ignore-missing-imports = [
+project-includes = ["visisipy/**/*.py", "visisipy/optiland/analysis/__init__.py"]
+replace-imports-with-any = [
     "zospy.*", # ZOSPy is not available in the CI environment
+    "optiland.*",
 ]
 
 [dependency-groups]

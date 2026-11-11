@@ -267,7 +267,7 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         self.model = None
         self.new_model()
 
-    def save_model(self, path: str | PathLike | None = None) -> None:
+    def save_model(self, filename: str | PathLike | None = None) -> None:
         """Save the current optical system model.
 
         This method saves the current optical system model to the specified path. If no path is provided,
@@ -275,8 +275,8 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
 
         Parameters
         ----------
-        path : str | PathLike | None, optional
-            The path where the model should be saved. If None, the model is saved in the current working directory.
+        filename : str | PathLike | None, optional
+            The filename where the model should be saved. If None, the model is saved in the current working directory.
             The file extension must be .json.
 
         Raises
@@ -284,13 +284,13 @@ class OptilandBackend(BaseBackend[OptilandSettings]):
         ValueError
             If the file extension of the provided path is not .json.
         """
-        if path is None:
-            path = "model.json"
+        if filename is None:
+            filename = "model.json"
 
-        if not str(path).endswith(".json"):
+        if not str(filename).endswith(".json"):
             raise ValueError("filename must end in .json")
 
-        save_optiland_file(self.optic, path)
+        save_optiland_file(self.optic, filename)
 
     def load_model(self, filename: str | PathLike, *, apply_settings: bool = False) -> None:
         """Load an Optiland model from a JSON file.

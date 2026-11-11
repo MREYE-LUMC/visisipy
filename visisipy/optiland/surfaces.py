@@ -8,6 +8,7 @@ from functools import reduce, singledispatch
 from operator import attrgetter
 from typing import (
     TYPE_CHECKING,
+    Any,
     Generic,
     NotRequired,
     TypedDict,
@@ -52,7 +53,7 @@ class OptilandSurfaceProperty(Generic[PropertyType]):
         self.name = name
         self.attrgetter = attrgetter(name)
 
-    def __get__(self, obj: OptilandSurface, objtype=None) -> PropertyType:
+    def __get__(self, obj: OptilandSurface, objtype=None) -> PropertyType | None:
         if obj.surface is None:
             return None
 
@@ -77,7 +78,16 @@ class OptilandSurfaceProperty(Generic[PropertyType]):
 class _built_only_property(property):  # ruff: ignore[invalid-class-name]
     """Property that can only be accessed after the surface has been built."""
 
-    def __get__(self, obj: OptilandSurface, objtype=None):
+    @overload
+    def __get__(self, obj: None, objtype: type[OptilandSurface] | None = None) -> _built_only_property: ...
+
+    @overload
+    def __get__(self, obj: OptilandSurface, objtype: type[OptilandSurface] | None = None) -> Any: ...
+
+    def __get__(self, obj: OptilandSurface | None, objtype: type[OptilandSurface] | None = None) -> Any:
+        if obj is None:
+            return self
+
         if not obj._is_built:  # ruff: ignore[private-member-access]
             return None
 
@@ -170,6 +180,9 @@ class BaseOptilandSurface(BaseSurface, ABC):
     @_built_only_property
     def thickness(self) -> float:
         """Thickness of the surface."""
+        if self._optic is None:
+            raise RuntimeError("The surface has not been built.")
+
         if self._index == self._optic.surfaces.num_surfaces - 1:
             # Last surface in the system, return 0.0
             return 0.0
@@ -296,7 +309,7 @@ class BaseOptilandSurface(BaseSurface, ABC):
         OptilandStandardSurfaceParameters : Parameters for standard surfaces in Optiland.
         OptilandBiconicSurfaceParameters : Parameters for biconic surfaces in Optiland.
         """
-        optic.surfaces.add(index=position, surface_type=self._TYPE, **kwargs)
+        optic.surfaces.add(index=position, surface_type=self._TYPE, **kwargs)  # pyrefly: ignore[bad-argument-type]
 
         if replace_existing:
             optic.surfaces.remove(position + 1)
@@ -373,7 +386,7 @@ class OptilandSurface(BaseOptilandSurface):
         """Conic constant of the surface."""
         return self._optic.surfaces.conic[self._index]  # type: ignore
 
-    def build(self, optic: Optic, *, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: Optic, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in Optiland.
 
         Create the surface in the provided `Optic` object at the specified `position`.
@@ -382,7 +395,7 @@ class OptilandSurface(BaseOptilandSurface):
 
         Parameters
         ----------
-        optic : Optic
+        optical_system : Optic
             The Optic object to which the surface will be added.
         position : int
             The index at which the surface will be added, starting at 0 for the object surface.
@@ -395,7 +408,7 @@ class OptilandSurface(BaseOptilandSurface):
             The index of the created surface. Subsequent surfaces should be after this index.
         """
         self._create_surface(
-            optic=optic,
+            optic=optical_system,
             position=position,
             replace_existing=replace_existing,
             comment=self._comment,
@@ -485,7 +498,7 @@ class OptilandBiconicSurface(BaseOptilandSurface):
         """Conic constant of the surface in the X direction."""
         return float(self.surface.geometry.kx)  # type: ignore
 
-    def build(self, optic: Optic, *, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: Optic, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in Optiland.
 
         Create the surface in the provided `Optic` object at the specified `position`.
@@ -494,7 +507,7 @@ class OptilandBiconicSurface(BaseOptilandSurface):
 
         Parameters
         ----------
-        optic : Optic
+        optical_system : Optic
             The Optic object to which the surface will be added.
         position : int
             The index at which the surface will be added, starting at 0 for the object surface.
@@ -507,7 +520,7 @@ class OptilandBiconicSurface(BaseOptilandSurface):
             The index of the created surface. Subsequent surfaces should be after this index.
         """
         self._create_surface(
-            optic=optic,
+            optic=optical_system,
             position=position,
             replace_existing=replace_existing,
             comment=self._comment,
@@ -598,7 +611,7 @@ class OptilandZernikeStandardSagSurface(BaseOptilandSurface):
         coefficients = self.surface.geometry.coefficients  # type: ignore
         return ZernikeCoefficients(dict(enumerate(coefficients, start=1)))
 
-    def build(self, optic: Optic, *, position: int, replace_existing: bool = False) -> int:
+    def build(self, optical_system: Optic, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in Optiland.
 
         Create the surface in the provided `Optic` object at the specified `position`.
@@ -607,7 +620,7 @@ class OptilandZernikeStandardSagSurface(BaseOptilandSurface):
 
         Parameters
         ----------
-        optic : Optic
+        optical_system : Optic
             The Optic object to which the surface will be added.
         position : int
             The index at which the surface will be added, starting at 0 for the object surface.
@@ -622,7 +635,7 @@ class OptilandZernikeStandardSagSurface(BaseOptilandSurface):
         coefficients = [self._zernike_coefficients.get(i, 0.0) for i in range(1, self._number_of_terms + 1)]
 
         self._create_surface(
-            optic=optic,
+            optic=optical_system,
             position=position,
             replace_existing=replace_existing,
             comment=self._comment,
@@ -662,7 +675,7 @@ def make_surface(surface: Surface, material: str | MaterialModel, comment: str =
     return OptilandSurface(comment=comment, thickness=surface.thickness, material=material)
 
 
-@make_surface.register
+@make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: StandardSurface,
     material: Union[str, MaterialModel],  # ruff: ignore[non-pep604-annotation-union]
@@ -678,7 +691,7 @@ def _make_surface(
     )
 
 
-@make_surface.register
+@make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: Stop,
     material: Union[str, MaterialModel] = "Air",  # ruff: ignore[non-pep604-annotation-union]
@@ -693,7 +706,7 @@ def _make_surface(
     )
 
 
-@make_surface.register
+@make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: BiconicSurface,
     material: Union[str, MaterialModel] = "Air",  # ruff: ignore[non-pep604-annotation-union]
@@ -711,7 +724,7 @@ def _make_surface(
     )
 
 
-@make_surface.register
+@make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: ZernikeStandardSagSurface,
     material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
@@ -729,14 +742,14 @@ def _make_surface(
         semi_diameter=surface.semi_diameter,
         conic=surface.asphericity,
         material=material,
-        number_of_terms=surface.maximum_term,
+        number_of_terms=surface.maximum_term or 0,
         norm_radius=surface.norm_radius,
         zernike_coefficients=surface.zernike_coefficients,
         is_stop=surface.is_stop,
     )
 
 
-@make_surface.register
+@make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: ZernikeStandardPhaseSurface,
     material: Union[str, MaterialModel] = "",  # ruff: ignore[non-pep604-annotation-union]
@@ -745,7 +758,7 @@ def _make_surface(
     raise NotImplementedError("ZernikeStandardPhaseSurface is not supported in Optiland.")
 
 
-@make_surface.register
+@make_surface.register  # pyrefly: ignore[no-matching-overload]
 def _make_surface(
     surface: NoSurface,  # ruff: ignore[unused-function-argument]
     material: None = None,  # ruff: ignore[unused-function-argument]

@@ -92,13 +92,13 @@ class TestOptilandBackend:
         optiland_backend.build_model(eye_model)
 
         path = tmp_path / "test_model.json"
-        optiland_backend.save_model(path=path)
+        optiland_backend.save_model(filename=path)
 
         assert path.exists()
 
     def test_save_model_invalid_filename_raises_valueerror(self, optiland_backend: OptilandBackend):
         with pytest.raises(ValueError, match=r"filename must end in \.json"):
-            optiland_backend.save_model(path="invalid_path/test_model.zmx")
+            optiland_backend.save_model(filename="invalid_path/test_model.zmx")
 
     @pytest.mark.parametrize(
         "filename,expectation",

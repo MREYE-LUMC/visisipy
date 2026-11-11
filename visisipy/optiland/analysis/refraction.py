@@ -7,12 +7,12 @@ from warnings import warn
 
 from visisipy.analysis.refraction import zernike_data_to_refraction
 from visisipy.optiland.analysis.helpers import primary_wavelength, set_wavelength
-from visisipy.types import SampleSize
+from visisipy.types import FieldCoordinate, FieldType, SampleSize
 
 if TYPE_CHECKING:
     from optiland.wavefront import ZernikeOPD
 
-    from visisipy.backend import FieldCoordinate, FieldType, SupportsBackend
+    from visisipy.backend import AnalysisRegistry
     from visisipy.optiland.backend import OptilandBackend
     from visisipy.refraction import FourierPowerVectorRefraction
 
@@ -23,7 +23,7 @@ class OptilandRefractionMixin:
     """Mixin class for refraction analysis in Optiland."""
 
     def refraction(
-        self: SupportsBackend[OptilandBackend],
+        self: AnalysisRegistry[OptilandBackend],
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
         sampling: SampleSize | str | int = 64,
