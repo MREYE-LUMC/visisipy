@@ -21,8 +21,6 @@ if TYPE_CHECKING:
 _Geometry = TypeVar(
     "_Geometry",
     bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface, Surface]",
-    "_Geometry",
-    bound="EyeGeometry[Surface, Surface, Surface, Surface, Surface, Surface]",
 )
 _Materials = TypeVar("_Materials", bound="EyeMaterials")
 
