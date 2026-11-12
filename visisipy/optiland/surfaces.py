@@ -606,7 +606,9 @@ class OptilandEvenAsphereSurface(BaseOptilandSurface):
         self._thickness = thickness
         self._semi_diameter = semi_diameter
         self._conic = conic
-        self._asphere_coefficients = [float(c) for c in asphere_coefficients or []]
+        self._asphere_coefficients = (
+            [float(c) for c in asphere_coefficients] if asphere_coefficients is not None else []
+        )
         self._material = material
         self._is_stop = is_stop
 
