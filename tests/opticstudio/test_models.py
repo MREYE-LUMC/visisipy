@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from visisipy.models.geometry import EvenAsphereSurface
 from visisipy.opticstudio import OpticStudioEye
+from visisipy.opticstudio.surfaces import OpticStudioEvenAsphereSurface
 
 # pyright: reportOptionalMemberAccess=false
 
@@ -225,6 +227,24 @@ class TestOpticStudioEye:
         assert opticstudio_eye.lens_back.comment == "lens back / vitreous"
         assert opticstudio_eye.retina.surface.SurfaceNumber == 7
         assert opticstudio_eye.retina.comment == "retina"
+
+
+def test_model_with_even_asphere_surface(oss, eye_model):
+    eye_model.geometry.lens_front = EvenAsphereSurface(
+        radius=10.2, asphericity=-3.1316, asphere_coefficients=[0.0, 1e-4, -2e-6], thickness=4.0
+    )
+
+    opticstudio_eye = OpticStudioEye(eye_model)
+    opticstudio_eye.build(oss)
+
+    lens_front = opticstudio_eye.lens_front
+
+    assert isinstance(lens_front, OpticStudioEvenAsphereSurface)
+    assert str(lens_front.surface.Type) == "EvenAspheric"
+    assert lens_front.asphere_coefficients == pytest.approx([0.0, 1e-4, -2e-6, 0.0, 0.0, 0.0, 0.0, 0.0])
+    assert lens_front.radius == pytest.approx(10.2)
+    assert lens_front.conic == pytest.approx(-3.1316)
+    assert lens_front.thickness == pytest.approx(4.0)
 
 
 def test_model_with_no_surface(oss, three_surface_eye_model):

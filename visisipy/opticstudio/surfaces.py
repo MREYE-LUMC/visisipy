@@ -25,6 +25,8 @@ from visisipy.models.geometry import (
 from visisipy.models.materials import MaterialModel
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from zospy.api import _ZOSAPI
     from zospy.zpcore import OpticStudioSystem
 
@@ -359,6 +361,136 @@ class OpticStudioBiconicSurface(OpticStudioSurface):
 
         self.radius_x = self._radius_x
         self.conic_x = self._conic_x
+
+        return surface_index
+
+
+class OpticStudioEvenAsphereSurface(OpticStudioSurface):
+    """Even asphere surface in OpticStudio.
+
+    OpticStudio supports at most 8 asphere coefficients, i.e. polynomial terms up to :math:`r^{16}`.
+    """
+
+    _TYPE: str = "EvenAspheric"
+    MAX_ASPHERE_COEFFICIENTS: int = 8
+
+    def __init__(
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        asphere_coefficients: Sequence[float] | None = None,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+    ):
+        """Create a new even asphere OpticStudio surface.
+
+        Parameters
+        ----------
+        comment : str
+            Comment for the surface.
+        radius : float
+            Radius of curvature of the surface, in mm. Defaults to infinity (flat surface).
+        thickness : float
+            Thickness of the surface, in mm. Defaults to 0.0 mm.
+        semi_diameter : float, optional
+            Semi-diameter of the surface aperture, in mm. Defaults to `None`, which means the semi-diameter will be
+            determined by OpticStudio.
+        conic : float
+            Conic constant of the surface. Defaults to 0.0 (spherical surface).
+        asphere_coefficients : Sequence[float], optional
+            Coefficients of the even-order polynomial terms. The first element is the coefficient of :math:`r^2`,
+            the second element the coefficient of :math:`r^4`, etc. At most 8 coefficients can be specified.
+            Defaults to `None`, which means no polynomial terms are used.
+        material : MaterialModel | str, optional
+            Material of the surface. This can be either a string representing the name of the material or a
+            MaterialModel instance. Defaults to `None`, which means no material is set.
+        is_stop : bool, optional
+            If `True`, the surface is treated as a stop. Defaults to `None`, which means the stop status will be
+            determined by OpticStudio. Note that setting the `IsStop` property in OpticStudio will always convert the
+            surface to a stop, regardless of the value. When set to `False`, this parameter will be ignored.
+
+        Raises
+        ------
+        ValueError
+            If more than 8 asphere coefficients are specified.
+        """
+        super().__init__(
+            comment=comment,
+            radius=radius,
+            thickness=thickness,
+            semi_diameter=semi_diameter,
+            conic=conic,
+            material=material,
+            is_stop=is_stop,
+        )
+
+        self._asphere_coefficients = self._validate_asphere_coefficients(
+            asphere_coefficients if asphere_coefficients is not None else []
+        )
+
+    @classmethod
+    def _validate_asphere_coefficients(cls, asphere_coefficients: Sequence[float]) -> list[float]:
+        coefficients = list(asphere_coefficients)
+
+        if len(coefficients) > cls.MAX_ASPHERE_COEFFICIENTS:
+            raise ValueError(
+                f"OpticStudio supports at most {cls.MAX_ASPHERE_COEFFICIENTS} asphere coefficients, "
+                f"got {len(coefficients)}."
+            )
+
+        return coefficients
+
+    @property
+    def asphere_coefficients(self) -> list[float] | None:
+        """Coefficients of the even-order polynomial terms, starting with the coefficient of :math:`r^2`.
+
+        OpticStudio always uses 8 coefficients, so the returned list contains 8 elements, including trailing zeros.
+        Setting this property replaces all coefficients; coefficients that are not specified are set to 0.
+        """
+        if self.surface is None:
+            return None
+
+        return [self.surface.SurfaceData.GetNthEvenOrderTerm(n) for n in range(1, self.MAX_ASPHERE_COEFFICIENTS + 1)]
+
+    @asphere_coefficients.setter
+    def asphere_coefficients(self, value: Sequence[float]) -> None:
+        if self.surface is None:
+            raise AttributeError("Cannot set attribute asphere_coefficients of non-built surface.")
+
+        coefficients = self._validate_asphere_coefficients(value)
+        coefficients += [0.0] * (self.MAX_ASPHERE_COEFFICIENTS - len(coefficients))
+
+        for n, coefficient in enumerate(coefficients, start=1):
+            self.surface.SurfaceData.SetNthEvenOrderTerm(n, coefficient)
+
+    def build(self, optical_system: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
+        """Create the surface in OpticStudio.
+
+        Create the surface in the provided `OpticStudioSystem` at index `position`.
+        By default, a new surface will be created. An existing surface will be overwritten if `replace_existing`
+        is set to `True`.
+
+        Parameters
+        ----------
+        optical_system : zospy.zpcore.OpticStudioSystem
+            OpticStudio system in which the surface is created.
+        position : int
+            Index at which the surface is located, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be added after this index.
+        """
+        surface_index = super().build(optical_system, position=position, replace_existing=replace_existing)
+
+        self.asphere_coefficients = self._asphere_coefficients
 
         return surface_index
 
@@ -706,8 +838,18 @@ def _make_surface(
     surface: EvenAsphereSurface,
     material: str | MaterialModel = "",
     comment: str = "",
-) -> OpticStudioSurface:
-    raise NotImplementedError("EvenAsphereSurface is not supported in OpticStudio.")
+) -> OpticStudioEvenAsphereSurface:
+    return OpticStudioEvenAsphereSurface(
+        comment=comment,
+        radius=surface.radius,
+        thickness=surface.thickness,
+        semi_diameter=surface.semi_diameter,
+        conic=surface.asphericity,
+        asphere_coefficients=surface.asphere_coefficients,
+        material=material,
+        # Setting is_stop to False is not supported in OpticStudio
+        is_stop=surface.is_stop or None,
+    )
 
 
 @make_surface.register

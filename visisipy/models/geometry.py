@@ -315,6 +315,7 @@ class EvenAsphereSurface(StandardSurface):
     asphere_coefficients : list[float]
         The asphere coefficients :math:`\alpha_i`. The first element is the coefficient of :math:`r^2`, the second
         element the coefficient of :math:`r^4`, etc. Default is an empty list, which results in a standard conic surface.
+        OpticStudio supports at most 8 coefficients (up to :math:`r^{16}`).
     thickness : float
         The thickness of the surface. Default is 0.
     semi_diameter : float | None

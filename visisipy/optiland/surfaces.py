@@ -609,13 +609,14 @@ class OptilandEvenAsphereSurface(OptilandSurface):
             is_stop=is_stop,
         )
 
-        self._asphere_coefficients = (
-            [float(c) for c in asphere_coefficients] if asphere_coefficients is not None else []
-        )
+        self._asphere_coefficients = list(asphere_coefficients) if asphere_coefficients is not None else []
 
     @_built_only_property
     def asphere_coefficients(self) -> list[float]:
         """Coefficients of the even-order polynomial terms, starting with the coefficient of :math:`r^2`."""
+        if self.surface is None:
+            raise RuntimeError("The surface has not been built.")
+
         return [float(c) for c in self.surface.geometry.coefficients]
 
     def build(self, optical_system: Optic, *, position: int, replace_existing: bool = False) -> int:
