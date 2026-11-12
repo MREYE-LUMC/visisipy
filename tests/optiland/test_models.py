@@ -4,8 +4,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 from optiland.backend import to_numpy
+from optiland.geometries import EvenAsphere
 
+from visisipy.models.geometry import EvenAsphereSurface
 from visisipy.optiland import OptilandEye
+from visisipy.optiland.surfaces import OptilandEvenAsphereSurface
 
 if TYPE_CHECKING:
     from optiland.optic import Optic
@@ -199,6 +202,22 @@ class TestOptilandEye:
         assert optiland_eye.lens_front.comment != "new comment"
         assert optiland_eye.lens_back.comment == "new comment"
         assert optiland_eye.retina.comment != "new comment"
+
+
+def test_model_with_even_asphere_surface(optic: Optic, eye_model: EyeModel, optiland_backend):
+    eye_model.geometry.lens_front = EvenAsphereSurface(
+        radius=10.2, asphericity=-3.1316, asphere_coefficients=[0.0, 1e-4, -2e-6], thickness=4.0
+    )
+
+    optiland_eye = OptilandEye(eye_model)
+    optiland_eye.build(optic)
+
+    assert isinstance(optiland_eye.lens_front, OptilandEvenAsphereSurface)
+    assert isinstance(optic.surfaces[4].geometry, EvenAsphere)
+    assert optic.surfaces[4].geometry.coefficients == [0.0, 1e-4, -2e-6]
+    assert to_numpy(optic.surfaces.radii[4]) == pytest.approx(10.2)
+    assert to_numpy(optic.surfaces.conic[4]) == pytest.approx(-3.1316)
+    assert to_numpy(optic.surfaces.get_thickness(4)) == pytest.approx(4.0)
 
 
 def test_model_with_no_surface(optic, three_surface_eye_model, optiland_backend):

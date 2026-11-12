@@ -10,6 +10,7 @@ from visisipy.models import EyeGeometry
 from visisipy.models.geometry import (
     BaseZernikeStandardSurface,
     BiconicSurface,
+    EvenAsphereSurface,
     StandardSurface,
     Stop,
     ZernikeStandardPhaseSurface,
@@ -90,6 +91,53 @@ class TestBiconicSurface:
             NotImplementedError,
             match=re.escape("Half axes are only defined for ellipsoids. This biconic surface is not an ellipsoid"),
         ):
+            _ = surface.ellipsoid_radii
+
+
+class TestEvenAsphereSurface:
+    def test_init_defaults(self):
+        surface = EvenAsphereSurface()
+
+        assert surface.radius == float("inf")
+        assert surface.asphericity == 0
+        assert surface.asphere_coefficients == []
+        assert surface.thickness == 0
+        assert surface.semi_diameter is None
+        assert surface.is_stop is False
+
+    @pytest.mark.parametrize(
+        "asphere_coefficients",
+        [[0, 1e-3, -2e-5], (0, 1e-3, -2e-5), np.array([0, 1e-3, -2e-5])],
+    )
+    def test_init_asphere_coefficients_converted_to_float_list(self, asphere_coefficients):
+        surface = EvenAsphereSurface(radius=10, asphere_coefficients=asphere_coefficients)
+
+        assert isinstance(surface.asphere_coefficients, list)
+        assert all(type(c) is float for c in surface.asphere_coefficients)
+        assert surface.asphere_coefficients == [0.0, 1e-3, -2e-5]
+
+    def test_is_standard_surface(self):
+        assert isinstance(EvenAsphereSurface(), StandardSurface)
+
+    @pytest.mark.parametrize("asphere_coefficients", [[], [0.0], [0.0, 0.0, 0.0]])
+    def test_ellipsoid_radii(self, asphere_coefficients):
+        surface = EvenAsphereSurface(radius=12, asphericity=-0.5, asphere_coefficients=asphere_coefficients)
+
+        assert surface.ellipsoid_radii == pytest.approx(StandardSurface(radius=12, asphericity=-0.5).ellipsoid_radii)
+
+    def test_ellipsoid_radii_nonzero_coefficients_raises_notimplementederror(self):
+        surface = EvenAsphereSurface(radius=12, asphericity=-0.5, asphere_coefficients=[0.0, 1e-3])
+
+        with pytest.raises(
+            NotImplementedError,
+            match=re.escape("This even asphere surface has non-zero asphere coefficients"),
+        ):
+            _ = surface.ellipsoid_radii
+
+    def test_ellipsoid_radii_non_ellipsoid_asphericity_raises_notimplementederror(self):
+        surface = EvenAsphereSurface(radius=12, asphericity=-1)
+
+        with pytest.raises(NotImplementedError):
             _ = surface.ellipsoid_radii
 
 

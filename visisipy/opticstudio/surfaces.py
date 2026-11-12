@@ -13,6 +13,7 @@ from visisipy.models.base import BaseSurface
 from visisipy.models.base import NoSurface as OpticStudioNoSurface
 from visisipy.models.geometry import (
     BiconicSurface,
+    EvenAsphereSurface,
     NoSurface,
     StandardSurface,
     Stop,
@@ -698,6 +699,15 @@ def _make_surface(
         conic_x=surface.asphericity_x,
         material=material,
     )
+
+
+@make_surface.register
+def _make_surface(
+    surface: EvenAsphereSurface,
+    material: str | MaterialModel = "",
+    comment: str = "",
+) -> OpticStudioSurface:
+    raise NotImplementedError("EvenAsphereSurface is not supported in OpticStudio.")
 
 
 @make_surface.register

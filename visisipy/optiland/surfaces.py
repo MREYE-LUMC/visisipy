@@ -24,6 +24,7 @@ from visisipy.models import BaseSurface
 from visisipy.models.base import NoSurface as OptilandNoSurface
 from visisipy.models.geometry import (
     BiconicSurface,
+    EvenAsphereSurface,
     NoSurface,
     StandardSurface,
     Stop,
@@ -35,6 +36,8 @@ from visisipy.models.materials import MaterialModel
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     import optiland.surfaces
     from optiland.optic import Optic
 
@@ -124,6 +127,12 @@ class OptilandBiconicSurfaceParameters(OptilandCommonSurfaceParameters):
     radius_x: NotRequired[float]
     conic_y: NotRequired[float]
     conic_x: NotRequired[float]
+
+
+class OptilandEvenAsphereSurfaceParameters(OptilandStandardSurfaceParameters):
+    """Optiland even asphere surface parameters."""
+
+    coefficients: NotRequired[list[float]]
 
 
 class OptilandZernikeSurfaceParameters(OptilandStandardSurfaceParameters):
@@ -276,6 +285,16 @@ class BaseOptilandSurface(BaseSurface, ABC):
         *,
         position: int,
         replace_existing: bool = False,
+        **kwargs: Unpack[OptilandEvenAsphereSurfaceParameters],
+    ) -> optiland.surfaces.Surface: ...
+
+    @overload
+    def _create_surface(
+        self,
+        optic: Optic,
+        *,
+        position: int,
+        replace_existing: bool = False,
         **kwargs: Unpack[OptilandZernikeSurfaceParameters],
     ) -> optiland.surfaces.Surface: ...
 
@@ -307,6 +326,8 @@ class BaseOptilandSurface(BaseSurface, ABC):
         --------
         OptilandStandardSurfaceParameters : Parameters for standard surfaces in Optiland.
         OptilandBiconicSurfaceParameters : Parameters for biconic surfaces in Optiland.
+        OptilandEvenAsphereSurfaceParameters : Parameters for even asphere surfaces in Optiland.
+        OptilandZernikeSurfaceParameters : Parameters for Zernike surfaces in Optiland.
         """
         optic.surfaces.add(index=position, surface_type=self._TYPE, **kwargs)  # pyrefly: ignore[bad-argument-type]
 
@@ -536,6 +557,112 @@ class OptilandBiconicSurface(BaseOptilandSurface):
         return position
 
 
+class OptilandEvenAsphereSurface(BaseOptilandSurface):
+    """Even asphere surface in Optiland."""
+
+    _TYPE: str = "even_asphere"
+
+    def __init__(
+        self,
+        comment: str,
+        *,
+        radius: float = float("inf"),
+        thickness: float = 0.0,
+        semi_diameter: float | None = None,
+        conic: float = 0.0,
+        asphere_coefficients: Sequence[float] | None = None,
+        material: MaterialModel | str | None = None,
+        is_stop: bool | None = None,
+    ):
+        """Create a new even asphere Optiland surface.
+
+        Parameters
+        ----------
+        comment : str
+            Comment for the surface.
+        radius : float
+            Radius of curvature of the surface, in mm. Defaults to infinity (flat surface).
+        thickness : float
+            Thickness of the surface, in mm. Defaults to 0.0 mm.
+        semi_diameter : float, optional
+            Semi-diameter of the surface aperture, in mm. Defaults to `None`, which means the semi-diameter will be
+            determined by Optiland.
+        conic : float
+            Conic constant of the surface. Defaults to 0.0 (spherical surface).
+        asphere_coefficients : Sequence[float], optional
+            Coefficients of the even-order polynomial terms. The first element is the coefficient of :math:`r^2`,
+            the second element the coefficient of :math:`r^4`, etc. Defaults to `None`, which means no polynomial
+            terms are used.
+        material : MaterialModel | str, optional
+            Material of the surface. This can be either a string representing the name of the material or a
+            MaterialModel instance. Defaults to `None`, which means the material is assumed to be air.
+        is_stop : bool, optional
+            If `True`, the surface is treated as a stop.
+        """
+        super().__init__()
+
+        self._comment = comment
+        self._radius = radius
+        self._thickness = thickness
+        self._semi_diameter = semi_diameter
+        self._conic = conic
+        self._asphere_coefficients = [float(c) for c in asphere_coefficients or []]
+        self._material = material
+        self._is_stop = is_stop
+
+    @_built_only_property
+    def radius(self) -> float:
+        """Radius of the surface."""
+        return float(self.surface.geometry.radius)  # type: ignore
+
+    @_built_only_property
+    def conic(self) -> float:
+        """Conic constant of the surface."""
+        return float(self.surface.geometry.k)  # type: ignore
+
+    @_built_only_property
+    def asphere_coefficients(self) -> list[float]:
+        """Coefficients of the even-order polynomial terms, starting with the coefficient of :math:`r^2`."""
+        return [float(c) for c in self.surface.geometry.coefficients]  # type: ignore
+
+    def build(self, optical_system: Optic, *, position: int, replace_existing: bool = False) -> int:
+        """Create the surface in Optiland.
+
+        Create the surface in the provided `Optic` object at the specified `position`.
+        By default, a new surface will be created. If `replace_existing` is `True`, the existing surface at the
+        specified position will be replaced.
+
+        Parameters
+        ----------
+        optical_system : Optic
+            The Optic object to which the surface will be added.
+        position : int
+            The index at which the surface will be added, starting at 0 for the object surface.
+        replace_existing : bool
+            If `True`, replace an existing surface instead of inserting a new one. Defaults to `False`.
+
+        Returns
+        -------
+        int
+            The index of the created surface. Subsequent surfaces should be after this index.
+        """
+        self._create_surface(
+            optic=optical_system,
+            position=position,
+            replace_existing=replace_existing,
+            comment=self._comment,
+            radius=self._radius,
+            thickness=self._thickness,
+            semi_diameter=self._semi_diameter,
+            conic=self._conic,
+            coefficients=list(self._asphere_coefficients),
+            material=self._convert_material(self._material),
+            is_stop=bool(self._is_stop),
+        )
+
+        return position
+
+
 class OptilandZernikeStandardSagSurface(BaseOptilandSurface):
     """Zernike Standard Sag surface in Optiland."""
 
@@ -720,6 +847,24 @@ def _make_surface(
         conic=surface.asphericity,
         conic_x=surface.asphericity_x,
         material=material,
+    )
+
+
+@make_surface.register  # pyrefly: ignore[no-matching-overload]
+def _make_surface(
+    surface: EvenAsphereSurface,
+    material: str | MaterialModel = "Air",
+    comment: str = "",
+) -> OptilandEvenAsphereSurface:
+    return OptilandEvenAsphereSurface(
+        comment=comment,
+        radius=surface.radius,
+        thickness=surface.thickness,
+        semi_diameter=surface.semi_diameter,
+        conic=surface.asphericity,
+        asphere_coefficients=surface.asphere_coefficients,
+        material=material,
+        is_stop=surface.is_stop,
     )
 
 

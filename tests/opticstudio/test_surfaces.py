@@ -9,6 +9,7 @@ import pytest
 from zospy.solvers import material_model as solve_material_model
 
 from visisipy.models.geometry import (
+    EvenAsphereSurface,
     NoSurface,
     StandardSurface,
     Stop,
@@ -686,6 +687,12 @@ class TestMakeSurface:
         assert opticstudio_surface._extrapolate == 1
         assert opticstudio_surface._zernike_coefficients == {1: 1.0, 2: 2.0, 3: 3.0}
         assert opticstudio_surface._material == "BK7"
+
+    def test_make_even_asphere_surface_raises_notimplementederror(self):
+        surface = EvenAsphereSurface(radius=10.0, asphere_coefficients=[0.0, 1e-3])
+
+        with pytest.raises(NotImplementedError, match="EvenAsphereSurface is not supported in OpticStudio"):
+            make_surface(surface, material="BK7")
 
     def test_make_no_surface(self):
         surface = NoSurface()
