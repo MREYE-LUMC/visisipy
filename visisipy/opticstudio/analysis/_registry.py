@@ -25,7 +25,7 @@ class OpticStudioAnalysisRegistry(
     OpticStudioRefractionMixin,
     OpticStudioOPDMixin,
     OpticStudioZernikeCoefficientsMixin,
-    AnalysisRegistry,
+    AnalysisRegistry["OpticStudioBackend"],
 ):
     """Analyses for the OpticStudio backend."""
 

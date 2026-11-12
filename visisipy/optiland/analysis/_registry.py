@@ -25,7 +25,7 @@ class OptilandAnalysisRegistry(
     OptilandRefractionMixin,
     OptilandOPDMixin,
     OptilandZernikeCoefficientsMixin,
-    AnalysisRegistry,
+    AnalysisRegistry["OptilandBackend"],
 ):
     """Analyses for the Optiland backend."""
 
