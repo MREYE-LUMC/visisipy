@@ -347,7 +347,8 @@ class TestOpticStudioEvenAsphereSurface:
         assert surface.thickness == 2.0
         assert surface.semi_diameter == 3.0
         assert surface.conic == -0.5
-        assert surface.asphere_coefficients == pytest.approx([0.0, 1e-3, -2e-5, 0.0, 0.0, 0.0, 0.0, 0.0])
+        expected_coefficients = [0.0, 1e-3, -2e-5, 0.0, 0.0, 0.0, 0.0, 0.0]
+        assert [surface.get_asphere_coefficient(n) for n in range(1, 9)] == pytest.approx(expected_coefficients)
         assert surface.material == "TEST MATERIAL"  # OpticStudio capitalizes material names
         assert surface.is_stop == bool(is_stop)
 
@@ -368,37 +369,50 @@ class TestOpticStudioEvenAsphereSurface:
         surface = OpticStudioEvenAsphereSurface(comment="Test", radius=10.0)
         surface.build(oss, position=1)
 
-        assert surface.asphere_coefficients == [0.0] * 8
+        assert [surface.get_asphere_coefficient(n) for n in range(1, 9)] == [0.0] * 8
 
-    def test_set_asphere_coefficients(self, oss):
+    def test_set_asphere_coefficient(self, oss):
         surface = OpticStudioEvenAsphereSurface(comment="Test", asphere_coefficients=[0.0, 1e-3, -2e-5])
         surface.build(oss, position=1)
 
-        surface.asphere_coefficients = [0.0, 5e-4]
+        surface.set_asphere_coefficient(2, 5e-4)
 
-        assert surface.asphere_coefficients == pytest.approx([0.0, 5e-4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        assert surface.surface.SurfaceData.GetNthEvenOrderTerm(2) == pytest.approx(5e-4)
+        # Other coefficients are not changed
+        expected_coefficients = [0.0, 5e-4, -2e-5, 0.0, 0.0, 0.0, 0.0, 0.0]
+        assert [surface.get_asphere_coefficient(n) for n in range(1, 9)] == pytest.approx(expected_coefficients)
 
-    def test_get_asphere_coefficients_not_built_returns_none(self):
+    @pytest.mark.parametrize("n", [-1, 0, 9])
+    def test_get_asphere_coefficient_invalid_index_raises_valueerror(self, oss, n):
+        surface = OpticStudioEvenAsphereSurface(comment="Test")
+        surface.build(oss, position=1)
+
+        with pytest.raises(ValueError, match=f"Asphere coefficient index must be between 1 and 8, got {n}"):
+            surface.get_asphere_coefficient(n)
+
+    @pytest.mark.parametrize("n", [-1, 0, 9])
+    def test_set_asphere_coefficient_invalid_index_raises_valueerror(self, oss, n):
+        surface = OpticStudioEvenAsphereSurface(comment="Test")
+        surface.build(oss, position=1)
+
+        with pytest.raises(ValueError, match=f"Asphere coefficient index must be between 1 and 8, got {n}"):
+            surface.set_asphere_coefficient(n, 1e-3)
+
+    def test_get_asphere_coefficient_not_built_raises_runtimeerror(self):
         surface = OpticStudioEvenAsphereSurface(comment="Test", asphere_coefficients=[0.0, 1e-3])
 
-        assert surface.asphere_coefficients is None
+        with pytest.raises(RuntimeError, match="The surface has not been built"):
+            surface.get_asphere_coefficient(1)
 
-    def test_set_asphere_coefficients_not_built_raises_attributeerror(self):
+    def test_set_asphere_coefficient_not_built_raises_runtimeerror(self):
         surface = OpticStudioEvenAsphereSurface(comment="Test")
 
-        with pytest.raises(AttributeError, match="Cannot set attribute asphere_coefficients of non-built surface"):
-            surface.asphere_coefficients = [0.0, 1e-3]
+        with pytest.raises(RuntimeError, match="The surface has not been built"):
+            surface.set_asphere_coefficient(1, 1e-3)
 
     def test_too_many_asphere_coefficients_raises_valueerror(self):
         with pytest.raises(ValueError, match="OpticStudio supports at most 8 asphere coefficients, got 9"):
             OpticStudioEvenAsphereSurface(comment="Test", asphere_coefficients=[0.0] * 9)
-
-    def test_set_too_many_asphere_coefficients_raises_valueerror(self, oss):
-        surface = OpticStudioEvenAsphereSurface(comment="Test")
-        surface.build(oss, position=1)
-
-        with pytest.raises(ValueError, match="OpticStudio supports at most 8 asphere coefficients, got 9"):
-            surface.asphere_coefficients = [0.0] * 9
 
 
 class TestBaseOpticStudioZernikeSurface:

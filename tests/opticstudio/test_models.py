@@ -241,7 +241,8 @@ def test_model_with_even_asphere_surface(oss, eye_model):
 
     assert isinstance(lens_front, OpticStudioEvenAsphereSurface)
     assert str(lens_front.surface.Type) == "EvenAspheric"
-    assert lens_front.asphere_coefficients == pytest.approx([0.0, 1e-4, -2e-6, 0.0, 0.0, 0.0, 0.0, 0.0])
+    expected_coefficients = [0.0, 1e-4, -2e-6, 0.0, 0.0, 0.0, 0.0, 0.0]
+    assert [lens_front.get_asphere_coefficient(n) for n in range(1, 9)] == pytest.approx(expected_coefficients)
     assert lens_front.radius == pytest.approx(10.2)
     assert lens_front.conic == pytest.approx(-3.1316)
     assert lens_front.thickness == pytest.approx(4.0)

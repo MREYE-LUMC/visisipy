@@ -369,6 +369,8 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
     """Even asphere surface in OpticStudio.
 
     OpticStudio supports at most 8 asphere coefficients, i.e. polynomial terms up to :math:`r^{16}`.
+    After the surface has been built, individual coefficients can be retrieved and modified with
+    `get_asphere_coefficient` and `set_asphere_coefficient`.
     """
 
     _TYPE: str = "EvenAspheric"
@@ -428,44 +430,78 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
             is_stop=is_stop,
         )
 
-        self._asphere_coefficients = self._validate_asphere_coefficients(
-            asphere_coefficients if asphere_coefficients is not None else []
-        )
+        coefficients = list(asphere_coefficients) if asphere_coefficients is not None else []
 
-    @classmethod
-    def _validate_asphere_coefficients(cls, asphere_coefficients: Sequence[float]) -> list[float]:
-        coefficients = list(asphere_coefficients)
-
-        if len(coefficients) > cls.MAX_ASPHERE_COEFFICIENTS:
+        if len(coefficients) > self.MAX_ASPHERE_COEFFICIENTS:
             raise ValueError(
-                f"OpticStudio supports at most {cls.MAX_ASPHERE_COEFFICIENTS} asphere coefficients, "
+                f"OpticStudio supports at most {self.MAX_ASPHERE_COEFFICIENTS} asphere coefficients, "
                 f"got {len(coefficients)}."
             )
 
-        return coefficients
+        self._asphere_coefficients = coefficients
+
+    def _validate_coefficient(self, n: int) -> None:
+        if not 1 <= n <= self.MAX_ASPHERE_COEFFICIENTS:
+            raise ValueError(
+                f"Asphere coefficient index must be between 1 and {self.MAX_ASPHERE_COEFFICIENTS}, got {n}."
+            )
 
     @property
-    def asphere_coefficients(self) -> list[float] | None:
-        """Coefficients of the even-order polynomial terms, starting with the coefficient of :math:`r^2`.
+    def _surface_data(self) -> _ZOSAPI.Editors.LDE.ISurfaceEvenAspheric:
+        surface = self.surface
+        if surface is None:
+            raise RuntimeError("The surface has not been built.")
 
-        OpticStudio always uses 8 coefficients, so the returned list contains 8 elements, including trailing zeros.
-        Setting this property replaces all coefficients; coefficients that are not specified are set to 0.
+        return surface.SurfaceData
+
+    def get_asphere_coefficient(self, n: int) -> float:
+        """Get the value of the nth asphere coefficient.
+
+        Parameters
+        ----------
+        n : int
+            Index of the asphere coefficient, starting at 1 for the coefficient of :math:`r^2`. Index 2 is the
+            coefficient of :math:`r^4`, etc., up to index 8 for :math:`r^{16}`.
+
+        Returns
+        -------
+        float
+            The value of the asphere coefficient.
+
+        Raises
+        ------
+        ValueError
+            If `n` is smaller than 1 or larger than 8.
+        RuntimeError
+            If the surface has not been built.
         """
-        if self.surface is None:
-            return None
+        self._validate_coefficient(n)
 
-        return [self.surface.SurfaceData.GetNthEvenOrderTerm(n) for n in range(1, self.MAX_ASPHERE_COEFFICIENTS + 1)]
+        return self._surface_data.GetNthEvenOrderTerm(n)
 
-    @asphere_coefficients.setter
-    def asphere_coefficients(self, value: Sequence[float]) -> None:
-        if self.surface is None:
-            raise AttributeError("Cannot set attribute asphere_coefficients of non-built surface.")
+    def set_asphere_coefficient(self, n: int, value: float) -> None:
+        """Set the value of the nth asphere coefficient.
 
-        coefficients = self._validate_asphere_coefficients(value)
-        coefficients += [0.0] * (self.MAX_ASPHERE_COEFFICIENTS - len(coefficients))
+        Other asphere coefficients are not changed.
 
-        for n, coefficient in enumerate(coefficients, start=1):
-            self.surface.SurfaceData.SetNthEvenOrderTerm(n, coefficient)
+        Parameters
+        ----------
+        n : int
+            Index of the asphere coefficient, starting at 1 for the coefficient of :math:`r^2`. Index 2 is the
+            coefficient of :math:`r^4`, etc., up to index 8 for :math:`r^{16}`.
+        value : float
+            The value of the asphere coefficient.
+
+        Raises
+        ------
+        ValueError
+            If `n` is smaller than 1 or larger than 8.
+        RuntimeError
+            If the surface has not been built.
+        """
+        self._validate_coefficient(n)
+
+        self._surface_data.SetNthEvenOrderTerm(n, value)
 
     def build(self, optical_system: OpticStudioSystem, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in OpticStudio.
@@ -490,7 +526,8 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
         """
         surface_index = super().build(optical_system, position=position, replace_existing=replace_existing)
 
-        self.asphere_coefficients = self._asphere_coefficients
+        for n, value in enumerate(self._asphere_coefficients, start=1):
+            self.set_asphere_coefficient(n, value)
 
         return surface_index
 
