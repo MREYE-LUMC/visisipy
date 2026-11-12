@@ -8,8 +8,21 @@ import numpy as np
 import pytest
 
 from visisipy.models.catalog.navarro import NavarroGeometry
-from visisipy.models.geometry import BiconicSurface, EyeGeometry, StandardSurface, Stop
+from visisipy.models.geometry import BiconicSurface, EvenAsphereSurface, EyeGeometry, StandardSurface, Stop
 from visisipy.plots import _backend_translation, _plot_ellipse, _plot_hyperbola, _plot_parabola, plot_eye
+
+
+def _plot_eye_path(geometry: EyeGeometry) -> tuple[np.ndarray, tuple[float, float], tuple[float, float]]:
+    """Plot an eye and return the vertices of the plotted path and the axis limits."""
+    fig, ax = plt.subplots()
+    plot_eye(ax, geometry, backend="opticstudio")
+
+    vertices = ax.patches[0].get_path().vertices
+    xlim, ylim = ax.get_xlim(), ax.get_ylim()
+    plt.close(fig)
+
+    return vertices, xlim, ylim
+
 
 mpl.use("Agg")  # use non-interactive backend for testing
 
@@ -220,12 +233,17 @@ class TestPlotEye:
             pytest.param(6.0, -12.0, id="concave-lens-back"),
         ],
     )
-    def test_non_ellipsoid_retina_plotted_as_base_conic(self, lens_back_radius, retina_radius):
+    @pytest.mark.parametrize("retina_type", ["even_asphere", "biconic"])
+    def test_non_ellipsoid_retina_plotted_as_base_conic(self, lens_back_radius, retina_radius, retina_type):
         """Test that retinas that are not ellipsoids are plotted as their base conic in the y-z plane."""
         asphericity = 0.2
-        retina = BiconicSurface(
-            radius=retina_radius, asphericity=asphericity, radius_x=retina_radius + 1, asphericity_x=asphericity
-        )
+
+        if retina_type == "even_asphere":
+            retina = EvenAsphereSurface(radius=retina_radius, asphericity=asphericity, asphere_coefficients=[0.0, 1e-5])
+        else:
+            retina = BiconicSurface(
+                radius=retina_radius, asphericity=asphericity, radius_x=retina_radius + 1, asphericity_x=asphericity
+            )
 
         with pytest.raises(NotImplementedError):
             _ = retina.ellipsoid_radii
@@ -237,6 +255,23 @@ class TestPlotEye:
         expected_vertices, expected_xlim, expected_ylim = _plot_eye_path(
             NavarroGeometry(lens_back=lens_back, retina=base_conic_retina)
         )
+
+        np.testing.assert_allclose(vertices, expected_vertices)
+        assert xlim == pytest.approx(expected_xlim)
+        assert ylim == pytest.approx(expected_ylim)
+
+    def test_even_asphere_lens_front_plotted_as_base_conic(self):
+        """Test that the asphere terms of an even asphere surface are not plotted."""
+        lens_front = NavarroGeometry().lens_front
+        even_asphere_lens_front = EvenAsphereSurface(
+            radius=lens_front.radius,
+            asphericity=lens_front.asphericity,
+            thickness=lens_front.thickness,
+            asphere_coefficients=[0.0, 2e-3, -5e-5],
+        )
+
+        vertices, xlim, ylim = _plot_eye_path(NavarroGeometry(lens_front=even_asphere_lens_front))
+        expected_vertices, expected_xlim, expected_ylim = _plot_eye_path(NavarroGeometry())
 
         np.testing.assert_allclose(vertices, expected_vertices)
         assert xlim == pytest.approx(expected_xlim)
