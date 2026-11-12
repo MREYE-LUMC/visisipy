@@ -231,7 +231,7 @@ class TestPlotEye:
     def test_even_asphere_lens_front_plotted_as_base_conic(self):
         """Test that the asphere terms of an even asphere surface are not plotted."""
         lens_front = NavarroGeometry().lens_front
-        even_asphere_lens_front = EvenAsphereSurface(
+        even_asphere_lens_front = BiconicSurface(
             radius=lens_front.radius,
             asphericity=lens_front.asphericity,
             thickness=lens_front.thickness,
