@@ -776,15 +776,17 @@ def _plot_retina(
 
     elif retina_concave and lens_back_convex:
         # Normal: concave retina, convex lens back - cut at lens back apex
-        if _is_ellipse(geometry.retina) and abs(retina_pos - lens_back_pos) > 2 * abs(
-            geometry.retina.ellipsoid_radii.anterior_posterior
-        ):
-            # Distance between lens back and retina is more than retina diameter - cut at max radius
-            # Retina is concave, so the radius is already negative
-            cutoff = retina_pos + geometry.retina.ellipsoid_radii.anterior_posterior
-        else:
-            # Cut at lens back apex
-            cutoff = lens_back_pos
+        cutoff = lens_back_pos
+
+        if _is_ellipse(geometry.retina):
+            # Use the base conic that is drawn instead of `ellipsoid_radii`, because the retina is not necessarily an
+            # ellipsoid (e.g. biconic or even asphere surfaces)
+            retina_axial_radius, _ = _get_ellipse_sizes(geometry.retina.radius, geometry.retina.asphericity)
+
+            if abs(retina_pos - lens_back_pos) > 2 * abs(retina_axial_radius):
+                # Distance between lens back and retina is more than retina diameter - cut at max radius
+                # Retina is concave, so the radius is already negative
+                cutoff = retina_pos + retina_axial_radius
 
     elif retina_concave and not lens_back_convex:
         # Concave retina, concave lens back - cut at intersection
@@ -805,7 +807,8 @@ def _plot_retina(
         elif _is_ellipse(geometry.retina):
             # No intersection - cut at maximum vertical radius to avoid complete circle
             # For concave retina, only draw posterior half (cutoff at or behind retina apex)
-            max_cutoff = retina_pos - geometry.retina.ellipsoid_radii.anterior_posterior
+            retina_axial_radius, _ = _get_ellipse_sizes(geometry.retina.radius, geometry.retina.asphericity)
+            max_cutoff = retina_pos - retina_axial_radius
             # For negative radius (concave), ensure we don't go beyond the apex (only posterior half)
             cutoff = min(max_cutoff, retina_pos) if geometry.retina.radius < 0 else max_cutoff
         else:
@@ -1028,7 +1031,8 @@ def plot_eye(
     ax.add_patch(patches.PathPatch(eye, fill=None, **kwargs))
 
     if _is_ellipse(geometry.retina):
-        max_retina_radius = geometry.retina.ellipsoid_radii.inferior_superior
+        _, retina_radial_radius = _get_ellipse_sizes(geometry.retina.radius, geometry.retina.asphericity)
+        max_retina_radius = abs(retina_radial_radius)
     else:
         bbox = retina.get_extents()
         max_retina_radius = max(abs(bbox.y0), abs(bbox.y1))

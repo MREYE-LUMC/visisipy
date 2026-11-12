@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from visisipy.models.catalog.navarro import NavarroGeometry
-from visisipy.models.geometry import EvenAsphereSurface, EyeGeometry, StandardSurface, Stop
+from visisipy.models.geometry import BiconicSurface, EvenAsphereSurface, EyeGeometry, StandardSurface, Stop
 from visisipy.plots import _backend_translation, _plot_ellipse, _plot_hyperbola, _plot_parabola, plot_eye
 
 mpl.use("Agg")  # use non-interactive backend for testing
@@ -212,6 +212,50 @@ class TestPlotEye:
         assert result_ax is ax
         plt.close(fig)
 
+    @pytest.mark.parametrize(
+        "lens_back_radius,retina_radius",
+        [
+            pytest.param(-6.0, -12.0, id="normal-retina"),
+            pytest.param(-6.0, -5.0, id="strongly-curved-retina"),
+            pytest.param(6.0, -12.0, id="concave-lens-back"),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "retina_type",
+        [
+            pytest.param("biconic", id="biconic-retina"),
+            pytest.param("even-asphere", id="even-asphere-retina"),
+        ],
+    )
+    def test_non_ellipsoid_retina_plotted_as_base_conic(self, lens_back_radius, retina_radius, retina_type):
+        """Test that retinas that are not ellipsoids are plotted as their base conic in the y-z plane."""
+        asphericity = 0.2
+
+        match retina_type:
+            case "biconic":
+                retina = BiconicSurface(
+                    radius=retina_radius, asphericity=asphericity, radius_x=retina_radius + 1, asphericity_x=asphericity
+                )
+            case "even-asphere":
+                retina = EvenAsphereSurface(
+                    radius=retina_radius, asphericity=asphericity, asphere_coefficients=[0.1, 0.01, 0.001]
+                )
+
+        with pytest.raises(NotImplementedError):
+            _ = retina.ellipsoid_radii
+
+        lens_back = StandardSurface(radius=lens_back_radius, asphericity=0, thickness=16.3203)
+        base_conic_retina = StandardSurface(radius=retina_radius, asphericity=asphericity)
+
+        vertices, xlim, ylim = _plot_eye_path(NavarroGeometry(lens_back=lens_back, retina=retina))
+        expected_vertices, expected_xlim, expected_ylim = _plot_eye_path(
+            NavarroGeometry(lens_back=lens_back, retina=base_conic_retina)
+        )
+
+        np.testing.assert_allclose(vertices, expected_vertices)
+        assert xlim == pytest.approx(expected_xlim)
+        assert ylim == pytest.approx(expected_ylim)
+
     def test_all_surfaces_meet_at_apexes(self):
         """Test that surfaces are correctly cut off at adjacent apex positions."""
         geometry = NavarroGeometry()
@@ -227,23 +271,6 @@ class TestPlotEye:
         assert compound_path is not None
 
         plt.close(fig)
-
-    def test_even_asphere_lens_front_plotted_as_base_conic(self):
-        """Test that the asphere terms of an even asphere surface are not plotted."""
-        lens_front = NavarroGeometry().lens_front
-        even_asphere_lens_front = BiconicSurface(
-            radius=lens_front.radius,
-            asphericity=lens_front.asphericity,
-            thickness=lens_front.thickness,
-            asphere_coefficients=[0.0, 2e-3, -5e-5],
-        )
-
-        vertices, xlim, ylim = _plot_eye_path(NavarroGeometry(lens_front=even_asphere_lens_front))
-        expected_vertices, expected_xlim, expected_ylim = _plot_eye_path(NavarroGeometry())
-
-        np.testing.assert_allclose(vertices, expected_vertices)
-        assert xlim == pytest.approx(expected_xlim)
-        assert ylim == pytest.approx(expected_ylim)
 
 
 class TestBackendTranslation:
