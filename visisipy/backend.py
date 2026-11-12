@@ -5,7 +5,7 @@ as well as functions to interact with these backends.
 
 Interfaces:
 
-- `BaseAnalysisRegistry`: Base class for the backend analysis registry.
+- `AnalysisRegistry`: Protocol for the backend analysis registry.
 - `BaseBackend`: Base class for simulation backends.
 
 Functions:
@@ -27,16 +27,16 @@ from __future__ import annotations
 import json
 import platform
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from inspect import get_annotations
 from pathlib import Path
-from types import MethodType
 from typing import (
     TYPE_CHECKING,
     Any,
     ClassVar,
     Generic,
     Literal,
+    Protocol,
     Self,
     TypedDict,
     TypeVar,
@@ -71,6 +71,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "DEFAULT_BACKEND_SETTINGS",
+    "AnalysisRegistry",
     "BackendAccessError",
     "BackendSettings",
     "BackendType",
@@ -90,36 +91,10 @@ BackendType = Literal["opticstudio", "optiland"]
 _DEFAULT_BACKEND: BackendType = "opticstudio" if platform.system() == "Windows" else "optiland"
 
 
-_Analysis = TypeVar("_Analysis", bound=Callable)
+_BackendT_co = TypeVar("_BackendT_co", bound="BaseBackend", covariant=True)
 
 
-class _AnalysisMethod(Generic[_Analysis]):
-    def __init__(self, analysis) -> None:
-        self._analysis = analysis
-
-    @overload
-    def __get__(self, instance: None, owner: type[BaseAnalysisRegistry]) -> _AnalysisMethod[_Analysis]: ...
-
-    @overload
-    def __get__(self, instance: BaseAnalysisRegistry, owner: type[BaseAnalysisRegistry]) -> _Analysis: ...
-
-    def __get__(
-        self, instance: BaseAnalysisRegistry | None, owner: type[BaseAnalysisRegistry]
-    ) -> _AnalysisMethod | _Analysis:
-        if instance is None:
-            return self
-
-        return cast("_Analysis", MethodType(self._analysis, instance.backend))
-
-
-class _classproperty(property):  # ruff: ignore[invalid-class-name]
-    def __get__(self, instance, owner=None):
-        if self.fget is None:
-            raise AttributeError("class property has no getter")
-        return cast("Callable[..., Any]", self.fget)(owner)
-
-
-class BaseAnalysisRegistry(ABC):
+class AnalysisRegistry(Protocol[_BackendT_co]):
     """Base class for analysis registry.
 
     Interface for the analysis methods of the backend. Backends should implement this interface
@@ -149,22 +124,20 @@ class BaseAnalysisRegistry(ABC):
         Calculate the Zernike standard coefficients for the optical system.
     """
 
-    def __init__(self, backend: BaseBackend) -> None:
-        self._backend = backend
+    def __init__(self, backend: _BackendT_co) -> None: ...
 
     @property
-    def backend(self) -> BaseBackend:
-        return self._backend
+    def backend(self) -> _BackendT_co: ...  # ruff: ignore[undocumented-public-method]
 
     @abstractmethod
-    def cardinal_points(
+    def cardinal_points(  # ruff: ignore[undocumented-public-method]
         self,
         surface_1: int | None = None,
         surface_2: int | None = None,
     ) -> tuple[CardinalPointsResult, Any]: ...
 
     @abstractmethod
-    def fft_mtf(
+    def fft_mtf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | Literal["all"] = "all",
         field_type: FieldType = "angle",
@@ -174,7 +147,7 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[MTFResult, Any]: ...
 
     @abstractmethod
-    def fft_psf(
+    def fft_psf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -183,7 +156,7 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
-    def huygens_psf(
+    def huygens_psf(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -193,7 +166,7 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
-    def opd_map(
+    def opd_map(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -205,7 +178,7 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
-    def raytrace(
+    def raytrace(  # ruff: ignore[undocumented-public-method]
         self,
         coordinates: Sequence[FieldCoordinate] | None = None,
         wavelengths: Sequence[float] | None = None,
@@ -214,7 +187,7 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[DataFrame, Any]: ...
 
     @abstractmethod
-    def refraction(
+    def refraction(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -226,7 +199,7 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[FourierPowerVectorRefraction, Any]: ...
 
     @abstractmethod
-    def strehl_ratio(
+    def strehl_ratio(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -236,7 +209,7 @@ class BaseAnalysisRegistry(ABC):
     ) -> tuple[float, Any]: ...
 
     @abstractmethod
-    def zernike_standard_coefficients(
+    def zernike_standard_coefficients(  # ruff: ignore[undocumented-public-method]
         self,
         field_coordinate: FieldCoordinate | None = None,
         wavelength: float | None = None,
@@ -337,7 +310,7 @@ class BaseBackend(ABC, Generic[_Settings]):
 
     @property
     @abstractmethod
-    def analysis(self) -> BaseAnalysisRegistry:
+    def analysis(self) -> AnalysisRegistry[Self]:
         """The analysis registry exposed by the backend."""
 
     @abstractmethod
@@ -447,10 +420,10 @@ class BackendAccessError(RuntimeError):
     """Error raised when trying to access unavailable or non-initialized backend features."""
 
 
-_BT = TypeVar("_BT", bound=BaseBackend)
+_BackendT = TypeVar("_BackendT", bound=BaseBackend)
 
 
-def _get_or_initialize_backend(backend_type: type[_BT], settings: BackendSettings) -> _BT:
+def _get_or_initialize_backend(backend_type: type[_BackendT], settings: BackendSettings) -> _BackendT:
     """Get the current instance of the specified backend, or initialize it if it has not been initialized yet.
 
     Returns

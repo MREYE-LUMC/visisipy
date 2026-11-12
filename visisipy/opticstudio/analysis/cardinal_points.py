@@ -11,7 +11,10 @@ from visisipy.analysis.cardinal_points import CardinalPoints, CardinalPointsResu
 if TYPE_CHECKING:
     from zospy.analyses.reports.cardinal_points import CardinalPointsResult as ZOSPyCardinalPointsResult
 
+    from visisipy.backend import AnalysisRegistry
     from visisipy.opticstudio.backend import OpticStudioBackend
+
+__all__ = ("OpticStudioCardinalPointsMixin",)
 
 
 def _build_cardinal_points_result(cardinal_points_result: ZOSPyCardinalPointsResult) -> CardinalPointsResult:
@@ -43,45 +46,49 @@ def _build_cardinal_points_result(cardinal_points_result: ZOSPyCardinalPointsRes
     )
 
 
-def cardinal_points(
-    backend: OpticStudioBackend, surface_1: int | None = None, surface_2: int | None = None
-) -> tuple[CardinalPointsResult, ZOSPyCardinalPointsResult]:
-    """Get the cardinal points of the system between `surface_1` and `surface_2`.
+class OpticStudioCardinalPointsMixin:
+    """Mixin class for the cardinal points analysis in OpticStudio."""
 
-    Parameters
-    ----------
-    backend : OpticStudioBackend
-        Reference to the OpticStudio backend.
-    surface_1 : int | None, optional
-        The first surface to be used in the analysis. If `None`, the first surface in the system will be used.
-        Defaults to `None`.
-    surface_2 : int | None, optional
-        The second surface to be used in the analysis. If `None`, the last surface in the system will be used.
-        Defaults to `None`.
+    def cardinal_points(
+        self: AnalysisRegistry[OpticStudioBackend], surface_1: int | None = None, surface_2: int | None = None
+    ) -> tuple[CardinalPointsResult, ZOSPyCardinalPointsResult]:
+        """Get the cardinal points of the system between `surface_1` and `surface_2`.
 
-    Returns
-    -------
-    CardinalPointsResult
-        The cardinal points of the system.
+        Parameters
+        ----------
+        self : AnalysisRegistry[OpticStudioBackend]
+            Reference to the analysis registry of the OpticStudio backend.
+        surface_1 : int | None, optional
+            The first surface to be used in the analysis. If `None`, the first surface in the system will be used.
+            Defaults to `None`.
+        surface_2 : int | None, optional
+            The second surface to be used in the analysis. If `None`, the last surface in the system will be used.
+            Defaults to `None`.
 
-    Raises
-    ------
-    ValueError
-        If `surface_1` or `surface_2` are not between 1 and the number of surfaces in the system, or if `surface_1`
-        is greater than or equal to `surface_2`.
-    """
-    surface_1 = surface_1 or 1
-    surface_2 = surface_2 or backend.oss.LDE.NumberOfSurfaces - 1
+        Returns
+        -------
+        CardinalPointsResult
+            The cardinal points of the system.
 
-    if surface_1 < 1 or surface_2 > backend.oss.LDE.NumberOfSurfaces - 1:
-        raise ValueError("surface_1 and surface_2 must be between 1 and the number of surfaces in the system.")
+        Raises
+        ------
+        ValueError
+            If `surface_1` or `surface_2` are not between 1 and the number of surfaces in the system, or if `surface_1`
+            is greater than or equal to `surface_2`.
+        """
+        backend = self.backend
+        surface_1 = surface_1 or 1
+        surface_2 = surface_2 or backend.oss.LDE.NumberOfSurfaces - 1
 
-    if surface_1 >= surface_2:
-        raise ValueError("surface_1 must be less than surface_2.")
+        if surface_1 < 1 or surface_2 > backend.oss.LDE.NumberOfSurfaces - 1:
+            raise ValueError("surface_1 and surface_2 must be between 1 and the number of surfaces in the system.")
 
-    cardinal_points_result = zp.analyses.reports.CardinalPoints(
-        surface_1=surface_1,
-        surface_2=surface_2,
-    ).run(backend.oss)
+        if surface_1 >= surface_2:
+            raise ValueError("surface_1 must be less than surface_2.")
 
-    return _build_cardinal_points_result(cardinal_points_result.data), cardinal_points_result.data
+        cardinal_points_result = zp.analyses.reports.CardinalPoints(
+            surface_1=surface_1,
+            surface_2=surface_2,
+        ).run(backend.oss)
+
+        return _build_cardinal_points_result(cardinal_points_result.data), cardinal_points_result.data

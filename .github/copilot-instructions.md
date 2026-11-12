@@ -19,12 +19,14 @@ Visisipy (VISion Simulations In PYthon) is a Python library for optical simulati
 ## Code Style and Formatting
 
 ### Linting and Formatting
-- **Linter/Formatter**: Ruff (version 0.11.5)
+- **Linter/Formatter**: Ruff
+- **Type checker**: Pyrefly
 - **Configuration**: `ruff_defaults.toml` with project-specific overrides in `pyproject.toml`
 - **Line length**: 120 characters
 - **Commands**:
   - Format code: `uvx hatch check --fix`
   - Check formatting: `uvx hatch check`
+  - Check types: `uvx hatch check types`
   - Format docstrings: `uvx hatch run format-docstrings`
 
 ### Import Conventions

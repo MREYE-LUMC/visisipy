@@ -8,12 +8,15 @@ from optiland.backend import to_numpy
 from optiland.wavefront import ZernikeOPD
 
 from visisipy.optiland.analysis.helpers import set_field, set_wavelength
-from visisipy.types import SampleSize, ZernikeUnit
+from visisipy.types import FieldCoordinate, FieldType, SampleSize, ZernikeUnit
 from visisipy.wavefront import ZernikeCoefficients
 
 if TYPE_CHECKING:
-    from visisipy.backend import FieldCoordinate, FieldType
+    from visisipy.backend import AnalysisRegistry
     from visisipy.optiland.backend import OptilandBackend
+
+
+__all__ = ("OptilandZernikeCoefficientsMixin",)
 
 
 def _build_zernike_coefficients(
@@ -31,57 +34,60 @@ def _build_zernike_coefficients(
     return ZernikeCoefficients(dict(enumerate(to_numpy(coefficients), start=1)))
 
 
-def zernike_standard_coefficients(
-    backend: OptilandBackend,
-    field_coordinate: FieldCoordinate | None = None,
-    wavelength: float | None = None,
-    field_type: FieldType = "angle",
-    sampling: SampleSize | str | int = 64,
-    maximum_term: int = 45,
-    unit: ZernikeUnit = "microns",
-) -> tuple[ZernikeCoefficients, ZernikeOPD]:
-    """Calculate the Zernike standard coefficients at the retina surface.
+class OptilandZernikeCoefficientsMixin:
+    """Mixin class for Zernike coefficients analysis in Optiland."""
 
-    Parameters
-    ----------
-    backend : OptilandBackend
-        Reference to the Optiland backend.
-    field_coordinate : tuple[float, float] | None, optional
-        The field coordinate for the Zernike calculation. When `None`, the first field in Optiland is used.
-        Defaults to `None`.
-    wavelength : float | None, optional
-        The wavelength for the Zernike calculation. When `None`, the first wavelength in Optiland is used.
-        Defaults to `None`.
-    field_type : Literal["angle", "object_height"], optional
-        The type of field to be used when setting the field coordinate. This parameter is only used when
-        `field_coordinate` is specified. Defaults to "angle".
-    sampling : SampleSize | str | int, optional
-        The sampling for the Zernike calculation. Defaults to 64.
-    maximum_term : int, optional
-        The maximum term for the Zernike calculation. Defaults to 45.
-    unit : ZernikeUnit, optional
-        The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
+    def zernike_standard_coefficients(
+        self: AnalysisRegistry[OptilandBackend],
+        field_coordinate: FieldCoordinate | None = None,
+        wavelength: float | None = None,
+        field_type: FieldType = "angle",
+        sampling: SampleSize | str | int = 64,
+        maximum_term: int = 45,
+        unit: ZernikeUnit = "microns",
+    ) -> tuple[ZernikeCoefficients, ZernikeOPD]:
+        """Calculate the Zernike standard coefficients at the retina surface.
 
-    Returns
-    -------
-    ZernikeCoefficients
-        Zernike standard coefficients.
-    ZernikeOPD
-        The raw Zernike OPD analysis output from Optiland.
-    """
-    if not isinstance(sampling, SampleSize):
-        sampling = SampleSize(sampling)
+        Parameters
+        ----------
+        self : AnalysisRegistry[OptilandBackend]
+            Reference to the analysis registry of the Optiland backend.
+        field_coordinate : tuple[float, float] | None, optional
+            The field coordinate for the Zernike calculation. When `None`, the first field in Optiland is used.
+            Defaults to `None`.
+        wavelength : float | None, optional
+            The wavelength for the Zernike calculation. When `None`, the first wavelength in Optiland is used.
+            Defaults to `None`.
+        field_type : Literal["angle", "object_height"], optional
+            The type of field to be used when setting the field coordinate. This parameter is only used when
+            `field_coordinate` is specified. Defaults to "angle".
+        sampling : SampleSize | str | int, optional
+            The sampling for the Zernike calculation. Defaults to 64.
+        maximum_term : int, optional
+            The maximum term for the Zernike calculation. Defaults to 45.
+        unit : ZernikeUnit, optional
+            The unit for the Zernike coefficients. Must be either "microns" or "waves". Defaults to "microns".
 
-    wavelength = set_wavelength(backend, wavelength)
-    normalized_field = set_field(backend, field_coordinate, field_type)
+        Returns
+        -------
+        ZernikeCoefficients
+            Zernike standard coefficients.
+        ZernikeOPD
+            The raw Zernike OPD analysis output from Optiland.
+        """
+        if not isinstance(sampling, SampleSize):
+            sampling = SampleSize(sampling)
 
-    zernike_opd = ZernikeOPD(
-        backend.optic,
-        field=normalized_field,
-        wavelength=wavelength,
-        num_rings=int(sampling),
-        num_terms=maximum_term,
-        zernike_type="noll",
-    )
+        wavelength = set_wavelength(self.backend, wavelength)
+        normalized_field = set_field(self.backend, field_coordinate, field_type)
 
-    return _build_zernike_coefficients(zernike_opd, wavelength=wavelength, unit=unit), zernike_opd
+        zernike_opd = ZernikeOPD(
+            self.backend.optic,
+            field=normalized_field,
+            wavelength=wavelength,
+            num_rings=int(sampling),
+            num_terms=maximum_term,
+            zernike_type="noll",
+        )
+
+        return _build_zernike_coefficients(zernike_opd, wavelength=wavelength, unit=unit), zernike_opd

@@ -9,10 +9,12 @@ from visisipy.models import BaseEye, EyeModel
 from visisipy.opticstudio.surfaces import OpticStudioSurface, make_surface
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from zospy.zpcore import OpticStudioSystem
 
 
-__all__ = ("OpticStudioEye", "OpticStudioReverseEye")
+__all__ = ("OpticStudioEye",)
 
 
 class BaseOpticStudioEye(BaseEye):
@@ -35,7 +37,7 @@ class BaseOpticStudioEye(BaseEye):
         start_from_index: int = 0,
         replace_existing: bool = False,
         object_distance: float = float("inf"),
-    ):
+    ) -> None:
         """Create the eye in OpticStudio.
 
         Create the eye model in the provided `OpticStudioSystem` `oss`, starting from `start_from_index`.
@@ -66,7 +68,7 @@ class BaseOpticStudioEye(BaseEye):
     def eye_model(self) -> EyeModel: ...
 
     @property
-    def surfaces(self) -> dict[str, OpticStudioSurface]:
+    def surfaces(self) -> Mapping[str, OpticStudioSurface]:
         """Dictionary with surface names as keys and surfaces as values."""
         return {k.lstrip("_"): v for k, v in self.__dict__.items() if isinstance(v, OpticStudioSurface)}
 
@@ -235,150 +237,4 @@ class OpticStudioEye(BaseOpticStudioEye):
 
         if not self.retina.surface.IsImage:
             message = "The retina is not located at the image position."
-            raise ValueError(message)
-
-
-class OpticStudioReverseEye(BaseOpticStudioEye):  # pragma: no cover
-    """Reverse eye model in OpticStudio."""
-
-    def __init__(self, eye_model: EyeModel):
-        self._eye_model = eye_model
-
-        self._retina = OpticStudioSurface(
-            comment="retina / vitreous",
-            radius=-1 * eye_model.geometry.retina_curvature,
-            conic=eye_model.geometry.retina_asphericity,
-            thickness=eye_model.geometry.vitreous_thickness,
-            refractive_index=eye_model.materials.vitreous_refractive_index,
-        )
-        self._lens_back = OpticStudioSurface(
-            comment="lens back",
-            radius=-1 * eye_model.geometry.lens_back_curvature,
-            conic=eye_model.geometry.lens_back_asphericity,
-            thickness=eye_model.geometry.lens_thickness,
-            refractive_index=eye_model.materials.lens_refractive_index,
-        )
-        self._lens_front = OpticStudioSurface(
-            comment="lens front",
-            radius=-1 * eye_model.geometry.lens_front_curvature,
-            conic=-eye_model.geometry.lens_front_asphericity,
-            refractive_index=eye_model.materials.aqueous_refractive_index,
-        )
-        self._iris = OpticStudioSurface(
-            comment="iris",
-            is_stop=True,
-            refractive_index=eye_model.materials.aqueous_refractive_index,
-            semi_diameter=eye_model.geometry.iris_radius,
-        )
-        self._aqueous = OpticStudioSurface(
-            comment="aqueous",
-            thickness=eye_model.geometry.anterior_chamber_depth,
-            refractive_index=eye_model.materials.aqueous_refractive_index,
-        )
-        self._cornea_back = OpticStudioSurface(
-            comment="cornea back",
-            radius=-1 * eye_model.geometry.cornea_back_curvature,
-            conic=eye_model.geometry.cornea_back_asphericity,
-            thickness=eye_model.geometry.cornea_thickness,
-            refractive_index=eye_model.materials.cornea_refractive_index,
-        )
-        self._cornea_front = OpticStudioSurface(
-            comment="cornea front",
-            radius=-1 * eye_model.geometry.cornea_front_curvature,
-            conic=eye_model.geometry.cornea_front_asphericity,
-        )
-
-    @property
-    def eye_model(self) -> EyeModel:
-        """Source eye model used to construct this OpticStudio model."""
-        return self._eye_model
-
-    @property
-    def cornea_front(self) -> OpticStudioSurface:
-        """Anterior corneal surface."""
-        return self._cornea_front
-
-    @cornea_front.setter
-    def cornea_front(self, value: OpticStudioSurface) -> None:
-        self._cornea_front = value
-
-    @property
-    def cornea_back(self) -> OpticStudioSurface:
-        """Posterior corneal surface."""
-        return self._cornea_back
-
-    @cornea_back.setter
-    def cornea_back(self, value: OpticStudioSurface) -> None:
-        self._cornea_back = value
-
-    @property
-    def aqueous(self) -> OpticStudioSurface:
-        """Aqueous surface segment."""
-        return self._aqueous
-
-    @aqueous.setter
-    def aqueous(self, value: OpticStudioSurface) -> None:
-        self._aqueous = value
-
-    @property
-    def iris(self) -> OpticStudioSurface:
-        """Iris stop surface."""
-        return self._iris
-
-    @iris.setter
-    def iris(self, value: OpticStudioSurface) -> None:
-        self._iris = value
-
-    @property
-    def lens_front(self) -> OpticStudioSurface:
-        """Anterior lens surface."""
-        return self._lens_front
-
-    @lens_front.setter
-    def lens_front(self, value: OpticStudioSurface) -> None:
-        self._lens_front = value
-
-    @property
-    def lens_back(self) -> OpticStudioSurface:
-        """Posterior lens surface."""
-        return self._lens_back
-
-    @lens_back.setter
-    def lens_back(self, value: OpticStudioSurface) -> None:
-        self._lens_back = value
-
-    @property
-    def retina(self) -> OpticStudioSurface:
-        """Retinal surface."""
-        return self._retina
-
-    @retina.setter
-    def retina(self, value: OpticStudioSurface) -> None:
-        self._retina = value
-
-    def build(
-        self,
-        oss: OpticStudioSystem,
-        *,
-        start_from_index: int = 0,
-        replace_existing: bool = False,
-    ):
-        """Build the reverse eye model surfaces in sequence in OpticStudio.
-
-        Raises
-        ------
-        ValueError
-            If post-build consistency checks on retina object/image placement fail.
-        """
-        self.retina.build(oss, position=start_from_index, replace_existing=True)
-        self.lens_back.build(oss, position=start_from_index + 1, replace_existing=replace_existing)
-        self.lens_front.build(oss, position=start_from_index + 2, replace_existing=replace_existing)
-        self.iris.build(oss, position=start_from_index + 3, replace_existing=True)
-        self.aqueous.build(oss, position=start_from_index + 4, replace_existing=replace_existing)
-        self.cornea_back.build(oss, position=start_from_index + 5, replace_existing=replace_existing)
-        self.cornea_front.build(oss, position=start_from_index + 6, replace_existing=replace_existing)
-
-        # Sanity checks
-        if not self.retina.surface.IsObject:
-            message = "The retina is not located at the object position."
             raise ValueError(message)
