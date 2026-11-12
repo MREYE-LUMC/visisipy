@@ -557,7 +557,7 @@ class OptilandBiconicSurface(BaseOptilandSurface):
         return position
 
 
-class OptilandEvenAsphereSurface(BaseOptilandSurface):
+class OptilandEvenAsphereSurface(OptilandSurface):
     """Even asphere surface in Optiland."""
 
     _TYPE: str = "even_asphere"
@@ -599,33 +599,24 @@ class OptilandEvenAsphereSurface(BaseOptilandSurface):
         is_stop : bool, optional
             If `True`, the surface is treated as a stop.
         """
-        super().__init__()
+        super().__init__(
+            comment=comment,
+            radius=radius,
+            thickness=thickness,
+            semi_diameter=semi_diameter,
+            conic=conic,
+            material=material,
+            is_stop=is_stop,
+        )
 
-        self._comment = comment
-        self._radius = radius
-        self._thickness = thickness
-        self._semi_diameter = semi_diameter
-        self._conic = conic
         self._asphere_coefficients = (
             [float(c) for c in asphere_coefficients] if asphere_coefficients is not None else []
         )
-        self._material = material
-        self._is_stop = is_stop
-
-    @_built_only_property
-    def radius(self) -> float:
-        """Radius of the surface."""
-        return float(self.surface.geometry.radius)  # type: ignore
-
-    @_built_only_property
-    def conic(self) -> float:
-        """Conic constant of the surface."""
-        return float(self.surface.geometry.k)  # type: ignore
 
     @_built_only_property
     def asphere_coefficients(self) -> list[float]:
         """Coefficients of the even-order polynomial terms, starting with the coefficient of :math:`r^2`."""
-        return [float(c) for c in self.surface.geometry.coefficients]  # type: ignore
+        return [float(c) for c in self.surface.geometry.coefficients]
 
     def build(self, optical_system: Optic, *, position: int, replace_existing: bool = False) -> int:
         """Create the surface in Optiland.
@@ -852,7 +843,7 @@ def _make_surface(
     )
 
 
-@make_surface.register  # pyrefly: ignore[no-matching-overload]
+@make_surface.register
 def _make_surface(
     surface: EvenAsphereSurface,
     material: str | MaterialModel = "Air",
