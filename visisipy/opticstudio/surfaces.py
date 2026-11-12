@@ -370,7 +370,8 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
 
     OpticStudio supports at most 8 asphere coefficients, i.e. polynomial terms up to :math:`r^{16}`.
     After the surface has been built, individual coefficients can be retrieved and modified with
-    `get_asphere_coefficient` and `set_asphere_coefficient`.
+    `get_asphere_coefficient` and `set_asphere_coefficient`. Like in OpticStudio, these methods identify a coefficient
+    by the order of its term, i.e. 2 for :math:`r^2`, 4 for :math:`r^4`, up to 16 for :math:`r^{16}`.
     """
 
     _TYPE: str = "EvenAspheric"
@@ -441,9 +442,12 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
         self._asphere_coefficients = coefficients
 
     def _validate_coefficient(self, n: int) -> None:
-        if not 1 <= n <= self.MAX_ASPHERE_COEFFICIENTS:
+        valid_orders = range(2, 2 * self.MAX_ASPHERE_COEFFICIENTS + 1, 2)
+
+        if n not in valid_orders:
             raise ValueError(
-                f"Asphere coefficient index must be between 1 and {self.MAX_ASPHERE_COEFFICIENTS}, got {n}."
+                f"Asphere coefficient order must be an even number between {valid_orders[0]} and {valid_orders[-1]}, "
+                f"got {n}."
             )
 
     @property
@@ -455,13 +459,13 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
         return surface.SurfaceData
 
     def get_asphere_coefficient(self, n: int) -> float:
-        """Get the value of the nth asphere coefficient.
+        """Get the value of the asphere coefficient of the term of order `n`.
 
         Parameters
         ----------
         n : int
-            Index of the asphere coefficient, starting at 1 for the coefficient of :math:`r^2`. Index 2 is the
-            coefficient of :math:`r^4`, etc., up to index 8 for :math:`r^{16}`.
+            Order of the term, i.e. the power of :math:`r`: 2 for the coefficient of :math:`r^2`, 4 for the coefficient
+            of :math:`r^4`, etc., up to 16 for the coefficient of :math:`r^{16}`.
 
         Returns
         -------
@@ -471,7 +475,7 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
         Raises
         ------
         ValueError
-            If `n` is smaller than 1 or larger than 8.
+            If `n` is not an even number between 2 and 16.
         RuntimeError
             If the surface has not been built.
         """
@@ -480,22 +484,22 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
         return self._surface_data.GetNthEvenOrderTerm(n)
 
     def set_asphere_coefficient(self, n: int, value: float) -> None:
-        """Set the value of the nth asphere coefficient.
+        """Set the value of the asphere coefficient of the term of order `n`.
 
         Other asphere coefficients are not changed.
 
         Parameters
         ----------
         n : int
-            Index of the asphere coefficient, starting at 1 for the coefficient of :math:`r^2`. Index 2 is the
-            coefficient of :math:`r^4`, etc., up to index 8 for :math:`r^{16}`.
+            Order of the term, i.e. the power of :math:`r`: 2 for the coefficient of :math:`r^2`, 4 for the coefficient
+            of :math:`r^4`, etc., up to 16 for the coefficient of :math:`r^{16}`.
         value : float
             The value of the asphere coefficient.
 
         Raises
         ------
         ValueError
-            If `n` is smaller than 1 or larger than 8.
+            If `n` is not an even number between 2 and 16.
         RuntimeError
             If the surface has not been built.
         """
@@ -526,8 +530,9 @@ class OpticStudioEvenAsphereSurface(OpticStudioSurface):
         """
         surface_index = super().build(optical_system, position=position, replace_existing=replace_existing)
 
-        for n, value in enumerate(self._asphere_coefficients, start=1):
-            self.set_asphere_coefficient(n, value)
+        # The first coefficient belongs to the r^2 term, the second to the r^4 term, etc.
+        for i, value in enumerate(self._asphere_coefficients, start=1):
+            self.set_asphere_coefficient(2 * i, value)
 
         return surface_index
 
