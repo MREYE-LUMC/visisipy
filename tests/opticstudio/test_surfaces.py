@@ -9,6 +9,7 @@ import pytest
 from zospy.solvers import material_model as solve_material_model
 
 from visisipy.models.geometry import (
+    EvenAsphereSurface,
     NoSurface,
     StandardSurface,
     Stop,
@@ -20,6 +21,7 @@ from visisipy.models.materials import MaterialModel
 from visisipy.opticstudio.surfaces import (
     BaseOpticStudioZernikeSurface,
     OpticStudioBiconicSurface,
+    OpticStudioEvenAsphereSurface,
     OpticStudioNoSurface,
     OpticStudioSurface,
     OpticStudioSurfaceDataProperty,
@@ -41,7 +43,9 @@ def surface(oss):
     return surface
 
 
-@pytest.mark.parametrize("surface_class", [OpticStudioSurface, OpticStudioZernikeStandardSagSurface])
+@pytest.mark.parametrize(
+    "surface_class", [OpticStudioSurface, OpticStudioEvenAsphereSurface, OpticStudioZernikeStandardSagSurface]
+)
 def test_surface_type_exists(zos, surface_class: OpticStudioSurface):
     assert hasattr(zos.ZOSAPI.Editors.LDE.SurfaceType, surface_class._TYPE)
 
@@ -315,6 +319,104 @@ class TestOpticStudioBiconicSurface:
         surface.conic_x = 0.6
         assert surface.conic_x == 0.6
         assert surface.surface.SurfaceData.XConic == 0.6
+
+
+class TestOpticStudioEvenAsphereSurface:
+    @pytest.mark.parametrize("is_stop", [True, None])
+    def test_build(self, oss, is_stop):
+        surface = OpticStudioEvenAsphereSurface(
+            comment="Test comment",
+            radius=10.0,
+            thickness=2.0,
+            semi_diameter=3.0,
+            conic=-0.5,
+            asphere_coefficients=[0.0, 1e-3, -2e-5],
+            material="Test material",
+            is_stop=is_stop,
+        )
+
+        assert surface._is_built is False
+        surface_index = surface.build(oss, position=1)
+
+        assert surface_index == 1
+        assert surface._is_built is True
+        assert str(surface.surface.Type) == "EvenAspheric"
+
+        assert surface.comment == "Test comment"
+        assert surface.radius == 10.0
+        assert surface.thickness == 2.0
+        assert surface.semi_diameter == 3.0
+        assert surface.conic == -0.5
+        expected_coefficients = [0.0, 1e-3, -2e-5, 0.0, 0.0, 0.0, 0.0, 0.0]
+        assert [surface.get_asphere_coefficient(n) for n in range(2, 17, 2)] == pytest.approx(expected_coefficients)
+        assert surface.material == "TEST MATERIAL"  # OpticStudio capitalizes material names
+        assert surface.is_stop == bool(is_stop)
+
+    def test_asphere_coefficients_match_parameter_columns(self, zos, oss):
+        """The first coefficient is the 2nd order term (Par1), the second the 4th order term (Par2), etc."""
+        asphere_coefficients = [1e-1, 2e-2, 3e-3, 4e-4, 5e-5, 6e-6, 7e-7, 8e-8]
+        surface = OpticStudioEvenAsphereSurface(comment="Test", asphere_coefficients=asphere_coefficients)
+        surface.build(oss, position=1)
+
+        parameter_values = [
+            surface.surface.GetSurfaceCell(getattr(zos.ZOSAPI.Editors.LDE.SurfaceColumn, f"Par{n}")).DoubleValue
+            for n in range(1, 9)
+        ]
+
+        assert parameter_values == pytest.approx(asphere_coefficients)
+
+    def test_default_asphere_coefficients(self, oss):
+        surface = OpticStudioEvenAsphereSurface(comment="Test", radius=10.0)
+        surface.build(oss, position=1)
+
+        assert [surface.get_asphere_coefficient(n) for n in range(2, 17, 2)] == [0.0] * 8
+
+    def test_set_asphere_coefficient(self, oss):
+        surface = OpticStudioEvenAsphereSurface(comment="Test", asphere_coefficients=[0.0, 1e-3, -2e-5])
+        surface.build(oss, position=1)
+
+        surface.set_asphere_coefficient(4, 5e-4)
+
+        assert surface.surface.SurfaceData.GetNthEvenOrderTerm(4) == pytest.approx(5e-4)
+        # Other coefficients are not changed
+        expected_coefficients = [0.0, 5e-4, -2e-5, 0.0, 0.0, 0.0, 0.0, 0.0]
+        assert [surface.get_asphere_coefficient(n) for n in range(2, 17, 2)] == pytest.approx(expected_coefficients)
+
+    @pytest.mark.parametrize("n", [-2, 0, 1, 3, 18])
+    def test_get_asphere_coefficient_invalid_order_raises_valueerror(self, oss, n):
+        surface = OpticStudioEvenAsphereSurface(comment="Test")
+        surface.build(oss, position=1)
+
+        with pytest.raises(
+            ValueError, match=f"Asphere coefficient order must be an even number between 2 and 16, got {n}"
+        ):
+            surface.get_asphere_coefficient(n)
+
+    @pytest.mark.parametrize("n", [-2, 0, 1, 3, 18])
+    def test_set_asphere_coefficient_invalid_order_raises_valueerror(self, oss, n):
+        surface = OpticStudioEvenAsphereSurface(comment="Test")
+        surface.build(oss, position=1)
+
+        with pytest.raises(
+            ValueError, match=f"Asphere coefficient order must be an even number between 2 and 16, got {n}"
+        ):
+            surface.set_asphere_coefficient(n, 1e-3)
+
+    def test_get_asphere_coefficient_not_built_raises_runtimeerror(self):
+        surface = OpticStudioEvenAsphereSurface(comment="Test", asphere_coefficients=[0.0, 1e-3])
+
+        with pytest.raises(RuntimeError, match="The surface has not been built"):
+            surface.get_asphere_coefficient(2)
+
+    def test_set_asphere_coefficient_not_built_raises_runtimeerror(self):
+        surface = OpticStudioEvenAsphereSurface(comment="Test")
+
+        with pytest.raises(RuntimeError, match="The surface has not been built"):
+            surface.set_asphere_coefficient(2, 1e-3)
+
+    def test_too_many_asphere_coefficients_raises_valueerror(self):
+        with pytest.raises(ValueError, match="OpticStudio supports at most 8 asphere coefficients, got 9"):
+            OpticStudioEvenAsphereSurface(comment="Test", asphere_coefficients=[0.0] * 9)
 
 
 class TestBaseOpticStudioZernikeSurface:
@@ -686,6 +788,35 @@ class TestMakeSurface:
         assert opticstudio_surface._extrapolate == 1
         assert opticstudio_surface._zernike_coefficients == {1: 1.0, 2: 2.0, 3: 3.0}
         assert opticstudio_surface._material == "BK7"
+
+    @pytest.mark.parametrize("is_stop,expected_is_stop", [(True, True), (False, None)])
+    def test_make_even_asphere_surface(self, is_stop, expected_is_stop):
+        surface = EvenAsphereSurface(
+            radius=10.0,
+            asphericity=-0.5,
+            asphere_coefficients=[0.0, 1e-3, -2e-5],
+            thickness=2.0,
+            semi_diameter=3.0,
+            is_stop=is_stop,
+        )
+
+        opticstudio_surface = make_surface(surface, material="BK7", comment="IOL")
+
+        assert isinstance(opticstudio_surface, OpticStudioEvenAsphereSurface)
+        assert opticstudio_surface._comment == "IOL"
+        assert opticstudio_surface._radius == 10.0
+        assert opticstudio_surface._conic == -0.5
+        assert opticstudio_surface._asphere_coefficients == [0.0, 1e-3, -2e-5]
+        assert opticstudio_surface._thickness == 2.0
+        assert opticstudio_surface._semi_diameter == 3.0
+        assert opticstudio_surface._material == "BK7"
+        assert opticstudio_surface._is_stop is expected_is_stop
+
+    def test_make_even_asphere_surface_too_many_coefficients_raises_valueerror(self):
+        surface = EvenAsphereSurface(radius=10.0, asphere_coefficients=[0.0] * 9)
+
+        with pytest.raises(ValueError, match="OpticStudio supports at most 8 asphere coefficients"):
+            make_surface(surface, material="BK7")
 
     def test_make_no_surface(self):
         surface = NoSurface()

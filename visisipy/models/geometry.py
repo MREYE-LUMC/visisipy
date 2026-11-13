@@ -21,6 +21,7 @@ else:
 
 __all__ = (
     "BiconicSurface",
+    "EvenAsphereSurface",
     "EyeGeometry",
     "NoSurface",
     "StandardSurface",
@@ -290,6 +291,79 @@ class BiconicSurface(StandardSurface):
             y=y_radius,
             x=x_radius,
         )
+
+
+@dataclass
+class EvenAsphereSurface(StandardSurface):
+    r"""Even asphere surface.
+
+    Inherits from the `StandardSurface` class and represents a rotationally symmetric conic surface with additional
+    even-order polynomial terms. The sag of the surface is given by:
+
+    .. math::
+        z(r) = \frac{r^2}{R \left( 1 + \sqrt{1 - (1 + k) \frac{r^2}{R^2}} \right)} + \sum_{i=1}^{N} \alpha_i r^{2i}
+
+    with :math:`R` the radius of curvature, :math:`k` the asphericity and :math:`\alpha_i` the asphere coefficients.
+    This is the same definition as the Even Asphere surface in OpticStudio and the even asphere surface in Optiland.
+
+    Attributes
+    ----------
+    radius : float
+        The radius of the surface. Default is infinity.
+    asphericity : float
+        The asphericity of the surface. Default is 0.
+    asphere_coefficients : list[float]
+        The asphere coefficients :math:`\alpha_i`. The first element is the coefficient of :math:`r^2`, the second
+        element the coefficient of :math:`r^4`, etc. Default is an empty list, which results in a standard conic surface.
+        OpticStudio supports at most 8 coefficients (up to :math:`r^{16}`).
+    thickness : float
+        The thickness of the surface. Default is 0.
+    semi_diameter : float | None
+        The semi-diameter of the surface aperture. Default is `None`.
+    is_stop : bool
+        If `True`, the surface is a stop surface. Default is `False`.
+
+    Methods
+    -------
+    ellipsoid_radii(self) -> tuple[float, float, float]:
+        Calculate and return the ellipsoid x, y and z radii of the surface.
+    """
+
+    asphere_coefficients: list[float] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.asphere_coefficients = [float(c) for c in self.asphere_coefficients]
+
+    @property
+    def ellipsoid_radii(self) -> _EllipsoidRadii:
+        """Calculate and return the ellipsoid radii (semi-axes) of the surface.
+
+        This works only if the surface is an ellipsoid, i.e. if the asphericity is larger than -1 and all asphere
+        coefficients are zero. Otherwise, a NotImplementedError is raised.
+        A tuple of the radii along the z, y and x axes is returned, where the z axis is the optical axis.
+        These axes correspond to the following anatomical directions:
+
+        - z: anterior-posterior
+        - y: inferior-superior
+        - x: left-right
+
+        Returns
+        -------
+        tuple[float, float, float]
+            The ellipsoid radii (semi-axes) of the surface.
+
+        Raises
+        ------
+        NotImplementedError
+            If the surface is not an ellipsoid (asphericity <= -1 or non-zero asphere coefficients).
+        """
+        if any(c != 0 for c in self.asphere_coefficients):
+            raise NotImplementedError(
+                "Ellipsoid radii are only defined for ellipsoids. This even asphere surface has non-zero asphere "
+                "coefficients."
+            )
+
+        return super().ellipsoid_radii
 
 
 @dataclass

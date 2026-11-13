@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import math
 from contextlib import nullcontext as does_not_raise
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
+import optiland.geometries
 import optiland.materials
 import pytest
 
 from visisipy.models.geometry import (
     BiconicSurface,
+    EvenAsphereSurface,
     NoSurface,
     StandardSurface,
     Stop,
@@ -19,6 +22,7 @@ from visisipy.models.materials import MaterialModel
 from visisipy.optiland.surfaces import (
     BaseOptilandSurface,
     OptilandBiconicSurface,
+    OptilandEvenAsphereSurface,
     OptilandNoSurface,
     OptilandSurface,
     OptilandZernikeStandardSagSurface,
@@ -334,6 +338,79 @@ class TestOptilandBiconicSurface:
         assert surface.surface.geometry.kx == 0.3
 
 
+class TestOptilandEvenAsphereSurface:
+    @pytest.mark.parametrize("is_stop", [True, False, None])
+    def test_build(self, optic: Optic, is_stop: bool):
+        surface = OptilandEvenAsphereSurface(
+            comment="Test even asphere surface",
+            radius=10.0,
+            thickness=2.0,
+            semi_diameter=3.0,
+            conic=-0.5,
+            asphere_coefficients=[0.0, 1e-3, -2e-5],
+            material="BK7",
+            is_stop=is_stop,
+        )
+
+        assert_pre_build(surface)
+
+        surface_index = build_surface(optic, surface)
+
+        assert_post_build(surface, optic, surface_index)
+
+        assert surface.comment == "Test even asphere surface"
+        assert surface.radius == 10.0
+        assert surface.thickness == 2.0
+        assert surface.semi_diameter == 3.0
+        assert surface.conic == -0.5
+        assert surface.asphere_coefficients == [0.0, 1e-3, -2e-5]
+        assert surface.material == "BK7"
+        assert surface.is_stop == bool(is_stop)
+
+    def test_build_creates_even_asphere_geometry(self, optic: Optic):
+        surface = OptilandEvenAsphereSurface(comment="Test", radius=10.0, asphere_coefficients=[0.0, 1e-3])
+
+        build_surface(optic, surface)
+
+        assert isinstance(surface.surface.geometry, optiland.geometries.EvenAsphere)  # type: ignore
+        assert surface.surface.geometry.coefficients == [0.0, 1e-3]  # type: ignore
+
+    def test_default_asphere_coefficients(self, optic: Optic):
+        surface = OptilandEvenAsphereSurface(comment="Test", radius=10.0)
+
+        build_surface(optic, surface)
+
+        assert surface.asphere_coefficients == []
+
+    def test_sag(self, optic: Optic):
+        radius, conic = 10.0, -0.5
+        asphere_coefficients = [1e-3, 2e-4, -3e-6]
+        surface = OptilandEvenAsphereSurface(
+            comment="Test",
+            radius=radius,
+            conic=conic,
+            asphere_coefficients=asphere_coefficients,
+        )
+
+        build_surface(optic, surface)
+
+        r = 2.0
+        expected_sag = r**2 / (radius * (1 + math.sqrt(1 - (1 + conic) * r**2 / radius**2))) + sum(
+            c * r ** (2 * i) for i, c in enumerate(asphere_coefficients, start=1)
+        )
+
+        assert float(surface.surface.geometry.sag(x=0.0, y=r)) == pytest.approx(expected_sag)  # type: ignore
+
+    def test_asphere_coefficients_not_shared(self, optic: Optic):
+        asphere_coefficients = [0.0, 1e-3]
+        surface = OptilandEvenAsphereSurface(comment="Test", radius=10.0, asphere_coefficients=asphere_coefficients)
+
+        build_surface(optic, surface)
+        asphere_coefficients.append(1.0)
+
+        assert surface.asphere_coefficients == [0.0, 1e-3]
+
+
 class TestOptilandZernikeSurface:
     @pytest.mark.parametrize("is_stop", [True, False, None])
     def test_build(self, optic: Optic, is_stop: bool):
@@ -521,6 +598,29 @@ class TestMakeSurface:
         assert optiland_surface._conic == 0.5
         assert optiland_surface._conic_x == 0.3
         assert optiland_surface._material == "BK7"
+
+    @pytest.mark.parametrize("is_stop", [True, False])
+    def test_make_even_asphere_surface(self, is_stop: bool):
+        surface = EvenAsphereSurface(
+            radius=10,
+            asphericity=-0.5,
+            asphere_coefficients=[0.0, 1e-3, -2e-5],
+            thickness=2,
+            semi_diameter=3,
+            is_stop=is_stop,
+        )
+
+        optiland_surface = make_surface(surface, material="BK7", comment="IOL")
+
+        assert isinstance(optiland_surface, OptilandEvenAsphereSurface)
+        assert optiland_surface._comment == "IOL"
+        assert optiland_surface._radius == 10
+        assert optiland_surface._conic == -0.5
+        assert optiland_surface._asphere_coefficients == [0.0, 1e-3, -2e-5]
+        assert optiland_surface._thickness == 2
+        assert optiland_surface._semi_diameter == 3
+        assert optiland_surface._material == "BK7"
+        assert optiland_surface._is_stop is is_stop
 
     @pytest.mark.parametrize(
         "norm_radius,maximum_term,coefficients",

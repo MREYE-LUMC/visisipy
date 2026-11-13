@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from visisipy.models.catalog.navarro import NavarroGeometry
-from visisipy.models.geometry import BiconicSurface, EyeGeometry, StandardSurface, Stop
+from visisipy.models.geometry import BiconicSurface, EvenAsphereSurface, EyeGeometry, StandardSurface, Stop
 from visisipy.plots import _backend_translation, _plot_ellipse, _plot_hyperbola, _plot_parabola, plot_eye
 
 mpl.use("Agg")  # use non-interactive backend for testing
@@ -220,12 +220,26 @@ class TestPlotEye:
             pytest.param(6.0, -12.0, id="concave-lens-back"),
         ],
     )
-    def test_non_ellipsoid_retina_plotted_as_base_conic(self, lens_back_radius, retina_radius):
+    @pytest.mark.parametrize(
+        "retina_type",
+        [
+            pytest.param("biconic", id="biconic-retina"),
+            pytest.param("even-asphere", id="even-asphere-retina"),
+        ],
+    )
+    def test_non_ellipsoid_retina_plotted_as_base_conic(self, lens_back_radius, retina_radius, retina_type):
         """Test that retinas that are not ellipsoids are plotted as their base conic in the y-z plane."""
         asphericity = 0.2
-        retina = BiconicSurface(
-            radius=retina_radius, asphericity=asphericity, radius_x=retina_radius + 1, asphericity_x=asphericity
-        )
+
+        match retina_type:
+            case "biconic":
+                retina = BiconicSurface(
+                    radius=retina_radius, asphericity=asphericity, radius_x=retina_radius + 1, asphericity_x=asphericity
+                )
+            case "even-asphere":
+                retina = EvenAsphereSurface(
+                    radius=retina_radius, asphericity=asphericity, asphere_coefficients=[0.1, 0.01, 0.001]
+                )
 
         with pytest.raises(NotImplementedError):
             _ = retina.ellipsoid_radii

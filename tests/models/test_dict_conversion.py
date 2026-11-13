@@ -13,6 +13,7 @@ from visisipy.models.catalog.navarro import NavarroEyeModel
 from visisipy.models.catalog.synteyes import SyntEyesEyeModel, SyntEyesGeometry
 from visisipy.models.geometry import (
     BiconicSurface,
+    EvenAsphereSurface,
     EyeGeometry,
     NoSurface,
     StandardSurface,
@@ -193,6 +194,22 @@ class TestSurfaceDict:
         reconstructed = Surface.from_dict(original.to_dict())
 
         assert isinstance(reconstructed, BiconicSurface)
+        assert reconstructed == original
+
+    def test_even_asphere_surface_roundtrip(self):
+        original = EvenAsphereSurface(
+            radius=10.0, asphericity=-0.2, asphere_coefficients=[0.0, 1e-3, -2e-5], thickness=0.5
+        )
+        reconstructed = Surface.from_dict(original.to_dict())
+
+        assert isinstance(reconstructed, EvenAsphereSurface)
+        assert reconstructed == original
+
+    def test_even_asphere_surface_json_roundtrip(self):
+        original = EvenAsphereSurface(radius=10.0, asphere_coefficients=[0.0, 1e-3, -2e-5])
+        reconstructed = Surface.from_dict(json.loads(json.dumps(original.to_dict())))
+
+        assert isinstance(reconstructed, EvenAsphereSurface)
         assert reconstructed == original
 
     def test_no_surface_to_dict(self):
